@@ -1,12 +1,24 @@
-import { Text } from "react-native";
+import { StyleSheet, Text, TextStyle, TouchableOpacity, GestureResponderEvent } from 'react-native';
 
-interface CustomTextProps {
-    children: string;
-    style?: any;
-}
+type CustomTextProps = {
+    children: React.ReactNode;
+    style?: TextStyle | TextStyle[];
+    onPress?: (event: GestureResponderEvent) => void;
+};
 
-export default function CustomText({ children, style }: CustomTextProps) {
-    return (
-        <Text style={{ fontFamily: 'Onest-Regular', ...style }}>{children}</Text>
-    )
+const styles = StyleSheet.create({
+    text: {
+        fontFamily: 'Onest-Regular'
+    }
+});
+
+export default function CustomText({ children, style, onPress }: CustomTextProps) {
+    if (onPress) {
+        return (
+            <TouchableOpacity onPress={onPress}>
+                <Text style={[styles.text, style]}>{children}</Text>
+            </TouchableOpacity>
+        );
+    }
+    return <Text style={[styles.text, style]}>{children}</Text>;
 }
