@@ -1,50 +1,108 @@
-# Welcome to your Expo app 👋
+<div align="center">
+  <img src="assets/images/wheek/wheek.png" alt="Wheek Logo" width="300">
+  <h1>Wheek - Gestión Empresarial Inteligente</h1>
+  <p>Plataforma todo en uno para la administración integral de tu negocio</p>
+  
+  [![Plataformas](https://img.shields.io/badge/Plataformas-iOS%20%7C%20Android%20%7C%20Web-brightgreen)]()
+  [![Licencia](https://img.shields.io/badge/Licencia-MIT-blue.svg)](LICENSE)
+  [![Última versión](https://img.shields.io/badge/Versión-1.0.0-orange)]()
+</div>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Características Principales
 
-## Get started
+- **Gestión de Inventario** - Control de stock en tiempo real con alertas de bajo inventario
+- **Ventas y Facturación** - Procesamiento rápido de ventas con generación de facturas electrónicas
+- **Clientes y CRM** - Base de datos de clientes con historial de compras y preferencias
+- **Reportes Avanzados** - Análisis detallados de ventas, inventario y rendimiento
+- **Multi-sucursal** - Gestión centralizada de múltiples ubicaciones
+- **Soporte Offline** - Funcionalidad disponible sin conexión a internet
 
-1. Install dependencies
+## Capturas de Pantalla
 
+<div align="center">
+  <img src="assets/images/wheek/screenshot1.png" width="200" alt="Dashboard">
+  <img src="assets/images/wheek/screenshot2.png" width="200" alt="Ventas">
+  <img src="assets/images/wheek/screenshot3.png" width="200" alt="Inventario">
+</div>
+
+> *Nota: Las capturas de pantalla son ilustrativas. Se recomienda reemplazarlas con imágenes reales de la aplicación.*
+
+## Tecnologías Utilizadas
+
+- **Frontend**: React Native, Expo, TypeScript
+- **Navegación**: React Navigation
+- **Estado**: React Context API
+- **UI/UX**: Componentes personalizados y diseño responsivo
+- **Persistencia**: AsyncStorage para datos locales
+
+## Instalación
+
+1. Clona el repositorio:
    ```bash
-   npm install
+   git clone https://github.com/tu-usuario/wheek-app-rn.git
+   cd wheek-app-rn
    ```
 
-2. Start the app
+2. Instala las dependencias:
+   ```bash
+   npm install
+   # o
+   yarn install
+   ```
 
+3. Inicia la aplicación:
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. Escanea el código QR con la aplicación Expo Go (iOS/Android) o usa un emulador.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Estructura del Proyecto
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+wheek-app-rn/
+├── app/                    # Rutas y pantallas principales
+├── assets/                 # Recursos estáticos (imágenes, fuentes, etc.)
+├── components/            # Componentes reutilizables
+│   └── BottomTabs/        # Navegación inferior
+├── context/               # Contextos de React
+├── hooks/                 # Custom Hooks
+├── styles/                # Estilos globales
+└── utils/                 # Utilidades y helpers
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Arquitectura
 
-## Learn more
+```mermaid
+graph TD
+    A[Componentes UI] --> B[Contextos]
+    B --> C[Servicios/API]
+    C --> D[Almacenamiento Local]
+    D --> E[Base de Datos]
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Cómo Contribuir
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. Haz un Fork del proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Haz commit de tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Haz push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
-## Join the community
+## Licencia
 
-Join our community of developers creating universal apps.
+Distribuido bajo la licencia MIT. Ver `LICENSE` para más información.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Desarrollado por
+
+**Anthony Curse**
+
+- [GitHub](https://github.com/anthonycursewl)
+- [LinkedIn](https://www.linkedin.com/in/anthony-curse/)
+- [Twitter](https://twitter.com/anthonycursewl)
+
+---
+
+<div align="center">
+  <sub>Hecho con ❤️ por Anthony Cursewl</sub>
+</div>
