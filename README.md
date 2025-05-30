@@ -15,17 +15,11 @@
 - **Clientes y CRM** - Base de datos de clientes con historial de compras y preferencias
 - **Reportes Avanzados** - Análisis detallados de ventas, inventario y rendimiento
 - **Multi-sucursal** - Gestión centralizada de múltiples ubicaciones
-- **Soporte Offline** - Funcionalidad disponible sin conexión a internet
+- **Soporte Offline** - Funcionalidad disponible sin conexión a internet (soon)
 
 ## Capturas de Pantalla
 
-<div align="center">
-  <img src="assets/images/wheek/screenshot1.png" width="200" alt="Dashboard">
-  <img src="assets/images/wheek/screenshot2.png" width="200" alt="Ventas">
-  <img src="assets/images/wheek/screenshot3.png" width="200" alt="Inventario">
-</div>
-
-> *Nota: Las capturas de pantalla son ilustrativas. Se recomienda reemplazarlas con imágenes reales de la aplicación.*
+Pronto serán añadidas
 
 ## Tecnologías Utilizadas
 
@@ -39,7 +33,7 @@
 
 1. Clona el repositorio:
    ```bash
-   git clone https://github.com/tu-usuario/wheek-app-rn.git
+   git clone https://github.com/anthonycursewl/wheek-app-rn.git
    cd wheek-app-rn
    ```
 
@@ -95,11 +89,11 @@ Distribuido bajo la licencia MIT. Ver `LICENSE` para más información.
 
 ## Desarrollado por
 
-**Anthony Curse**
+**Anthony Cursewl**
 
 - [GitHub](https://github.com/anthonycursewl)
-- [LinkedIn](https://www.linkedin.com/in/anthony-curse/)
-- [Twitter](https://twitter.com/anthonycursewl)
+- [LinkedIn](https://www.linkedin.com/in/anthonycursewl/)
+- [Twitter](https://x.com/anthonycursewl)
 
 ---
 
