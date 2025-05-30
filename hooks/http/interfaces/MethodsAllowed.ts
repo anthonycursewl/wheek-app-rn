@@ -1,0 +1,1 @@
+export type MethodsAllowed = 'GET' | 'POST' | 'PUT' | 'DELETE';
