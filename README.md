@@ -72,7 +72,7 @@ graph TD
     A[Componentes UI] --> B[Contextos]
     B --> C[Servicios/API]
     C --> D[Almacenamiento Local]
-    D --> E[Base de Datos]
+    D --> E[Base de Datos] 
 ```
 
 ## Cómo Contribuir
