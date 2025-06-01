@@ -2,15 +2,27 @@ import BottomTabs from '@/components/BottomTabs';
 import CustomText from '@/components/CustomText/CustomText';
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
+
+import Button from '@/components/Buttons/Button';
 
 // Componentes de ejemplo para cada pestaña
 const HomeScreen = () => (
   <View style={styles.screen}>
     <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%' }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 20 }}>
             <Image source={require('@/assets/images/wheek/wheek.png')} style={{ width: 80, height: 50 }} resizeMode="contain"/>
 
-            <CustomText style={styles.screenText}>Hola</CustomText>
+            <CustomText style={styles.screenText}>-</CustomText>
+        </View>
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 5 }}>
+          <Button title="Crear producto" variant='primary-square' style={{ width: '48%' }} 
+          onPress={() => {
+            router.push('/products/create')
+          }}
+          />
+          <Button title="Registros" variant='binary-square' style={{ width: '48%' }} />
         </View>
 
     </View>
