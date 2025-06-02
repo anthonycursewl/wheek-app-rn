@@ -5,7 +5,7 @@ import Button from "@/components/Buttons/Button";
 import LogoPage from "@/components/LogoPage/LogoPage";
 // layout
 import LayoutScreen from "@/components/Layout/LayoutScreen";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 
 export default function CreateProduct() {
     return (
@@ -24,7 +24,7 @@ export default function CreateProduct() {
 
                 <View style={{ width: '100%', gap: 8 }}>
                     <CustomText style={{ fontSize: 18 }}>Descripción del Producto</CustomText>
-                    <Input placeholder="Descripción del Producto..."/>
+                    <Input placeholder="Descripción del Producto..." multiline={true} />
                 </View>
 
                 <View style={{ width: '100%', gap: 8 }}>
@@ -40,29 +40,3 @@ export default function CreateProduct() {
     )
 }
 
-const stylesCreateProduct = StyleSheet.create({
-    decorationRight: {
-        position: 'absolute',
-        width: 40,
-        height: 40,
-        top: -12,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgb(255, 143, 99)',
-        borderRadius: 12,
-        filter: 'blur(24px)'
-    }, 
-    decorationLeft: {
-        position: 'absolute',
-        width: 40,
-        height: 40,
-        top: 12,
-        left: '50%',
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgb(207, 148, 255)',
-        borderRadius: 12,
-        filter: 'blur(24px)'
-    }
-})
