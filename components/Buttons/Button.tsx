@@ -1,53 +1,58 @@
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity, ViewStyle } from "react-native";
 import CustomText from "../CustomText/CustomText";
 
 interface ButtonProps {
     title: string;
-    style?: any;
+    style?: ViewStyle;
     onPress?: () => void;
     uppercase?: boolean;
     variant?: 'primary' | 'primary-square' | 'secondary' | 'binary' | 'binary-square';
+    disabled?: boolean;
 }
 
-export default function Button({ title, style, onPress, uppercase, variant = 'primary' }: ButtonProps) {
+export default function Button({ 
+    title, 
+    style, 
+    onPress, 
+    uppercase = false, 
+    variant = 'primary',
+    disabled = false 
+}: ButtonProps) {
+    const getVariantStyle = () => {
+        const baseStyle = {
+            paddingVertical: 7,
+            paddingHorizontal: 14,
+            borderRadius: variant.includes('square') ? 8 : 18,
+            opacity: disabled ? 0.6 : 1,
+        };
 
-    const varients = {
-        primary: {
-            paddingVertical: 7,
-            paddingHorizontal: 14,
-            borderRadius: 18,
-            backgroundColor: 'rgba(94, 36, 255, 0.84)',
-        },
-        'primary-square': {
-            paddingVertical: 7,
-            paddingHorizontal: 14,
-            borderRadius: 8,
-            backgroundColor: 'rgba(94, 36, 255, 0.84)',
-        },
-        secondary: {
-            paddingVertical: 7,
-            paddingHorizontal: 14,
-            borderRadius: 18,
-            backgroundColor: 'rgba(94, 36, 255, 0.84)',
-        },
-        binary: {
-            paddingVertical: 7,
-            paddingHorizontal: 14,
-            borderRadius: 18,
-            backgroundColor: 'rgb(250, 182, 79)',
-        },
-        'binary-square': {
-            paddingVertical: 7,
-            paddingHorizontal: 14,
-            borderRadius: 8,
-            backgroundColor: 'rgb(250, 182, 79)',
-        }
-    }   
+        const variantStyles = {
+            primary: {
+                backgroundColor: 'rgba(94, 36, 255, 0.84)',
+            },
+            'primary-square': {
+                backgroundColor: 'rgba(94, 36, 255, 0.84)',
+            },
+            secondary: {
+                backgroundColor: 'rgba(94, 36, 255, 0.84)',
+            },
+            binary: {
+                backgroundColor: 'rgb(250, 182, 79)',
+            },
+            'binary-square': {
+                backgroundColor: 'rgb(250, 182, 79)',
+            }
+        };
+
+        return { ...baseStyle, ...variantStyles[variant] };
+    };
 
     return (
         <TouchableOpacity 
-            style={[styleButton.button, style, varients[variant]]} 
+            style={[styleButton.button, getVariantStyle(), style]} 
             onPress={onPress}
+            disabled={disabled}
+            activeOpacity={0.7}
         >
             <CustomText style={{ color: 'white', fontSize: 15 }}>{uppercase ? title.toUpperCase() : title}</CustomText>
         </TouchableOpacity>
