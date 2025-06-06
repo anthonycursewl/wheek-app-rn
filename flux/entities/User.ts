@@ -12,6 +12,6 @@ export interface User {
 }
 
 export interface UserResponse {
-    value: string;
+    refresh_token: string;
     access_token: string;
 }
