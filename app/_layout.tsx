@@ -3,7 +3,7 @@ import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Image, StyleSheet, View } from 'react-native';
-import { useAuthStore } from '../stores/useAuthStore';
+import useAuthStore from '@/flux/stores/AuthStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -57,7 +57,7 @@ const AnimatedSplashScreen = ({ onAnimationFinish }: { onAnimationFinish: () => 
 };
 
 function RootLayoutContent() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const { isAuthenticated } = useAuthStore();
   const [fontsLoaded, fontError] = useFonts({
     'Onest-Regular': require('../assets/fonts/Onest-Regular.ttf'),
   });

@@ -4,24 +4,27 @@ import { router } from "expo-router";
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Image, StyleSheet, View } from 'react-native';
 import CustomText from "../components/CustomText/CustomText";
-import { useAuth } from '../stores/useAuthStore';
+import useAuthStore from "@/flux/stores/AuthStore";
+import { loginAttemptAction, loginFailureAction, loginSuccessAction } from "@/flux/Actions/LoginActions";
+import { AuthService } from "@/flux/services/Auth/AuthService";
 
 type LoginStep = 'email' | 'password' | 'success';
 
-// Simulación de usuario válido
-const VALID_EMAIL = 'zerpaanthony.wx@breadriuss.com';
-const VALID_PASSWORD = '1234';
 
-const { width } = Dimensions.get('window')
-
+const { width } = Dimensions.get('window');
 export default function Index() {
     const [step, setStep] = useState<LoginStep>('email');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    })
+
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(30)).current;
     const scaleAnim = useRef(new Animated.Value(0.95)).current;
+
+    // global state
+    const { error, loading, dispatch } = useAuthStore();
 
     useEffect(() => {
         fadeAnim.setValue(0);
@@ -48,45 +51,31 @@ export default function Index() {
         ]).start();
     }, [step]);
 
-    const handleEmailSubmit = () => {
-        if (!email) {
-            setError('Por favor ingresa tu correo electrónico');
-            return;
+    const handleEmailSubmit = async () => {
+        dispatch(loginAttemptAction())
+        const { data, error } = await AuthService.login(formData.email, formData.password, 'email')
+        if (error) {
+            dispatch(loginFailureAction(error))
         }
-        if (!email.includes('@') || !email.includes('.')) {
-            setError('Por favor ingresa un correo electrónico válido');
-            return;
-        }
-       
-        if (email === VALID_EMAIL) {
-            setError('');
-            setStep('password');
-        } else {
-            setError('Este correo no está registrado');
+
+        if (data) {
+            dispatch(loginSuccessAction(data))
+            setStep('password')
         }
     };
-
-    const { login } = useAuth();
 
     const handlePasswordSubmit = async () => {
-        if (!password) {
-            setError('Por favor ingresa tu contraseña');
-            return;
+        dispatch(loginAttemptAction())
+        const { data, error } = await AuthService.login(formData.email, formData.password, 'password')
+        if (error) {
+            dispatch(loginFailureAction(error))
         }
-        if (password === VALID_PASSWORD) {
-            setError('');
-            const success = await login(email, 'simulated-jwt-token');
-            if (success) {
-                router.replace('/dashboard');
-            } 
-        } else {
-            setError('Contraseña incorrecta');
+
+        if (data) {
+            dispatch(loginSuccessAction(data))
+            router.replace('/dashboard')
         }
     };
-
-    const goToDashboard = () => {
-        router.replace('/dashboard');
-    }
 
     const renderStep = () => {
         switch (step) {
@@ -105,8 +94,8 @@ export default function Index() {
                             </CustomText>
                             <Input 
                                 placeholder="ejemplo@email.com" 
-                                value={email}
-                                onChangeText={setEmail}
+                                value={formData.email}
+                                onChangeText={(email) => setFormData({ ...formData, email })}
                                 autoCapitalize="none"
                                 keyboardType="email-address"
                             />
@@ -136,8 +125,8 @@ export default function Index() {
                             <Input 
                                 placeholder="Ingresa tu contraseña..." 
                                 secureTextEntry 
-                                value={password}
-                                onChangeText={setPassword}
+                                value={formData.password}
+                                onChangeText={(password) => setFormData({ ...formData, password })}
                                 onSubmitEditing={handlePasswordSubmit}
                             />
                             {error ? <CustomText style={styles.errorText}>{error}</CustomText> : null}
@@ -150,6 +139,7 @@ export default function Index() {
                         </View>
                         <View style={{ width: '100%', marginTop: 30 }}>
                             <Button 
+                                disabled={loading || formData.password.length < 1}
                                 title="Iniciar sesión" 
                                 onPress={handlePasswordSubmit}
                             />
@@ -175,7 +165,7 @@ export default function Index() {
                         <CustomText style={styles.successSubtext}>Inicio de sesión exitoso</CustomText>
                         <Button 
                             title="Ir al dashboard" 
-                            onPress={() => goToDashboard()}
+                            onPress={() => router.replace('/dashboard')}
                         />
                     </Animated.View>
                 );
