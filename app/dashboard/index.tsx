@@ -1,19 +1,28 @@
 import BottomTabs from '@/components/BottomTabs';
 import CustomText from '@/components/CustomText/CustomText';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 
 import Button from '@/components/Buttons/Button';
+import LayoutScreen from '@/components/Layout/LayoutScreen';
+import useAuthStore from '@/flux/stores/AuthStore';
+import { loginAttemptAction, loginFailureAction, loginSuccessAction, logoutAttemptAction, verifySuccessAction } from '@/flux/Actions/LoginActions';
+import { AuthService } from '@/flux/services/Auth/AuthService';
 
 // Componentes de ejemplo para cada pestaña
 const HomeScreen = () => (
   <View style={styles.screen}>
     <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%' }}>
+
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 20 }}>
             <Image source={require('@/assets/images/wheek/wheek.png')} style={{ width: 80, height: 50 }} resizeMode="contain"/>
 
             <CustomText style={styles.screenText}>-</CustomText>
+        </View>
+
+        <View>
+          <CustomText style={styles.screenText}>-</CustomText>
         </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 5 }}>
@@ -26,9 +35,6 @@ const HomeScreen = () => (
         </View>
 
     </View>
-
-
-
   </View>
 );
 
@@ -44,11 +50,21 @@ const FavoritesScreen = () => (
   </View>
 );
 
-const ProfileScreen = () => (
-  <View style={styles.screen}>
+const ProfileScreen = () => {
+  const { dispatch } = useAuthStore()
+
+  return (
+    <LayoutScreen>
+    <Button title='Cerrar sesión' onPress={() => {
+        dispatch(logoutAttemptAction())
+        router.replace('/')
+    }} variant='binary-square' />
+
     <CustomText style={styles.screenText}>Perfil</CustomText>
-  </View>
-);
+  </LayoutScreen>
+  )
+}
+
 
 const tabs = [
   {
@@ -78,6 +94,24 @@ const tabs = [
 ];
 
 export default function Dashboard() {
+  const { authToken, dispatch } = useAuthStore()
+
+  const verifyToken = async () => {
+    dispatch(loginAttemptAction())
+    const { data, error } = await AuthService.verifyToken(authToken?.access_token!) 
+    if (error) {
+      dispatch(loginFailureAction(error))
+    }
+    if (data) {
+      console.log(data)
+      dispatch(verifySuccessAction(data.value))
+    }
+  }
+
+  useEffect(() => {
+    verifyToken()
+  }, [])
+
   return (
     <BottomTabs 
       tabs={tabs}
