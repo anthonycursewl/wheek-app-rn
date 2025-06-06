@@ -9,34 +9,44 @@ import LayoutScreen from '@/components/Layout/LayoutScreen';
 import useAuthStore from '@/flux/stores/AuthStore';
 import { loginAttemptAction, loginFailureAction, loginSuccessAction, logoutAttemptAction, verifySuccessAction } from '@/flux/Actions/LoginActions';
 import { AuthService } from '@/flux/services/Auth/AuthService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Componentes de ejemplo para cada pestaña
-const HomeScreen = () => (
-  <View style={styles.screen}>
+const HomeScreen = () => {
+  const { user, loading } = useAuthStore()
+
+  const reuduceName = () => {
+    const fp = user?.name.split(' ')[0]
+    return fp ? (fp?.slice(0, 1) + fp?.slice(1, 2)).toUpperCase() : 'WH'
+  }
+
+  return (
+    <View style={styles.screen}>
     <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%' }}>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 20 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 10 }}>
             <Image source={require('@/assets/images/wheek/wheek.png')} style={{ width: 80, height: 50 }} resizeMode="contain"/>
 
-            <CustomText style={styles.screenText}>-</CustomText>
+            <View style={{ 
+              backgroundColor: 'rgb(240, 240, 240)',
+              borderRadius: 50,
+              width: 45,
+              height: 45,
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}> 
+              <CustomText style={styles.screenText}>{reuduceName()}</CustomText>
+            </View>
         </View>
 
         <View>
-          <CustomText style={styles.screenText}>-</CustomText>
-        </View>
-
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 5 }}>
-          <Button title="Crear producto" variant='primary-square' style={{ width: '48%' }} 
-          onPress={() => {
-            router.push('/products/create')
-          }}
-          />
-          <Button title="Registros" variant='binary-square' style={{ width: '48%' }} />
+          <CustomText style={styles.screenText}>Elige una opción.</CustomText>
         </View>
 
     </View>
   </View>
-);
+)}
+
 
 const SearchScreen = () => (
   <View style={styles.screen}>
@@ -55,10 +65,10 @@ const ProfileScreen = () => {
 
   return (
     <LayoutScreen>
-    <Button title='Cerrar sesión' onPress={() => {
-        dispatch(logoutAttemptAction())
-        router.replace('/')
-    }} variant='binary-square' />
+      <Button title='Cerrar sesión' onPress={() => {
+          dispatch(logoutAttemptAction())
+          router.replace('/')
+      }} variant='binary-square' />
 
     <CustomText style={styles.screenText}>Perfil</CustomText>
   </LayoutScreen>
@@ -94,16 +104,17 @@ const tabs = [
 ];
 
 export default function Dashboard() {
-  const { authToken, dispatch } = useAuthStore()
+  const { dispatch, authToken } = useAuthStore()
 
   const verifyToken = async () => {
     dispatch(loginAttemptAction())
-    const { data, error } = await AuthService.verifyToken(authToken?.access_token!) 
+    const token = await AsyncStorage.getItem('token')
+
+    const { data, error } = await AuthService.verifyToken(token || authToken.access_token) 
     if (error) {
       dispatch(loginFailureAction(error))
     }
     if (data) {
-      console.log(data)
       dispatch(verifySuccessAction(data.value))
     }
   }
@@ -138,8 +149,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   screenText: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 18,
     color: '#333',
   },
   tabBar: {
