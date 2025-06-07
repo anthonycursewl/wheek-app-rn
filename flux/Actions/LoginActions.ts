@@ -1,9 +1,11 @@
-import { UserResponse } from "../entities/User";
+import { User, UserResponse } from "../entities/User";
 
 export enum LoginActions {
     LOGIN_ATTEMPT = 'LOGIN_ATTEMPT',    
     LOGIN_SUCCESS = 'LOGIN_SUCCESS',
     LOGIN_FAILURE = 'LOGIN_FAILURE',
+    LOGOUT_ATTEMPT = 'LOGOUT_ATTEMPT',
+    VERIFY_SUCCESS = 'VERIFY_SUCCESS',
 }
 
 export const loginAttemptAction = () => ({
@@ -23,4 +25,14 @@ export const loginFailureAction = (error: string) => ({
 export const simulateLoginSuccessAction = () => ({
   type: LoginActions.LOGIN_SUCCESS,
 });
+
+export const logoutAttemptAction = () => ({
+  type: LoginActions.LOGOUT_ATTEMPT,
+});
+
+export const verifySuccessAction = (response: User) => ({
+  type: LoginActions.VERIFY_SUCCESS,
+  payload: { response },
+});
+
     
