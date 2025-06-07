@@ -35,7 +35,7 @@ const HomeScreen = () => {
               alignItems: 'center',
               justifyContent: 'center'
             }}> 
-              <CustomText style={styles.screenText}>{reuduceName()}</CustomText>
+              <CustomText style={styles.screenText}>{loading ? 'WH' : reuduceName()}</CustomText>
             </View>
         </View>
 
