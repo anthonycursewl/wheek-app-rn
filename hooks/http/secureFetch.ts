@@ -9,7 +9,6 @@ export const useFetch = async ({ options }: FetchProps): Promise<{ data: any | n
             headers: {
                 'Content-Type': 'application/json',
                 ...headers,
-                'Authorization': `Bearer ${await AsyncStorage.getItem('AuthToken')}`
             },
             body: stringify ? JSON.stringify(body) : body
         })
