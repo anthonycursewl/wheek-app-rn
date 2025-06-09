@@ -2,7 +2,7 @@ import Button from "@/components/Buttons/Button";
 import Input from "@/components/Input/Input";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Image, StyleSheet, View } from 'react-native';
+import { Animated, Dimensions, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import CustomText from "../components/CustomText/CustomText";
 import useAuthStore from "@/flux/stores/AuthStore";
 import { loginAttemptAction, loginFailureAction, loginSuccessAction } from "@/flux/Actions/LoginActions";
@@ -24,7 +24,7 @@ export default function Index() {
     const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
     // global state
-    const { error, loading, dispatch } = useAuthStore();
+    const { error, loading, dispatch, user } = useAuthStore();
 
     useEffect(() => {
         fadeAnim.setValue(0);
@@ -161,12 +161,28 @@ export default function Index() {
                             style={styles.logo}
                             />
                         <View style={styles.decorationLeft} />
-                        <CustomText style={styles.successText}>¡Bienvenido!</CustomText>
-                        <CustomText style={styles.successSubtext}>Inicio de sesión exitoso</CustomText>
-                        <Button 
-                            title="Ir al dashboard" 
-                            onPress={() => router.replace('/dashboard')}
-                        />
+
+                        <View>
+                            <CustomText style={styles.successText}>
+                                ¡Hola {user?.name.split(' ')[0]}!
+                            </CustomText>
+                            <CustomText style={styles.successSubtext}>Elige una sucursal.</CustomText>
+                        </View>
+
+                        <TouchableOpacity 
+                        style={{ width: '100%', marginTop: 15,
+                            borderWidth: 1,
+                            borderColor: 'rgb(148, 148, 148)',
+                            borderStyle: 'dashed',
+                            borderRadius: 12,
+                            padding: 10,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            height: 100,
+                         }}>
+                            <CustomText style={{ color: 'rgb(148, 148, 148)' }}>Tap para crear una sucursal.</CustomText>
+                        </TouchableOpacity>
+                        
                     </Animated.View>
                 );
         }
@@ -203,7 +219,7 @@ const styles = StyleSheet.create({
     successContainer: {
         flex: 1,
         width: '100%',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         alignItems: 'center',
         padding: 20,
         transform: [{ scale: 1 }],
@@ -215,9 +231,10 @@ const styles = StyleSheet.create({
     },
     logo: {
         width: 150,
-        height: 100,
+        height: 50,
         resizeMode: 'contain',
         opacity: 1,
+        marginTop: 50,
         transform: [{ scale: 1 }],
     },
     label: {
