@@ -8,6 +8,7 @@ type CustomTextProps = {
 
 const styles = StyleSheet.create({
     text: {
+        fontSize: 16,
         fontFamily: 'Onest-Regular'
     }
 });

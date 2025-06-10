@@ -90,7 +90,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 60,
     backgroundColor: 'rgb(248, 248, 248)',
-    paddingTop: 20,
   },
   tabBarContainer: {
     position: 'absolute',
