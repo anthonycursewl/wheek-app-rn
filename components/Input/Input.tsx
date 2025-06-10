@@ -4,12 +4,18 @@ type InputProps = TextInputProps & {
     placeholder: string;
     style?: any;
     secureTextEntry?: boolean;
+    multiline?: boolean;
+    value?: string;
+    onChangeText?: (text: string) => void;
 }
 
-export default function Input({ placeholder, style, secureTextEntry, ...props }: InputProps) {
+export default function Input({ placeholder, style, secureTextEntry, multiline = false, value, onChangeText, ...props }: InputProps) {
     return (
         <TextInput 
+            value={value}
+            onChangeText={onChangeText}
             placeholder={placeholder}
+            multiline={multiline}
             style={[styleInput.input, style]}
             secureTextEntry={secureTextEntry}
             placeholderTextColor="#999"
