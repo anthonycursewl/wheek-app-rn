@@ -34,7 +34,7 @@ export default function CreateStore() {
 
         if (data) {
             dispatch(createStoreSuccessAction(data))
-            Alert.alert('Wheek | Éxito!', `La tienda ${data.name} se ha creado correctamente!`)
+            Alert.alert('Wheek | Éxito!', `La tienda ${storeData.name} se ha creado correctamente!`)
             router.replace('/dashboard')
         }
     }

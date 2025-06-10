@@ -1,7 +1,7 @@
 import BottomTabs from '@/components/BottomTabs';
 import CustomText from '@/components/CustomText/CustomText';
 import React, { useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 
 import Button from '@/components/Buttons/Button';
@@ -14,10 +14,15 @@ import StoreLogo from '@/svgs/StoreLogo';
 import IconArrow from '@/svgs/IconArrow';
 import ModalOptions from '@/components/Modals/ModalOptions';
 import TypeStore from '@/components/TypeStore/TypeStore';
+import { useShopStore } from '@/flux/stores/useShopStore';
+import { getStoresAttemptAction, getStoresFailureAction, getStoresSuccessAction } from '@/flux/Actions/StoreActions';
+import { StoreService } from '@/flux/services/StoreS/StoreService';
 import { useGlobalStore } from '@/flux/stores/useGlobalStore';
-
+import IconStores from '@/svgs/IconStores';
 const HomeScreen = () => {
   const { user, loading } = useAuthStore()
+  const { dispatch, error, stores } = useShopStore()
+  const { currentStore } = useGlobalStore()
 
   const reuduceName = () => {
     const fp = user?.name.split(' ')[0]
@@ -26,43 +31,37 @@ const HomeScreen = () => {
 
   const [modalVisible, setModalVisible] = useState(false)
 
-  const mockStores = [
-    {
-      id: 'erdfsdfdsfdsf',
-      title: 'Tienda Principal',
-    },
-    {
-      id: 'fdsfdsfsdf',
-      title: 'Wheek San Cristóbal',
-    },
-    {
-      id: 'fdfdsffdf',
-      title: 'Wheek Palma',
-    },
-    {
-      id: 'eieihfhdjhfdh',
-      title: 'Wheek Cienfuegos',
-    },
-    {
-      id: 'eieihfdsfdfdh',
-      title: 'Wheek San Josecito',
-    },
-    {
-      id: 'eieihfhdjhfdh',
-      title: 'Wheek San Isidro',
-    },
-    {
-      id: 'fdfryhghgjhjg',
-      title: 'Wheek Cárdenas',
+  const getAllStores = async () => {
+      dispatch(getStoresAttemptAction())
+      const { data, error } = await StoreService.getStores(user?.id || '')
+      if (error) {
+        dispatch(getStoresFailureAction(error))
+      }
+      if (data) {
+        dispatch(getStoresSuccessAction(data))
+      }
+  }
+
+  useEffect(() => {
+    if (stores.length === 0 && user) {
+      getAllStores()
     }
-  ]
+  }, [user])
+
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Wheek | Error', error)
+    }
+  }, [error])
 
   return (
     <LayoutScreen>
       <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%' }}>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: 10 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <Image source={require('@/assets/images/wheek/wheek.png')} style={{ width: 80, height: 50 }} resizeMode="contain"/>
+
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
 
@@ -92,16 +91,30 @@ const HomeScreen = () => {
             </View>
         </View>
 
-        <View>
-          <CustomText style={styles.screenText}>Información relevante de la app.</CustomText>
+          <View style={{ 
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 5,
+              borderRadius: 12,
+              paddingVertical: 4,
+              paddingHorizontal: 8,
+              borderWidth: 1,
+              borderStyle: 'dashed',
+              borderColor: 'rgba(219, 180, 255, 0.95)'
+            }}>
+            <IconStores width={15} height={15} />
+            <CustomText style={{ fontSize: 14 }}>{currentStore.name || 'Selecciona una tienda.'}</CustomText>
+          </View>
         </View>
-      </View>
 
       <ModalOptions visible={modalVisible} onClose={() => setModalVisible(false)}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, width: '100%', justifyContent: 'space-between' }}>
           <Image source={require('@/assets/images/wheek/wheek.png')} style={{ width: 70, height: 40 }} resizeMode="contain"/>
           
-          <TouchableOpacity onPress={() => router.push('/store/create')}
+          <TouchableOpacity onPress={() => {
+            router.push('/store/create');
+            setModalVisible(false)
+          }}
             style={{
               backgroundColor: 'rgb(238, 238, 238)',
               borderRadius: 50,
@@ -115,24 +128,24 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
 
-        <View>
+        <View style={{ marginTop: 10 }}>
           <CustomText>Elige la tienda a <CustomText style={{ color: 'rgb(170, 125, 241)', fontWeight: 'medium' }}>administrar</CustomText>.</CustomText>
         </View>
 
         <View style={{ marginTop: 10, width: '100%' }}>
           <FlatList
             key="two-columns"
-            data={mockStores}
+            data={stores}
             style={{ width: '100%', height: '84%' }}
             showsVerticalScrollIndicator={false}
             numColumns={2}
             columnWrapperStyle={{ justifyContent: 'space-between' }}
             contentContainerStyle={{ rowGap: 12 }}
-            renderItem={({ item }) => (
+            renderItem={({ item: store }) => (
               <View style={{ width: '48%', minHeight: 100 }}>
                 <TypeStore
-                  id={item.id}
-                  title={item.title}
+                  store={store}
+                  setModalVisible={setModalVisible}
                 />
               </View>
             )}
