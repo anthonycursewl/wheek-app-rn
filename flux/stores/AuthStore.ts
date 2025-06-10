@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { LoginActions } from '../Actions/LoginActions';
 import { User, UserResponse } from '../entities/User';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AuthState {
     isAuthenticated: boolean;
