@@ -101,7 +101,7 @@ const HomeScreen = () => {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, width: '100%', justifyContent: 'space-between' }}>
           <Image source={require('@/assets/images/wheek/wheek.png')} style={{ width: 70, height: 40 }} resizeMode="contain"/>
           
-          <TouchableOpacity onPress={() => console.log('create-store')}
+          <TouchableOpacity onPress={() => router.push('/store/create')}
             style={{
               backgroundColor: 'rgb(238, 238, 238)',
               borderRadius: 50,
