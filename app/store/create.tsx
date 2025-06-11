@@ -19,6 +19,9 @@ export default function CreateStore() {
     const { user } = useAuthStore()
     const { dispatch, loading, error } = useShopStore()
 
+    /**
+     * Skipping data because backend handle id generation and created_at field.
+     */
     const [storeData, setStoreData] = useState<Omit<StoreData, 'id' | 'created_at' | 'is_active'>>({
         name: '',
         description: '',
@@ -53,6 +56,10 @@ export default function CreateStore() {
             </View>
 
             <View style={{ width: '100%', gap: 18, marginTop: 20 }}>
+                <View>
+                    <CustomText>Estás creando esta tienda como <CustomText style={{ color: 'rgb(255, 152, 0)' }}>{user?.name}</CustomText></CustomText>
+                </View>
+
                 <View style={{ gap: 10 }}>
                     <CustomText>Nombre de la tienda</CustomText>
                     <Input placeholder="Nombre de la tienda" 
