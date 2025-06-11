@@ -5,7 +5,7 @@ import CustomText from '../CustomText/CustomText';
 type TabItem = {
   id: string;
   label: string;
-  icon: string;
+  icon: ReactNode;
   component?: ReactNode;
 };
 
