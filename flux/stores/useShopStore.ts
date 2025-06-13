@@ -7,7 +7,7 @@ interface ShopStore {
     error: string | null;
     stores: StoreData[];
     _createStore: () => void;
-    _createStoreSuccess: () => void;
+    _createStoreSuccess: (store: StoreData) => void;
     _createStoreFailure: (error: string) => void;
     _getStoresAttempt: () => void;
     _getStoresSuccess: (stores: StoreData[]) => void;
@@ -27,10 +27,11 @@ export const useShopStore = create<ShopStore>((set, get) => ({
         })
     },
 
-    _createStoreSuccess: () => {
+    _createStoreSuccess: (store: StoreData) => {
         set({
             loading: false,
             error: null,
+            stores: [...get().stores, store]
         })
     },
 
@@ -52,7 +53,7 @@ export const useShopStore = create<ShopStore>((set, get) => ({
         set({
             loading: false,
             error: null,
-            stores: [...stores, ...get().stores]
+            stores: [...get().stores, ...stores]
         })
     },
 
@@ -69,7 +70,7 @@ export const useShopStore = create<ShopStore>((set, get) => ({
                 get()._createStore()
                 break;
             case StoreActions.CREATE_STORE_SUCCESS:
-                get()._createStoreSuccess()
+                get()._createStoreSuccess(action.payload.store)
                 break;
             case StoreActions.CREATE_STORE_FAILURE:
                 get()._createStoreFailure(action.payload.error)
