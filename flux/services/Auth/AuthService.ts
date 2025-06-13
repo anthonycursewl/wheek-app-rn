@@ -7,6 +7,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const AuthService = {
     async login(email: string, password: string, ref: 'email' | 'password'): Promise<{ data: UserResponse | null, error: string | null }> {
+        if (!email) {
+            return { data: null, error: 'El correo electrónico es obligatorio! Intenta de nuevo.' };
+        }
         const { data, error } = await useFetch({
             options: {
                 url: `${WheekConfig.API_BASE_URL}/auth/login?ref=${ref}`,
