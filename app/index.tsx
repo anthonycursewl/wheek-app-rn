@@ -6,6 +6,8 @@ import { loginAttemptAction, loginFailureAction, loginSuccessAction } from "@/fl
 import { AuthService } from "@/flux/services/Auth/AuthService";
 import { renderStep } from "@/components/StepsAuth/RenderStepsLogin";
 import { stylesSteps } from "@/components/StepsAuth/styles";
+import { TouchableOpacity } from "react-native";
+import CustomText from "@/components/CustomText/CustomText";
 
 export default function Index() {
     const [step, setStep] = useState<'email' | 'password' | 'success'>('email');
@@ -18,7 +20,6 @@ export default function Index() {
     const slideAnim = useRef(new Animated.Value(30)).current;
     const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
-    // global state
     const { error, loading, dispatch } = useAuthStore();
 
     useEffect(() => {
@@ -84,6 +85,12 @@ export default function Index() {
             )}
 
             {renderStep(step, fadeAnim, slideAnim, scaleAnim, formData, setFormData, error, handleEmailSubmit, handlePasswordSubmit, setStep, loading)}
+            
+            <View style={stylesSteps.linkTextContainer}>
+                <TouchableOpacity onPress={() => router.push('/auth/register')}>
+                    <CustomText style={stylesSteps.linkText}>¿No tienes cuentas? Registrate aquí!</CustomText>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
