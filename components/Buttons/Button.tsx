@@ -3,7 +3,7 @@ import CustomText from "../CustomText/CustomText";
 
 interface ButtonProps {
     title: string;
-    style?: ViewStyle;
+    style?: ViewStyle | ViewStyle[];
     onPress?: () => void;
     uppercase?: boolean;
     variant?: 'primary' | 'primary-square' | 'secondary' | 'binary' | 'binary-square';
