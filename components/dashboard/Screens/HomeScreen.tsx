@@ -1,7 +1,7 @@
 import useAuthStore from "@/flux/stores/AuthStore"
 import { useShopStore } from "@/flux/stores/useShopStore"
 import { useGlobalStore } from "@/flux/stores/useGlobalStore"
-import { getStoresAttemptAction, getStoresFailureAction, getStoresSuccessAction } from "@/flux/Actions/StoreActions"
+import { getStoresAttemptAction, getStoresFailureAction, getStoresSuccessAction, resetErrorAction } from "@/flux/Actions/StoreActions"
 import { StoreService } from "@/flux/services/StoreS/StoreService"
 import { Alert, FlatList, Image, TouchableOpacity, View } from 'react-native'
 import LayoutScreen from "@/components/Layout/LayoutScreen"
@@ -13,6 +13,7 @@ import ModalOptions from "@/components/Modals/ModalOptions"
 import { useState, useEffect } from "react"
 import IconStores from "@/svgs/IconStores"
 import { router } from "expo-router"
+import IconManage from "@/svgs/IconManage"
 
 export const HomeScreen = () => {
     const { user, loading } = useAuthStore()
@@ -43,10 +44,13 @@ export const HomeScreen = () => {
       }
     }, [user])
   
-  
     useEffect(() => {
       if (error) {
         Alert.alert('Wheek | Error', error)
+      }
+
+      return () => {
+        dispatch(resetErrorAction())
       }
     }, [error])
   
@@ -100,8 +104,27 @@ export const HomeScreen = () => {
               <IconStores width={15} height={15} />
               <CustomText style={{ fontSize: 14 }}>{currentStore.name || 'Selecciona una tienda.'}</CustomText>
             </View>
+            
+            <TouchableOpacity onPress={() => router.push('/store/create')}>
+              <View style={{ 
+                marginTop: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                borderRadius: 12,
+                paddingVertical: 4,
+                paddingHorizontal: 8,
+                paddingRight: 12,
+                backgroundColor: 'rgba(223, 223, 223, 0.95)' 
+              }}>
+                <IconManage style={{ width: 25, height: 25 }} />
+                <CustomText>Administrar tienda</CustomText>
+              </View>
+            </TouchableOpacity>
+
+
           </View>
-  
+
         <ModalOptions visible={modalVisible} onClose={() => setModalVisible(false)}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, width: '100%', justifyContent: 'space-between' }}>
             <Image source={require('@/assets/images/wheek/wheek.png')} style={{ width: 70, height: 40 }} resizeMode="contain"/>

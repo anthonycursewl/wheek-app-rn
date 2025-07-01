@@ -12,8 +12,8 @@ export const stylesSteps = StyleSheet.create({
         backgroundColor: '#fff',
     },
     stepContainer: {
-        width: '85%',
-        alignItems: 'center',
+        width: '100%',
+        alignItems: 'flex-start',
         transform: [{ scale: 1 }],
     },
     successContainer: {
@@ -47,16 +47,45 @@ export const stylesSteps = StyleSheet.create({
         marginTop: 5,
         fontSize: 14,
     },
-    linkText: {
-        color: '#007AFF',
-        marginTop: 10,
-        textAlign: 'right',
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        marginTop: 20,
+    },
+    secondaryButton: {
+        marginRight: 10,
+        flex: 1,
+    },
+    fullWidthButton: {
+        width: '100%',
+        marginTop: 20,
+    },
+    hintText: {
+        color: '#666',
+        fontSize: 12,
+        marginTop: 15,
+        marginBottom: 8,
+    },
+    successTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+        color: '#000',
     },
     successText: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#000',
+        fontSize: 16,
         textAlign: 'center',
+        marginBottom: 30,
+        color: '#333',
+        lineHeight: 24,
+    },
+    linkText: {
+        color: 'rgb(108, 94, 131)',
+        marginTop: 10,
+        fontSize: 14,
+        textAlign: 'right',
     },
     successSubtext: {
         fontSize: 18,
@@ -83,5 +112,11 @@ export const stylesSteps = StyleSheet.create({
         backgroundColor: 'rgb(255, 143, 99)',
         borderRadius: width * 0.2,
         filter: 'blur(80px)',
+    },
+    linkTextContainer: {
+        position: 'absolute',
+        bottom: 20,
+        width: '100%',
+        alignItems: 'center',
     },
 });
