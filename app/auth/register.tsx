@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
 import { View, Animated, StyleSheet, KeyboardAvoidingView, Platform, Image, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { renderRegisterStep } from "@/components/StepsAuth/RenderRegisterSteps";
-import { stylesSteps } from "@/components/StepsAuth/styles";
+import { renderRegisterStep } from "@components/StepsAuth/RenderRegisterSteps";
+import { stylesSteps } from "@components/StepsAuth/styles";
 
 type RegisterStep = 'email' | 'password' | 'confirmPassword' | 'userInfo' | 'success';
 
@@ -147,7 +147,7 @@ export default function RegisterScreen() {
                         currentStep !== 'success' && (
                             <View style={styles.logoContainer}>
                                 <Image 
-                                    source={require('@/assets/images/wheek/wheek.png')} 
+                                    source={require('@assets/images/wheek/wheek.png')} 
                                     style={stylesSteps.logo}
                                     resizeMode="contain"
                                 />

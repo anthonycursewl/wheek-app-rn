@@ -1,13 +1,13 @@
-import BottomTabs from '@/components/BottomTabs';
-import React, { useEffect } from 'react';
-import useAuthStore from '@/flux/stores/AuthStore';
-import { loginAttemptAction, loginFailureAction, loginSuccessAction, logoutAttemptAction, verifySuccessAction } from '@/flux/Actions/LoginActions';
-import { AuthService } from '@/flux/services/Auth/AuthService';
+import BottomTabs from '@components/BottomTabs';
+import { useEffect } from 'react';
+import useAuthStore from '@flux/stores/AuthStore';
+import { loginAttemptAction, loginFailureAction, verifySuccessAction } from '@flux/Actions/LoginActions';
+import { AuthService } from '@flux/services/Auth/AuthService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // dependencies for tabs
-import { tabs } from '@/components/BottomTabs/Tabs/Tabs';
-import { mainStyles } from '@/components/dashboard/mainStyles';
+import { tabs } from '@components/BottomTabs/Tabs/Tabs';
+import { mainStyles } from '@components/dashboard/mainStyles';
 
 export default function Dashboard() {
   const { dispatch, authToken } = useAuthStore()

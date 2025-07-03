@@ -1,13 +1,13 @@
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Image, View } from 'react-native';
-import useAuthStore from "@/flux/stores/AuthStore";
-import { loginAttemptAction, loginFailureAction, loginSuccessAction } from "@/flux/Actions/LoginActions";
-import { AuthService } from "@/flux/services/Auth/AuthService";
-import { renderStep } from "@/components/StepsAuth/RenderStepsLogin";
-import { stylesSteps } from "@/components/StepsAuth/styles";
+import useAuthStore from "@flux/stores/AuthStore";
+import { loginAttemptAction, loginFailureAction, loginSuccessAction } from "@flux/Actions/LoginActions";
+import { AuthService } from "@flux/services/Auth/AuthService";
+import { renderStep } from "@components/StepsAuth/RenderStepsLogin";
+import { stylesSteps } from "@components/StepsAuth/styles";
 import { TouchableOpacity } from "react-native";
-import CustomText from "@/components/CustomText/CustomText";
+import CustomText from "@components/CustomText/CustomText";
 
 export default function Index() {
     const [step, setStep] = useState<'email' | 'password' | 'success'>('email');
@@ -78,7 +78,7 @@ export default function Index() {
             {step !== 'success' && (
                 <View style={stylesSteps.logoContainer}>
                     <Image 
-                        source={require('@/assets/images/wheek/wheek.png')} 
+                        source={require('@assets/images/wheek/wheek.png')} 
                         style={stylesSteps.logo}
                     />
                 </View>
