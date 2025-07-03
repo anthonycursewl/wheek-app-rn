@@ -3,7 +3,7 @@ import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Image, StyleSheet, View } from 'react-native';
-import useAuthStore from '@/flux/stores/AuthStore';
+import useAuthStore from 'flux/stores/AuthStore';
 
 SplashScreen.preventAutoHideAsync();
 
