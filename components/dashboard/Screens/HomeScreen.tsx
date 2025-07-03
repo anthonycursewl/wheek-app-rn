@@ -1,26 +1,40 @@
-import useAuthStore from "@/flux/stores/AuthStore"
-import { useShopStore } from "@/flux/stores/useShopStore"
-import { useGlobalStore } from "@/flux/stores/useGlobalStore"
-import { getStoresAttemptAction, getStoresFailureAction, getStoresSuccessAction, resetErrorAction } from "@/flux/Actions/StoreActions"
-import { StoreService } from "@/flux/services/StoreS/StoreService"
-import { Alert, FlatList, Image, TouchableOpacity, View } from 'react-native'
-import LayoutScreen from "@/components/Layout/LayoutScreen"
-import CustomText from "@/components/CustomText/CustomText"
-import IconArrow from "@/svgs/IconArrow"
-import StoreLogo from "@/svgs/StoreLogo"
-import TypeStore from "@/components/TypeStore/TypeStore"
-import ModalOptions from "@/components/Modals/ModalOptions"
-import { useState, useEffect } from "react"
-import IconStores from "@/svgs/IconStores"
-import { router } from "expo-router"
-import IconManage from "@/svgs/IconManage"
+// React and React Native
+import { useState, useEffect } from 'react';
+import { Alert, FlatList, Image, TouchableOpacity, View } from 'react-native';
+import { router, useRouter } from 'expo-router';
+
+// Store and Services
+import useAuthStore from '@flux/stores/AuthStore';
+import { useShopStore } from '@flux/stores/useShopStore';
+import { useGlobalStore } from '@flux/stores/useGlobalStore';
+import { 
+  getStoresAttemptAction, 
+  getStoresFailureAction, 
+  getStoresSuccessAction, 
+  resetErrorAction 
+} from '@flux/Actions/StoreActions';
+import { StoreService } from '@flux/services/StoreS/StoreService';
+
+// Components
+import LayoutScreen from '@components/Layout/LayoutScreen';
+import CustomText from '@components/CustomText/CustomText';
+import TypeStore from '@components/TypeStore/TypeStore';
+import ModalOptions from '@components/Modals/ModalOptions';
+
+// Icons
+import IconArrow from 'svgs/IconArrow';
+import StoreLogo from 'svgs/StoreLogo';
+import IconStores from 'svgs/IconStores';
+import IconManage from 'svgs/IconManage';
 
 export const HomeScreen = () => {
     const { user, loading } = useAuthStore()
     const { dispatch, error, stores } = useShopStore()
     const { currentStore } = useGlobalStore()
   
-    const reuduceName = () => {
+    const router = useRouter();
+  
+  const reduceName = () => {
       const fp = user?.name.split(' ')[0]
       return fp ? (fp?.slice(0, 1) + fp?.slice(1, 2)).toUpperCase() : 'WH'
     }
@@ -59,7 +73,7 @@ export const HomeScreen = () => {
         <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start', width: '100%' }}>
   
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <Image source={require('@/assets/images/wheek/wheek.png')} style={{ width: 80, height: 50 }} resizeMode="contain"/>
+              <Image source={require('@assets/images/wheek/wheek.png')} style={{ width: 80, height: 50 }} resizeMode="contain"/>
   
   
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
@@ -84,7 +98,7 @@ export const HomeScreen = () => {
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}> 
-                    <CustomText style={{ fontSize: 16 }}>{loading ? 'WH' : reuduceName()}</CustomText>
+                    <CustomText style={{ fontSize: 16 }}>{loading ? 'WH' : reduceName()}</CustomText>
                 </View>
   
               </View>
@@ -122,12 +136,11 @@ export const HomeScreen = () => {
               </View>
             </TouchableOpacity>
 
-
           </View>
 
         <ModalOptions visible={modalVisible} onClose={() => setModalVisible(false)}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, width: '100%', justifyContent: 'space-between' }}>
-            <Image source={require('@/assets/images/wheek/wheek.png')} style={{ width: 70, height: 40 }} resizeMode="contain"/>
+            <Image source={require('@assets/images/wheek/wheek.png')} style={{ width: 70, height: 40 }} resizeMode="contain"/>
             
             <TouchableOpacity onPress={() => {
               router.push('/store/create');

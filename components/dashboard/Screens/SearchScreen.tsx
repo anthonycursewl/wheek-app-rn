@@ -1,5 +1,5 @@
-import CustomText from "@/components/CustomText/CustomText";
-import LayoutScreen from "@/components/Layout/LayoutScreen";
+import CustomText from "@components/CustomText/CustomText";
+import LayoutScreen from "@components/Layout/LayoutScreen";
 
 export const SearchScreen = () => (
     <LayoutScreen>
