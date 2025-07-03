@@ -1,18 +1,18 @@
-import LayoutScreen from "@/components/Layout/LayoutScreen"
-import CustomText from "@/components/CustomText/CustomText"
-import LogoPage from "@/components/LogoPage/LogoPage"
+import LayoutScreen from "@components/Layout/LayoutScreen"
+import CustomText from "@components/CustomText/CustomText"
+import LogoPage from "@components/LogoPage/LogoPage"
 import { View } from "react-native"
 import { Alert } from "react-native"
 
 // components
-import Input from "@/components/Input/Input"
+import Input from "@components/Input/Input"
 import { useEffect, useState } from "react"
-import { StoreData } from "@/flux/entities/Store"
-import useAuthStore from "@/flux/stores/AuthStore"
-import Button from "@/components/Buttons/Button"
-import { StoreService } from "@/flux/services/StoreS/StoreService"
-import { createStoreAttemptAction, createStoreFailureAction, createStoreSuccessAction } from "@/flux/Actions/StoreActions"
-import { useShopStore } from "@/flux/stores/useShopStore"
+import { StoreData } from "@flux/entities/Store"
+import useAuthStore from "@flux/stores/AuthStore"
+import Button from "@components/Buttons/Button"
+import { StoreService } from "@flux/services/StoreS/StoreService"
+import { createStoreAttemptAction, createStoreFailureAction, createStoreSuccessAction } from "@flux/Actions/StoreActions"
+import { useShopStore } from "@flux/stores/useShopStore"
 import { router } from "expo-router"
 
 export default function CreateStore() {

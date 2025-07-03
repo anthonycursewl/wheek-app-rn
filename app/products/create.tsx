@@ -1,10 +1,10 @@
 // components
-import CustomText from "@/components/CustomText/CustomText";
-import Input from "@/components/Input/Input";
-import Button from "@/components/Buttons/Button";
-import LogoPage from "@/components/LogoPage/LogoPage";
+import CustomText from "@components/CustomText/CustomText";
+import Input from "@components/Input/Input";
+import Button from "@components/Buttons/Button";
+import LogoPage from "@components/LogoPage/LogoPage";
 // layout
-import LayoutScreen from "@/components/Layout/LayoutScreen";
+import LayoutScreen from "@components/Layout/LayoutScreen";
 import { View, Alert } from "react-native";
 import { useState } from "react";
 

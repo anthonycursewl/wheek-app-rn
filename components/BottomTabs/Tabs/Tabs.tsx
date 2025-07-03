@@ -1,11 +1,11 @@
-import IconHome from "@/svgs/IconHome"
-import IconSearch from "@/svgs/IconSearch"
-import IconHeart from "@/svgs/IconHeart"
-import IconProfile from "@/svgs/IconProfile"
-import { HomeScreen } from "@/components/dashboard/Screens/HomeScreen"
-import { SearchScreen } from "@/components/dashboard/Screens/SearchScreen"
-import { FavoritesScreen } from "@/components/dashboard/Screens/FavoritesScreen"
-import { ProfileScreen } from "@/components/dashboard/Screens/ProfileScreen"
+import IconHome from "svgs/IconHome"
+import IconSearch from "svgs/IconSearch"
+import IconHeart from "svgs/IconHeart"
+import IconProfile from "svgs/IconProfile"
+import { HomeScreen } from "@components/dashboard/Screens/HomeScreen"
+import { SearchScreen } from "@components/dashboard/Screens/SearchScreen"
+import { FavoritesScreen } from "@components/dashboard/Screens/FavoritesScreen"
+import { ProfileScreen } from "@components/dashboard/Screens/ProfileScreen"
 
 export const tabs = [
     {
