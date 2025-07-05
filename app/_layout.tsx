@@ -93,7 +93,17 @@ function RootLayoutContent() {
     <View style={styles.appContainer}>
       <Stack screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
-          <Stack.Screen name="(tabs)" />
+          <>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen 
+              name="store/manage/[id]" 
+              options={{
+                headerShown: true,
+                title: 'Administrar Tienda',
+                headerBackTitle: 'Atrás',
+              }}
+            />
+          </>
         ) : (
           <Stack.Screen name="index" />
         )}
