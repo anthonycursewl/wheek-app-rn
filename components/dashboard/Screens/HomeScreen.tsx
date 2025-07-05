@@ -119,8 +119,18 @@ export const HomeScreen = () => {
               <CustomText style={{ fontSize: 14 }}>{currentStore.name || 'Selecciona una tienda.'}</CustomText>
             </View>
             
-            <TouchableOpacity onPress={() => router.push('/store/create')}>
-              <View style={{ 
+            <TouchableOpacity 
+              onPress={() => {
+                if (!currentStore?.id) {
+                  Alert.alert('Selección requerida', 'Por favor, selecciona una tienda primero.');
+                  return;
+                }
+                router.push({
+                  pathname: '/store/manage/[id]',
+                  params: { id: currentStore.id }
+                });
+              }}
+              style={{
                 marginTop: 10,
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -129,11 +139,14 @@ export const HomeScreen = () => {
                 paddingVertical: 4,
                 paddingHorizontal: 8,
                 paddingRight: 12,
-                backgroundColor: 'rgba(223, 223, 223, 0.95)' 
-              }}>
-                <IconManage style={{ width: 25, height: 25 }} />
-                <CustomText>Administrar tienda</CustomText>
-              </View>
+                backgroundColor: currentStore?.id 
+                  ? 'rgba(223, 223, 223, 0.95)'
+                  : 'rgba(200, 200, 200, 0.6)'
+              }}
+              disabled={!currentStore?.id}
+            >
+              <IconManage style={{ width: 25, height: 25 }} />
+              <CustomText>Administrar tienda</CustomText>
             </TouchableOpacity>
 
           </View>

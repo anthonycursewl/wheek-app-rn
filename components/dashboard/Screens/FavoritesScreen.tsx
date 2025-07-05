@@ -5,4 +5,4 @@ export const FavoritesScreen = () => (
     <LayoutScreen>
       <CustomText>Favoritos</CustomText>
     </LayoutScreen>
-  );
+);
