@@ -1,9 +1,9 @@
 import { TouchableOpacity, View } from "react-native";
 import CustomText from "../CustomText/CustomText";
-import IconStores from "@/svgs/IconStores";
+import IconStores from "svgs/IconStores";
 import { StyleSheet } from "react-native";
-import { useGlobalStore } from "@/flux/stores/useGlobalStore";
-import { StoreData } from "@/flux/entities/Store";
+import { useGlobalStore } from "@flux/stores/useGlobalStore";
+import { StoreData } from "@flux/entities/Store";
 
 export default function TypeStore({ store, setModalVisible }: { store: StoreData, setModalVisible: (visible: boolean) => void }) {
     const { currentStore, setCurrentStore } = useGlobalStore()

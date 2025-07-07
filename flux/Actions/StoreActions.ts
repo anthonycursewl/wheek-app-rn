@@ -6,6 +6,8 @@ export enum StoreActions {
     GET_STORES_ATTEMPT = 'GET_STORES_ATTEMPT',
     GET_STORES_SUCCESS = 'GET_STORES_SUCCESS',
     GET_STORES_FAILURE = 'GET_STORES_FAILURE',
+    RESET_STORE = 'RESET_STORE',
+    RESET_ERROR = 'RESET_ERROR',
 } 
 
 export const createStoreAttemptAction = () => ({
@@ -35,3 +37,12 @@ export const getStoresFailureAction = (error: string) => ({
     type: StoreActions.GET_STORES_FAILURE,
     payload: { error },
 })
+
+export const resetStoreAction = () => ({
+    type: StoreActions.RESET_STORE,
+})
+
+export const resetErrorAction = () => ({
+    type: StoreActions.RESET_ERROR,
+})
+
