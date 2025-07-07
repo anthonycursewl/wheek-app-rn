@@ -1,6 +1,6 @@
 import { Animated } from "react-native";
-import Input from "@/components/Input/Input";
-import CustomText from "@/components/CustomText/CustomText";
+import Input from "@components/Input/Input";
+import CustomText from "@components/CustomText/CustomText";
 import { View, Image } from "react-native";
 import Button from "../Buttons/Button";
 import { stylesSteps } from "./styles";
@@ -24,6 +24,7 @@ export const renderStep = (
         case 'email':
             return (
                 <Animated.View style={[stylesSteps.stepContainer, {
+                    padding: 25,
                     opacity: fadeAnim,
                     transform: [
                         { translateY: slideAnim },
@@ -54,6 +55,7 @@ export const renderStep = (
         case 'password':
             return (
                 <Animated.View style={[stylesSteps.stepContainer, {
+                    padding: 25,
                     opacity: fadeAnim,
                     transform: [
                         { translateY: slideAnim },
@@ -100,7 +102,7 @@ export const renderStep = (
                 }]}>
                     <View style={stylesSteps.decorationRight} />
                         <Image
-                        source={require('@/assets/images/wheek/wheek.png')} 
+                        source={require('@assets/images/wheek/wheek.png')} 
                         style={stylesSteps.logo}
                         />
                     <View style={stylesSteps.decorationLeft} />

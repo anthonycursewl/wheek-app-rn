@@ -4,7 +4,7 @@ export default function LogoPage() {
     return (
         <View style={{ position: 'relative' }}>
             <View style={stylesCreateProduct.decorationRight}></View>
-            <Image source={require('@/assets/images/wheek/wheek.png')} style={{ width: 80, height: 50 }} resizeMode="contain" />
+            <Image source={require('@assets/images/wheek/wheek.png')} style={{ width: 80, height: 50 }} resizeMode="contain" />
             <View style={stylesCreateProduct.decorationLeft}></View>
         </View>
     )

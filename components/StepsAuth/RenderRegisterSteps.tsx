@@ -1,6 +1,6 @@
 import { Animated } from "react-native";
-import Input from "@/components/Input/Input";
-import CustomText from "@/components/CustomText/CustomText";
+import Input from "@components/Input/Input";
+import CustomText from "@components/CustomText/CustomText";
 import { View, Image } from "react-native";
 import Button from "../Buttons/Button";
 import { stylesSteps } from "./styles";
@@ -221,7 +221,7 @@ export const renderRegisterStep = ({
         }]}>
           <View style={stylesSteps.logoContainer}>
             <Image
-                source={require('@/assets/images/wheek/wheek.png')} 
+                source={require('@assets/images/wheek/wheek.png')} 
                 style={stylesSteps.logo}
             />
           </View>
