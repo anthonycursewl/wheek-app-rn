@@ -1,8 +1,8 @@
-import { UserResponse } from "@/flux/entities/User";
-import { useFetch } from "@/hooks/http/secureFetch";
+import { UserResponse } from "@flux/entities/User";
+import { useFetch } from "hooks/http/secureFetch";
 
 // constans
-import { WheekConfig } from "@/config/config.wheek.breadriuss";
+import { WheekConfig } from "config/config.wheek.breadriuss";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const AuthService = {
