@@ -1,6 +1,6 @@
-import { WheekConfig } from "@/config/config.wheek.breadriuss";
-import { StoreData } from "@/flux/entities/Store";
-import { secureFetch } from "@/hooks/http/useFetch";
+import { WheekConfig } from "config/config.wheek.breadriuss";
+import { StoreData } from "@flux/entities/Store";
+import { secureFetch } from "hooks/http/useFetch";
 
 export const StoreService = {
     async createStore(dataObj: Omit<StoreData, 'id' | 'created_at' | 'is_active'>): Promise<{ data: StoreData | null, error: string | null }> {

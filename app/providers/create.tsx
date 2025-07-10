@@ -14,7 +14,6 @@ import { useProviderStore } from "@flux/stores/useProviderStore"
 import { providerAttemptAction, providerSuccessAction, providerFailureAction } from "@flux/Actions/ProviderActions"
 import { ProviderService } from "@flux/services/Providers/ProviderService"
 
-
 export default function CreateProvider() {
     const { currentStore } = useGlobalStore()
     const { stores } = useShopStore()
@@ -22,6 +21,9 @@ export default function CreateProvider() {
         name: '',
         description: '',
         store_id: currentStore?.id || '',
+        contact_phone: '',
+        contact_email: '',
+        is_active: true,
     })
 
     const { dispatch, loading, error } = useProviderStore()
@@ -30,7 +32,6 @@ export default function CreateProvider() {
         dispatch(providerAttemptAction())
         const { data, error } = await ProviderService.createProvider(provider)
         if (data) {
-            console.log(data)
             dispatch(providerSuccessAction(data.value))
             Alert.alert('Wheek | Éxito!', `El proveedor ${provider.name} se ha creado correctamente!`)
             router.back()
