@@ -12,6 +12,8 @@ interface ShopStore {
     _getStoresAttempt: () => void;
     _getStoresSuccess: (stores: StoreData[]) => void;
     _getStoresFailure: (error: string) => void;
+    _resetStore: () => void;
+    _resetError: () => void;
     dispatch: (action: { type: string; payload?: any }) => void;
 }
 
@@ -64,6 +66,20 @@ export const useShopStore = create<ShopStore>((set, get) => ({
         })
     },
 
+    _resetStore: () => {
+        set({
+            loading: false,
+            error: null,
+            stores: []
+        })
+    },
+
+    _resetError: () => {
+        set({
+            error: null
+        })
+    },
+
     dispatch: (action: { type: string; payload?: any }) => {
         switch (action.type) {
             case StoreActions.ATTEMPT_CREATE_STORE:
@@ -83,6 +99,12 @@ export const useShopStore = create<ShopStore>((set, get) => ({
                 break;
             case StoreActions.GET_STORES_FAILURE:
                 get()._getStoresFailure(action.payload.error)
+                break;
+            case StoreActions.RESET_STORE:
+                get()._resetStore()
+                break;
+            case StoreActions.RESET_ERROR:
+                get()._resetError()
                 break;
             default:
                 console.warn(`Acción desconocida: ${action.type}`);
