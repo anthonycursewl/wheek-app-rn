@@ -81,7 +81,7 @@ export default function CreateProvider() {
                             color="rgb(100, 100, 100)"
                             style={stylesRegisterCategory.storePickerItem}
                             />
-                        ))}
+                        ))}|
                     </Picker>
                 </View>
 
