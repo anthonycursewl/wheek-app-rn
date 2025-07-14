@@ -22,4 +22,22 @@ export const CategoryService = {
         
         return { data, error: null};
     },
+
+    async getAllCategories(store_id: string, skip: number, take: number): Promise<{ data: any | null, error: string | null }> {
+        if (!store_id) {
+            return { data: null, error: 'El ID del almacén es obligatorio! Intenta de nuevo.' }
+        }
+        const { data, error } = await secureFetch({
+            options: {
+                url: `${WheekConfig.API_BASE_URL}/categories/all/${store_id}?skip=${skip}&take=${take}`,
+                method: 'GET',
+            }
+        })
+        
+        if (error) {
+            return { data: null, error: error }
+        }
+        
+        return { data: data.value, error: null }
+    }
 }
