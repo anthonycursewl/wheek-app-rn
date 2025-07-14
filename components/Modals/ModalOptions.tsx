@@ -17,28 +17,23 @@ interface ModalOptionsProps {
   visible: boolean;
   onClose: () => void;
   children?: React.ReactNode;
+  gesturesEnabled?: boolean; // Prop para controlar los gestos
 }
 
 export default function ModalOptions({
   visible,
   onClose,
   children,
+  gesturesEnabled = true, // <-- CAMBIO CLAVE: Ahora es TRUE por defecto
 }: ModalOptionsProps) {
-  // Estado interno para controlar si el modal debe estar en el árbol de componentes.
-  // Esto nos permite ejecutar la animación de salida ANTES de desmontarlo.
   const [isModalRendered, setIsModalRendered] = useState(visible);
-
-  // Usamos useRef para que los valores animados persistan entre renders sin recrearse.
   const translateY = useRef(new Animated.Value(MODAL_HEIGHT)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
-  // El useEffect ahora orquesta las animaciones basado en la prop `visible` del padre.
   useEffect(() => {
     if (visible) {
-      // Si el padre quiere que se muestre:
-      // 1. Aseguramos que el modal esté en el DOM.
       setIsModalRendered(true);
-      // 2. Ejecutamos la animación de entrada.
+      // Cuando se abre, animamos a la posición inicial (translateY: 0)
       Animated.parallel([
         Animated.spring(translateY, {
           toValue: 0,
@@ -52,8 +47,7 @@ export default function ModalOptions({
         }),
       ]).start();
     } else {
-      // Si el padre quiere que se cierre:
-      // 1. Ejecutamos la animación de salida.
+      // Cuando se cierra, animamos hacia abajo
       Animated.parallel([
         Animated.timing(translateY, {
           toValue: MODAL_HEIGHT,
@@ -66,27 +60,29 @@ export default function ModalOptions({
           useNativeDriver: true,
         }),
       ]).start(() => {
-        // 2. SOLO CUANDO LA ANIMACIÓN TERMINA, lo quitamos del DOM.
         setIsModalRendered(false);
       });
     }
-  }, [visible]); // Este efecto se ejecuta cada vez que la prop `visible` cambia.
+  }, [visible]);
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 0,
+      onStartShouldSetPanResponder: () => gesturesEnabled, // Solo responde si los gestos están habilitados
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // La condición es: gestos habilitados Y el movimiento es principalmente vertical y hacia abajo.
+        return gesturesEnabled && gestureState.dy > 5 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+      },
       onPanResponderMove: (_, gestureState) => {
+        // Solo mover si el gesto es hacia abajo (dy > 0)
         if (gestureState.dy > 0) {
           translateY.setValue(gestureState.dy);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 110) {
-          // Al soltar, simplemente llamamos a `onClose` para que el padre
-          // cambie el estado y el useEffect se encargue de la animación.
-          onClose();
+          onClose(); // Cierra si el arrastre es suficientemente largo
         } else {
+          // Si no, vuelve a la posición inicial
           Animated.spring(translateY, {
             toValue: 0,
             useNativeDriver: true,
@@ -96,8 +92,8 @@ export default function ModalOptions({
       },
     })
   ).current;
-
-  // Si el estado interno indica que no debe renderizarse, retornamos null.
+  
+  // Si no debe renderizarse, no renderizamos nada
   if (!isModalRendered) {
     return null;
   }
@@ -111,14 +107,15 @@ export default function ModalOptions({
     } as Animated.WithAnimatedObject<ViewStyle>,
   };
 
+  // Objeto de handlers vacío para cuando los gestos están deshabilitados
+  const emptyHandlers = {};
+
   return (
     <Modal
       transparent
       statusBarTranslucent
-      // La visibilidad del <Modal> de React Native ahora la controla nuestro estado interno.
       visible={isModalRendered}
       animationType="none"
-      // Para el botón de atrás de Android y otros gestos, llamamos a onClose.
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={onClose}>
@@ -127,13 +124,17 @@ export default function ModalOptions({
 
       <Animated.View
         style={[styles.modal, animatedStyles.modal]}
-        {...panResponder.panHandlers}
+        // Aplicamos los handlers solo si gesturesEnabled es true
+        {...(gesturesEnabled ? panResponder.panHandlers : emptyHandlers)}
       >
         <View style={styles.header}>
           <View style={styles.dragHandle} />
         </View>
 
-        <View style={styles.content}>{children}</View>
+        {/* El View 'content' es crucial para que la FlatList funcione con flexbox */}
+        <View style={styles.content}>
+          {children}
+        </View>
       </Animated.View>
     </Modal>
   );
@@ -153,7 +154,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -3 },
     shadowOpacity: 0.1,
@@ -162,6 +162,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
+    paddingTop: 16, // Espacio para agarrar
     paddingBottom: 15,
   },
   dragHandle: {
@@ -171,6 +172,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   content: {
-    flex: 1,
+    flex: 1, // Esto asegura que el contenido pueda usar flexbox para llenar el espacio
+    paddingHorizontal: 16, // Padding para el contenido
+    paddingBottom: 16,
+    // Quitamos el padding del contenedor principal para dárselo al header y content por separado
   },
 });
