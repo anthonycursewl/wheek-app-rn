@@ -6,7 +6,7 @@ import LogoPage from "@components/LogoPage/LogoPage";
 // layout
 import LayoutScreen from "@components/Layout/LayoutScreen";
 // React Native
-import { View, Alert, ScrollView, Switch, TouchableOpacity, StyleSheet, Animated, Platform } from "react-native";
+import { View, Alert, ScrollView, Switch, TouchableOpacity, StyleSheet, Animated, Modal, FlatList } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import { useState, useEffect, useRef } from "react";
 // Icons
@@ -18,6 +18,24 @@ import { useGlobalStore } from "@flux/stores/useGlobalStore";
 import { useShopStore } from "@flux/stores/useShopStore";
 import { generateEAN13 } from "shared/services/generateEAN13";
 import { FormProductData } from "shared/interfaces/ProductFormData";
+import { useCategoryStore } from "@flux/stores/useCategoryStore";
+import { useProviderStore } from "@flux/stores/useProviderStore";
+import { categoryAttemptAction, categoryFailureAction, categorySuccessAllAction } from "@flux/Actions/CategoryAction";
+import { CategoryService } from "@flux/services/Categories/CategoryService";
+import { ProviderService } from "@flux/services/Providers/ProviderService";
+import { getAllProvidersSuccessAction, providerAttemptAction, providerFailureAction, providerSuccessAction } from "@flux/Actions/ProviderActions";
+import ModalOptions from "@components/Modals/ModalOptions";
+import CategorySelectorModal from "@components/dashboard/categories/modals/CategorySelectorModal";
+import ProviderSelectorModal from "@components/dashboard/providers/modals/ProviderSelectorModal";
+import { Category } from "@flux/entities/Category";
+import { Provider } from "@flux/entities/Provider"
+
+// styles
+import { styles } from "@components/dashboard/products/styles/styleProducts";
+import { CategoryItem } from "@components/dashboard/categories/components/CategoryItem";
+import { ProviderItem } from "@components/dashboard/providers/components/ProviderItem";
+
+
 
 const audioSource = require('@assets/sounds/beep_barcode.mp3');
 
@@ -27,22 +45,66 @@ export default function CreateProduct() {
   const [showScanner, setShowScanner] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   const player = useAudioPlayer(audioSource);
+
+  // states global
   const { currentStore } = useGlobalStore();
-  const { stores, dispatch } = useShopStore();
+  const { loading: loadingCategories, hasMore: hasMoreCategories, categories, dispatch: dispatchCategory, skip: skipCategories, take: takeCategories } = useCategoryStore();
+  const { loading: loadingProviders, hasMore: hasMoreProviders, providers, dispatch: dispatchProvider, page: skipProviders, limit: takeProviders } = useProviderStore();
+  const { stores, dispatch: dispatchShop } = useShopStore();
+
+  // local states
   const [storesList, setStoresList] = useState<{label: string, value: string}[]>([]);
   const [selectedStore, setSelectedStore] = useState<string>(currentStore?.id || '');
+
+  // states modals
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showProviderModal, setShowProviderModal] = useState(false);
+
+  const getAllCategories = async () => {
+    console.log("[CREATE PRODUCT - getAllCategories] ", hasMoreCategories)
+    if (loadingCategories || !hasMoreCategories || categories.length !== 0) return;
+
+    dispatchCategory(categoryAttemptAction());
+    const { data, error } = await CategoryService.getAllCategories(currentStore.id, skipCategories, takeCategories);
+    if (error) {
+      dispatchCategory(categoryFailureAction(error));
+    }
+    if (data) {
+      console.log("[CREATE PRODUCT - getAllCategories] \n", data)
+    }
+  };
+
+  const getAllProviders = async () => {
+    console.log("[CREATE PRODUCT - getAllProviders] ", hasMoreProviders)
+    if (loadingProviders || !hasMoreProviders || providers.length !== 0) return;
+
+    dispatchProvider(providerAttemptAction());
+    const { data, error } = await ProviderService.getAllProviders(currentStore.id, skipProviders, takeProviders);
+    if (error) {
+      dispatchProvider(providerFailureAction(error));
+    }
+    if (data) {
+      console.log("[CREATE PRODUCT - getAllProviders] \n", data)
+    }
+  };
+
+  useEffect(() => {
+    getAllCategories();
+    getAllProviders()
+  }, []);
 
   const [formData, setFormData] = useState<FormProductData>({
     name: '',
     barcode: '',
     store_id: currentStore?.id || '',
     ficha: {
-      condition: 'nuevo',
+      condition: 'UND',
       cost: '',
       benchmark: '',
       tax: false,
     },
-    category: ''
+    category_id: '',
+    provider_id: ''
   });
 
   useEffect(() => {
@@ -134,7 +196,7 @@ export default function CreateProduct() {
   };
 
   const handleSubmit = () => {
-    if (!formData.name || !formData.barcode || !formData.store_id || !formData.category || !formData.ficha.condition || !formData.ficha.cost || !formData.ficha.benchmark) {
+    if (!formData.name || !formData.barcode || !formData.store_id || !formData.category_id || !formData.provider_id || !formData.ficha.condition || !formData.ficha.cost || !formData.ficha.benchmark) {
       Alert.alert('Error', 'Por favor completa todos los campos requeridos');
       return;
     }
@@ -145,8 +207,8 @@ export default function CreateProduct() {
       });
       setFormData({
         name: '', barcode: '', store_id: '',
-        ficha: { condition: 'nuevo', cost: '', benchmark: '', tax: false },
-        category: ''
+        ficha: { condition: 'UND', cost: '', benchmark: '', tax: false },
+        category_id: '', provider_id: ''
       });
       Alert.alert('Éxito', 'Producto creado correctamente');
     } catch (err) {
@@ -221,6 +283,7 @@ export default function CreateProduct() {
   }
 
   return (
+    <>
     <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: 'transparent' }} keyboardShouldPersistTaps="handled">
       <LayoutScreen>
         <View style={styles.header}>
@@ -257,13 +320,13 @@ export default function CreateProduct() {
                 onValueChange={(itemValue) => setSelectedStore(itemValue)}
                 style={styles.picker}
                 dropdownIconColor="#666"
-              >
+                >
                 <Picker.Item label="Selecciona una tienda" value="" />
                 {storesList.map((store) => (
                   <Picker.Item 
-                    key={store.value} 
-                    label={store.label} 
-                    value={store.value} 
+                  key={store.value} 
+                  label={store.label} 
+                  value={store.value} 
                   />
                 ))}
               </Picker>
@@ -292,8 +355,24 @@ export default function CreateProduct() {
 
           <View style={styles.fieldGroup}>
             <CustomText style={styles.label}>Categoría *</CustomText>
-            <Input placeholder="Elije una categoría..." value={formData.category} onChangeText={(text) => handleChange('category', text)} />
+
+            <TouchableOpacity onPress={() => setShowCategoryModal(true)}
+              style={styles.selectInput}
+              >
+              <CustomText style={styles.inputText}>{formData.category_id}</CustomText>
+            </TouchableOpacity>
           </View>
+
+          <View style={styles.fieldGroup}>
+            <CustomText style={styles.label}>Proveedor *</CustomText>
+
+            <TouchableOpacity onPress={() => setShowProviderModal(true)}
+              style={styles.selectInput}
+              >
+              <CustomText style={styles.inputText}>{formData.provider_id}</CustomText>
+            </TouchableOpacity>
+          </View>
+
         </View>
 
         <View style={styles.submitButtonContainer}>
@@ -301,49 +380,55 @@ export default function CreateProduct() {
         </View>
       </LayoutScreen>
     </ScrollView>
+
+      <ModalOptions
+        visible={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        gesturesEnabled={false}
+        >
+          <View>
+            <CustomText style={styles.modalTitle}>Selecciona una categoría</CustomText>
+
+              <FlatList
+                data={categories}
+                style={{ marginTop: 16 }}
+                renderItem={({ item }) => <CategoryItem item={item} />}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={{ gap: 10 }}
+                ListEmptyComponent={
+                  <View style={{ backgroundColor: 'rgb(184, 109, 109)', padding: 16 }}>
+                    <CustomText>No hay categorías disponibles</CustomText>
+                  </View>
+                }
+              />
+          </View>
+        </ModalOptions>
+
+        <ModalOptions
+          visible={showProviderModal}
+          onClose={() => setShowProviderModal(false)}
+          gesturesEnabled={false}
+          >
+              <View>
+                <CustomText>Selecciona un proveedor</CustomText>
+              </View>
+
+                <FlatList
+                  data={providers}
+                  renderItem={({ item }) => <ProviderItem item={item} short={true} />}
+                  keyExtractor={(item) => item.id}
+                  style={{ marginTop: 5 }}
+                  contentContainerStyle={{ gap: 1 }}
+                  ListEmptyComponent={
+                    <View>
+                      <CustomText>No hay proveedores disponibles</CustomText>
+                    </View>
+                  }
+                />
+        </ModalOptions>
+
+
+    </>
   );
 }
 
-const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%' },
-  formContainer: { width: '100%', marginTop: 15, gap: 20 },
-  fieldGroup: { width: '100%', gap: 8 },
-  label: { fontSize: 18 },
-  barcodeContainer: { flexDirection: 'row', alignItems: 'center', width: '100%' },
-  scanButton: { backgroundColor: '#2196F3', padding: 10, borderRadius: 5, marginLeft: 8, justifyContent: 'center', alignItems: 'center' },
-  generateButton: { backgroundColor: '#4CAF50' },
-  sectionContainer: { width: '100%', gap: 18, marginTop: 10 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold' },
-  switchContainer: { width: '100%', gap: 8, flexDirection: 'row', alignItems: 'center' },
-  submitButtonContainer: { width: '100%', marginTop: 30, marginBottom: 20 },
-  scannerContainer: { flex: 1, backgroundColor: 'black' },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
-  picker: {
-    width: '100%',
-    height: 50,
-    color: '#333',
-  },
-  cancelButtonContainer: { position: 'absolute', bottom: 40, left: 20, right: 20 },
-  cancelScanButton: { backgroundColor: 'rgba(244, 67, 54, 0.8)', padding: 15, borderRadius: 8, alignItems: 'center' },
-  cancelScanText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  centerContainerWithPadding: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  permissionText: { textAlign: 'center', marginBottom: 20 },
-  overlay: { ...StyleSheet.absoluteFillObject, flex: 1 },
-  mask: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)' },
-  centerRow: { flexDirection: 'row', height: 200 },
-  scanWindow: { width: '75%', height: '100%', overflow: 'hidden' },
-  corner: { position: 'absolute', width: 30, height: 30, borderColor: '#fff' },
-  topLeft: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4 },
-  topRight: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4 },
-  bottomLeft: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4 },
-  bottomRight: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4 },
-  scanLine: { width: '100%', height: 2, backgroundColor: '#ff0000', shadowColor: '#ff0000', shadowOpacity: 0.8, shadowRadius: 5, elevation: 10 },
-  scanHelpText: { color: 'white', fontSize: 16, marginTop: -50, backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 5 },
-});
