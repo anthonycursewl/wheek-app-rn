@@ -3,10 +3,11 @@ export interface FormProductData {
     barcode: string;
     store_id: string;
     ficha: {
-      condition: string;
+      condition: 'UND' | 'KG';
       cost: string;
       benchmark: string;
       tax: boolean;
     };
-    category: string;
+    category_id: string;
+    provider_id: string;
 }
