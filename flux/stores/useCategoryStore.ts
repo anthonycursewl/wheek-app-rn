@@ -6,11 +6,15 @@ interface CategoryStore {
     loading: boolean;
     error: string | null;
     categories: Category[];
+    skip: number;
+    take: number;
+    hasMore: boolean;
     
     // actions
     _categoryAttempt: () => void;
     _categorySuccess: (category: Category) => void;
     _categoryFailure: (error: string) => void;
+    _categorySuccessAll: (categories: Category[]) => void;
 
     // dispatcher
     dispatch: (action: { type: string; payload?: any }) => void;
@@ -20,11 +24,21 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
     loading: false,
     error: null,
     categories: [],
+    skip: 0,
+    take: 10,
+    hasMore: true,
 
     _categoryAttempt: () => {
         set({
             loading: true,
             error: null
+        })
+    },
+    
+    _categoryFailure: (error: string) => {
+        set({
+            loading: false,
+            error: error,
         })
     },
 
@@ -36,10 +50,13 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
         })
     },
 
-    _categoryFailure: (error: string) => {
+    _categorySuccessAll: (categories: Category[]) => {
         set({
             loading: false,
-            error: error,
+            error: null,
+            categories: [...get().categories, ...categories],
+            skip: categories.length,
+            hasMore: categories.length >= get().take
         })
     },
 
@@ -53,6 +70,9 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
                 break;
             case CategoryActions.CATEGORY_FAILURE:
                 get()._categoryFailure(action.payload.error)
+                break;
+            case CategoryActions.CATEGORY_SUCCESS_ALL:
+                get()._categorySuccessAll(action.payload.categories)
                 break;
             default:
                 console.warn(`Acción desconocida: ${action.type}`);
