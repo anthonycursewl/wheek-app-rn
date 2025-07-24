@@ -12,6 +12,11 @@ export const styles = StyleSheet.create({
     },
     selectInput: {
       backgroundColor: '#F5F5F5',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: '#E5E5E5',
     },
     inputText: {
       color: '#6B7280',
