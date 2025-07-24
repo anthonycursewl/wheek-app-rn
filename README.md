@@ -1,93 +1,93 @@
 <div align="center">
   <img src="assets/images/wheek/wheek.png" alt="Wheek Logo" width="300">
-  <h1>Wheek - Gestión Empresarial Inteligente</h1>
-  <p>Plataforma todo en uno para la administración integral de tu negocio</p>
+  <h1>Wheek - Intelligent Business Management</h1>
+  <p>All-in-one platform for comprehensive business administration</p>
   
-  [![Plataformas](https://img.shields.io/badge/Plataformas-iOS%20%7C%20Android%20%7C%20Web-brightgreen)]()
-  [![Licencia](https://img.shields.io/badge/Licencia-MIT-blue.svg)](LICENSE)
-  [![Última versión](https://img.shields.io/badge/Versión-1.0.0-orange)]()
+  [![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20Android%20%7C%20Web-brightgreen)]()
+  [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+  [![Latest Version](https://img.shields.io/badge/Version-1.0.0-orange)]()
 </div>
 
-## Características Principales
+## Main Features
 
-- **Gestión de Inventario** - Control de stock en tiempo real con alertas de bajo inventario
-- **Ventas y Facturación** - Procesamiento rápido de ventas con generación de facturas electrónicas
-- **Clientes y CRM** - Base de datos de clientes con historial de compras y preferencias
-- **Reportes Avanzados** - Análisis detallados de ventas, inventario y rendimiento
-- **Multi-sucursal** - Gestión centralizada de múltiples ubicaciones
-- **Soporte Offline** - Funcionalidad disponible sin conexión a internet (soon)
+- **Inventory Management** - Real-time stock control with low inventory alerts
+- **Sales and Invoicing** - Fast sales processing with electronic invoice generation
+- **Clients and CRM** - Customer database with purchase history and preferences
+- **Advanced Reports** - Detailed analysis of sales, inventory, and performance
+- **Multi-branch** - Centralized management of multiple locations
+- **Offline Support** - Functionality available without internet connection (soon)
 
-## Capturas de Pantalla
+## Screenshots
 
-Pronto serán añadidas
+Coming soon
 
-## Tecnologías Utilizadas
+## Technologies Used
 
 - **Frontend**: React Native, Expo, TypeScript
-- **Navegación**: React Navigation
-- **Estado**: React Context API
-- **UI/UX**: Componentes personalizados y diseño responsivo
-- **Persistencia**: AsyncStorage para datos locales
+- **Navigation**: React Navigation
+- **State Management**: React Context API
+- **UI/UX**: Custom components and responsive design
+- **Persistence**: AsyncStorage for local data
 
-## Instalación
+## Installation
 
-1. Clona el repositorio:
+1. Clone the repository:
    ```bash
    git clone https://github.com/anthonycursewl/wheek-app-rn.git
    cd wheek-app-rn
    ```
 
-2. Instala las dependencias:
+2. Install dependencies:
    ```bash
    npm install
-   # o
+   # or
    yarn install
    ```
 
-3. Inicia la aplicación:
+3. Start the application:
    ```bash
    npx expo start
    ```
 
-4. Escanea el código QR con la aplicación Expo Go (iOS/Android) o usa un emulador.
+4. Scan the QR code with the Expo Go app (iOS/Android) or use an emulator.
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 wheek-app-rn/
-├── app/                    # Rutas y pantallas principales
-├── assets/                 # Recursos estáticos (imágenes, fuentes, etc.)
-├── components/            # Componentes reutilizables
-│   └── BottomTabs/        # Navegación inferior
-├── context/               # Contextos de React
+├── app/                    # Main routes and screens
+├── assets/                 # Static resources (images, fonts, etc.)
+├── components/            # Reusable components
+│   └── BottomTabs/        # Bottom navigation
+├── context/               # React Contexts
 ├── hooks/                 # Custom Hooks
-├── styles/                # Estilos globales
-└── utils/                 # Utilidades y helpers
+├── styles/                # Global styles
+└── utils/                 # Utilities and helpers
 ```
 
-## Arquitectura
+## Architecture
 
 ```mermaid
 graph TD
-    A[Componentes UI] --> B[Contextos]
-    B --> C[Servicios/API]
-    C --> D[Almacenamiento Local]
-    D --> E[Base de Datos] 
+    A[UI Components] --> B[Contexts]
+    B --> C[Services/API]
+    C --> D[Local Storage]
+    D --> E[Database] 
 ```
 
-## Cómo Contribuir
+## How to Contribute
 
-1. Haz un Fork del proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Haz commit de tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Haz push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+1. Fork the project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Licencia
+## License
 
-Distribuido bajo la licencia MIT. Ver `LICENSE` para más información.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-## Desarrollado por
+## Developed by
 
 **Anthony Cursewl**
 
@@ -98,5 +98,5 @@ Distribuido bajo la licencia MIT. Ver `LICENSE` para más información.
 ---
 
 <div align="center">
-  <sub>Hecho con ❤️ por Anthony Cursewl</sub>
+  <sub>Made with ❤️ by Anthony Cursewl</sub>
 </div>
