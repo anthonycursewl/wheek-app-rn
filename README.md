@@ -19,7 +19,7 @@
 
 ## Screenshots
 
-Coming soon
+Coming soon (when i wrote soon, it wasn't that soon srry)
 
 ## Technologies Used
 
