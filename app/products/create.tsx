@@ -35,8 +35,6 @@ import { styles } from "@components/dashboard/products/styles/styleProducts";
 import { CategoryItem } from "@components/dashboard/categories/components/CategoryItem";
 import { ProviderItem } from "@components/dashboard/providers/components/ProviderItem";
 
-
-
 const audioSource = require('@assets/sounds/beep_barcode.mp3');
 
 export default function CreateProduct() {
@@ -61,7 +59,6 @@ export default function CreateProduct() {
   const [showProviderModal, setShowProviderModal] = useState(false);
 
   const getAllCategories = async () => {
-    console.log("[CREATE PRODUCT - getAllCategories] ", hasMoreCategories)
     if (loadingCategories || !hasMoreCategories || categories.length !== 0) return;
 
     dispatchCategory(categoryAttemptAction());
@@ -165,7 +162,6 @@ export default function CreateProduct() {
       player.seekTo(0);
       player.play();
 
-      console.log(`Código escaneado -> Tipo: ${scanningResult.type}, Dato: ${scanningResult.data}`);
       setScanned(true);
       setShowScanner(false);
       handleChange('barcode', scanningResult.data);
@@ -200,21 +196,8 @@ export default function CreateProduct() {
       Alert.alert('Error', 'Por favor completa todos los campos requeridos');
       return;
     }
-    try {
-      console.log('Datos del producto a enviar:', {
-        ...formData,
-        ficha: { ...formData.ficha, cost: parseFloat(formData.ficha.cost), benchmark: parseFloat(formData.ficha.benchmark) }
-      });
-      setFormData({
-        name: '', barcode: '', store_id: '',
-        ficha: { condition: 'UND', cost: '', benchmark: '', tax: false },
-        category_id: '', provider_id: ''
-      });
-      Alert.alert('Éxito', 'Producto creado correctamente');
-    } catch (err) {
-      Alert.alert('Error', 'Ocurrió un error al crear el producto');
-      console.error(err);
-    }
+
+    console.log("[CREATE PRODUCT - handleSubmit] ", formData);
   };
 
   if (showScanner) {
