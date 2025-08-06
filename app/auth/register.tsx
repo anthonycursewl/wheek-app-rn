@@ -28,7 +28,6 @@ export default function RegisterScreen() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // Animaciones
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -56,7 +55,6 @@ export default function RegisterScreen() {
     };
 
     const goToNextStep = () => {
-        // Validación del paso actual
         if (currentStep === 'email' && !formData.email.includes('@')) {
             setError('Por favor ingresa un correo electrónico válido');
             return;
@@ -74,18 +72,14 @@ export default function RegisterScreen() {
 
         setError(null);
         
-        // Animación de salida
         animateTransition('out', () => {
-            // Actualizar al siguiente paso
             const steps: RegisterStep[] = ['email', 'password', 'confirmPassword', 'userInfo', 'success'];
             const currentIndex = steps.indexOf(currentStep);
             if (currentIndex < steps.length - 1) {
                 setCurrentStep(steps[currentIndex + 1]);
-                // Resetear animaciones para la entrada
                 fadeAnim.setValue(0);
                 slideAnim.setValue(50);
                 scaleAnim.setValue(0.95);
-                // Animación de entrada
                 animateTransition('in');
             }
         });
@@ -93,18 +87,15 @@ export default function RegisterScreen() {
 
     const goToPreviousStep = () => {
         setError(null);
-        // Animación de salida
+    
         animateTransition('out', () => {
-            // Volver al paso anterior
             const steps: RegisterStep[] = ['email', 'password', 'confirmPassword', 'userInfo', 'success'];
             const currentIndex = steps.indexOf(currentStep);
             if (currentIndex > 0) {
                 setCurrentStep(steps[currentIndex - 1]);
-                // Resetear animaciones para la entrada
                 fadeAnim.setValue(0);
                 slideAnim.setValue(-50);
                 scaleAnim.setValue(0.95);
-                // Animación de entrada
                 animateTransition('in');
             }
         });
@@ -115,13 +106,10 @@ export default function RegisterScreen() {
             setLoading(true);
             setError(null);
             
-            // Aquí iría la lógica de registro
             console.log('Datos de registro:', formData);
             
-            // Simular una llamada a la API
             await new Promise(resolve => setTimeout(resolve, 1500));
             
-            // Ir al paso de éxito
             goToNextStep();
         } catch (err) {
             setError('Error al registrar la cuenta. Por favor, inténtalo de nuevo.');
@@ -155,7 +143,6 @@ export default function RegisterScreen() {
                         )
                     }
 
-
                     {renderRegisterStep({
                         step: currentStep,
                         fadeAnim,
@@ -187,7 +174,7 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         padding: 25,
         justifyContent: 'center',
-        paddingBottom: 40, // Extra space at the bottom when keyboard is open
+        paddingBottom: 40,
     },
     logoContainer: {
         alignItems: 'center',
