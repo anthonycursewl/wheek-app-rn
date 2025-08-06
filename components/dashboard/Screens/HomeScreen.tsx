@@ -1,7 +1,7 @@
 // React and React Native
 import { useState, useEffect } from 'react';
 import { Alert, FlatList, Image, TouchableOpacity, View } from 'react-native';
-import { router, useRouter } from 'expo-router';
+import { router } from 'expo-router';
 
 // Store and Services
 import useAuthStore from '@flux/stores/AuthStore';
@@ -26,22 +26,23 @@ import IconArrow from 'svgs/IconArrow';
 import StoreLogo from 'svgs/StoreLogo';
 import IconStores from 'svgs/IconStores';
 import IconManage from 'svgs/IconManage';
+import { store } from 'expo-router/build/global-state/router-store';
 
 export const HomeScreen = () => {
     const { user, loading } = useAuthStore()
     const { dispatch, error, stores } = useShopStore()
     const { currentStore } = useGlobalStore()
   
-    const router = useRouter();
-  
-  const reduceName = () => {
-      const fp = user?.name.split(' ')[0]
-      return fp ? (fp?.slice(0, 1) + fp?.slice(1, 2)).toUpperCase() : 'WH'
+    const reduceName = (name: string) => {
+      const n = name.split(' ')
+      const fp = n.length > 1 ? n[0].slice(0, 1) + n[1].slice(0, 1) : n[0].slice(0, 2)
+      return fp.toUpperCase()
     }
   
     const [modalVisible, setModalVisible] = useState(false)
   
     const getAllStores = async () => {
+        if (stores.length > 0 || !user) return;
         dispatch(getStoresAttemptAction())
         const { data, error } = await StoreService.getStores(user?.id || '')
         if (error) {
@@ -53,9 +54,7 @@ export const HomeScreen = () => {
     }
   
     useEffect(() => {
-      if (stores.length === 0 && user) {
         getAllStores()
-      }
     }, [user])
   
     useEffect(() => {
@@ -74,7 +73,6 @@ export const HomeScreen = () => {
   
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
               <Image source={require('@assets/images/wheek/wheek.png')} style={{ width: 80, height: 50 }} resizeMode="contain"/>
-  
   
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
   
@@ -98,7 +96,7 @@ export const HomeScreen = () => {
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}> 
-                    <CustomText style={{ fontSize: 16 }}>{loading ? 'WH' : reduceName()}</CustomText>
+                    <CustomText style={{ fontSize: 16 }}>{loading ? 'WH' : reduceName(user?.name || '')}</CustomText>
                 </View>
   
               </View>

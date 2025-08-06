@@ -199,16 +199,12 @@ export default function CreateProduct() {
   }, [selectedCategory, selectedProvider]);
 
   const handleSubmit = () => {
-<<<<<<< HEAD
     if (!formData.name || !formData.barcode || !formData.store_id || !formData.category_id || !formData.provider_id || !formData.ficha.condition || !formData.ficha.cost || !formData.ficha.benchmark) {
       Alert.alert('Error', 'Por favor completa todos los campos requeridos');
       return;
     }
 
     console.log("[CREATE PRODUCT - handleSubmit] ", formData);
-=======
-    console.log(formData)
->>>>>>> 0e493aa65ffbf788102a7bf0c61acc55e690d558
   };
 
   if (showScanner) {
