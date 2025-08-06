@@ -1,8 +1,8 @@
 import { Provider } from "@flux/entities/Provider";
 import CustomText from "@components/CustomText/CustomText";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 
-export const ProviderItem = ({ item, short = false }: { item: Provider, short?: boolean }) => {
+export const ProviderItem = ({ item, short = false, onSelectProvider, onClose }: { item: Provider, short?: boolean, onSelectProvider: (id: string, name: string) => void, onClose?: () => void }) => {
     const formatDate = (dateString: string | Date) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('es-ES', {
@@ -13,53 +13,61 @@ export const ProviderItem = ({ item, short = false }: { item: Provider, short?: 
     };
 
     return (
-        <View style={styles.card}>
-            <View style={styles.header}>
-                <View style={styles.avatar}>
-                    <CustomText style={styles.avatarText}>
-                        {item.name.charAt(0).toUpperCase()}
-                    </CustomText>
-                </View>
-                <View style={styles.headerText}>
-                    <View style={styles.nameWrapper}>
-                        <CustomText style={styles.name}>
-                            {item.name}
+        <TouchableOpacity onPress={() => {
+            onSelectProvider(item.id, item.name)
+            onClose && onClose()
+        }}
+        activeOpacity={0.9}
+        >
+            <View style={styles.card}>
+                <View style={styles.header}>
+                    <View style={styles.avatar}>
+                        <CustomText style={styles.avatarText}>
+                            {item.name.charAt(0).toUpperCase()}
                         </CustomText>
                     </View>
-                    <CustomText style={styles.status}>
-                        {item.is_active !== false ? 'Activo' : 'Inactivo'}
-                    </CustomText>
-                </View>
-            </View>
-            
-            {item.description && (
-                <View style={styles.descriptionContainer}>
-                    <CustomText style={styles.description}>
-                        {item.description}
-                    </CustomText>
-                </View>
-            )}
-            
-            {!short && (
-            <View style={styles.footer}>
-                <View style={styles.footerSection}>
-                    <CustomText style={styles.footerLabel}>Creado el:</CustomText>
-                    <CustomText style={styles.footerText}>
-                        {formatDate(item.created_at)}
-                    </CustomText>
+                    
+                    <View style={styles.headerText}>
+                        <View style={styles.nameWrapper}>
+                            <CustomText style={styles.name}>
+                                {item.name}
+                            </CustomText>
+                        </View>
+                        <CustomText style={styles.status}>
+                            {item.is_active !== false ? 'Activo' : 'Inactivo'}
+                        </CustomText>
+                    </View>
                 </View>
                 
-                <View style={styles.contactInfo}>
-                    <CustomText style={styles.contact}>
-                        📞 {item.contact_phone}
-                    </CustomText>
-                    <CustomText style={styles.contact}>
-                        ✉️ {item.contact_email}
-                    </CustomText>
+                {item.description && (
+                    <View style={styles.descriptionContainer}>
+                        <CustomText style={styles.description}>
+                            {item.description}
+                        </CustomText>
+                    </View>
+                )}
+                
+                {!short && (
+                <View style={styles.footer}>
+                    <View style={styles.footerSection}>
+                        <CustomText style={styles.footerLabel}>Creado el:</CustomText>
+                        <CustomText style={styles.footerText}>
+                            {formatDate(item.created_at)}
+                        </CustomText>
+                    </View>
+                    
+                    <View style={styles.contactInfo}>
+                        <CustomText style={styles.contact}>
+                            📞 {item.contact_phone}
+                        </CustomText>
+                        <CustomText style={styles.contact}>
+                            ✉️ {item.contact_email}
+                        </CustomText>
+                    </View>
                 </View>
+                )}
             </View>
-            )}
-        </View>
+        </TouchableOpacity>
     )
 }
 

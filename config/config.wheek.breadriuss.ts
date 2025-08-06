@@ -9,9 +9,8 @@
     @copyright 2025 Breadriuss
 
     https://wheek.breadriuss.com
-
 */
 
 export const WheekConfig = {
-    API_BASE_URL: 'http://localhost/api',
+    API_BASE_URL: 'http://192.168.0.110:4001/api',
 }

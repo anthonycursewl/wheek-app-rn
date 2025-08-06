@@ -53,6 +53,8 @@ export default function CreateProduct() {
   // local states
   const [storesList, setStoresList] = useState<{label: string, value: string}[]>([]);
   const [selectedStore, setSelectedStore] = useState<string>(currentStore?.id || '');
+  const [selectedCategory, setSelectedCategory] = useState<{ id: string, name: string } | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<{ id: string, name: string } | null>(null);
 
   // states modals
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -93,15 +95,15 @@ export default function CreateProduct() {
   const [formData, setFormData] = useState<FormProductData>({
     name: '',
     barcode: '',
-    store_id: currentStore?.id || '',
+    store_id: selectedStore,
     ficha: {
       condition: 'UND',
       cost: '',
       benchmark: '',
       tax: false,
     },
-    category_id: '',
-    provider_id: ''
+    category_id: selectedCategory?.id || '',
+    provider_id: selectedProvider?.id || ''
   });
 
   useEffect(() => {
@@ -191,13 +193,22 @@ export default function CreateProduct() {
     }));
   };
 
+  useEffect(() => {
+    handleChange('category_id', selectedCategory?.id || '');
+    handleChange('provider_id', selectedProvider?.id || '');
+  }, [selectedCategory, selectedProvider]);
+
   const handleSubmit = () => {
+<<<<<<< HEAD
     if (!formData.name || !formData.barcode || !formData.store_id || !formData.category_id || !formData.provider_id || !formData.ficha.condition || !formData.ficha.cost || !formData.ficha.benchmark) {
       Alert.alert('Error', 'Por favor completa todos los campos requeridos');
       return;
     }
 
     console.log("[CREATE PRODUCT - handleSubmit] ", formData);
+=======
+    console.log(formData)
+>>>>>>> 0e493aa65ffbf788102a7bf0c61acc55e690d558
   };
 
   if (showScanner) {
@@ -342,7 +353,7 @@ export default function CreateProduct() {
             <TouchableOpacity onPress={() => setShowCategoryModal(true)}
               style={styles.selectInput}
               >
-              <CustomText style={styles.inputText}>{formData.category_id}</CustomText>
+              <CustomText style={styles.inputText}>{selectedCategory?.name || 'Selecciona una categoría'}</CustomText>
             </TouchableOpacity>
           </View>
 
@@ -352,7 +363,7 @@ export default function CreateProduct() {
             <TouchableOpacity onPress={() => setShowProviderModal(true)}
               style={styles.selectInput}
               >
-              <CustomText style={styles.inputText}>{formData.provider_id}</CustomText>
+              <CustomText style={styles.inputText}>{selectedProvider?.name || 'Selecciona un proveedor'}</CustomText>
             </TouchableOpacity>
           </View>
 
@@ -361,6 +372,7 @@ export default function CreateProduct() {
         <View style={styles.submitButtonContainer}>
           <Button title={'Crear Producto'} variant='primary' onPress={handleSubmit} disabled={false} />
         </View>
+
       </LayoutScreen>
     </ScrollView>
 
@@ -375,7 +387,12 @@ export default function CreateProduct() {
               <FlatList
                 data={categories}
                 style={{ marginTop: 16 }}
-                renderItem={({ item }) => <CategoryItem item={item} />}
+                renderItem={({ item }) => (
+                  <CategoryItem item={item} 
+                    onSelectCategory={() => setSelectedCategory({ id: item.id, name: item.name })} 
+                  onClose={() => setShowCategoryModal(false)} />
+                )}
+
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ gap: 10 }}
                 ListEmptyComponent={
@@ -398,7 +415,16 @@ export default function CreateProduct() {
 
                 <FlatList
                   data={providers}
-                  renderItem={({ item }) => <ProviderItem item={item} short={true} />}
+
+                  renderItem={({ item }) => (
+                    <ProviderItem 
+                    item={item} 
+                    short={true} 
+                    onSelectProvider={(id, name) => setSelectedProvider({ id, name })} 
+                    onClose={() => setShowProviderModal(false)} 
+                    />
+                  )}
+
                   keyExtractor={(item) => item.id}
                   style={{ marginTop: 5 }}
                   contentContainerStyle={{ gap: 1 }}
