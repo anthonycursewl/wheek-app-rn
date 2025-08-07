@@ -1,19 +1,15 @@
-import { useState, useRef } from "react";
-import { View, Animated, StyleSheet, KeyboardAvoidingView, Platform, Image, ScrollView } from "react-native";
+import { useState, useRef, useEffect } from "react";
+import { View, Animated, StyleSheet, KeyboardAvoidingView, Platform, Image, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { renderRegisterStep } from "@components/StepsAuth/RenderRegisterSteps";
 import { stylesSteps } from "@components/StepsAuth/styles";
+import { FormData } from "shared/interfaces/FormUserData";
+import useAuthStore from "@flux/stores/AuthStore";
+import { AuthService } from "@flux/services/Auth/AuthService";
+import { registerAttemptAction, registerFailureAction, registerSuccessAction } from "@flux/Actions/RegisterActions";
+import { router } from "expo-router";
 
 type RegisterStep = 'email' | 'password' | 'confirmPassword' | 'userInfo' | 'success';
-
-type FormData = {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  firstName: string;
-  lastName: string;
-  username: string;
-};
 
 export default function RegisterScreen() {
     const [currentStep, setCurrentStep] = useState<RegisterStep>('email');
@@ -25,12 +21,16 @@ export default function RegisterScreen() {
         lastName: '',
         username: '',
     });
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
 
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const { loading, error, setError, dispatch } = useAuthStore()
+
+    useEffect(() => {
+        if (error) return Alert.alert('Wheek | Error', error);
+    }, [error])
 
     const animateTransition = (direction: 'in' | 'out', onComplete?: () => void) => {
         const animations = [
@@ -70,7 +70,7 @@ export default function RegisterScreen() {
             return;
         }
 
-        setError(null);
+        setError('');
         
         animateTransition('out', () => {
             const steps: RegisterStep[] = ['email', 'password', 'confirmPassword', 'userInfo', 'success'];
@@ -86,7 +86,7 @@ export default function RegisterScreen() {
     };
 
     const goToPreviousStep = () => {
-        setError(null);
+        setError('');
     
         animateTransition('out', () => {
             const steps: RegisterStep[] = ['email', 'password', 'confirmPassword', 'userInfo', 'success'];
@@ -102,20 +102,20 @@ export default function RegisterScreen() {
     };
 
     const handleRegister = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            
-            console.log('Datos de registro:', formData);
-            
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            goToNextStep();
-        } catch (err) {
-            setError('Error al registrar la cuenta. Por favor, inténtalo de nuevo.');
-            console.error('Error en el registro:', err);
-        } finally {
-            setLoading(false);
+        if (loading) return;
+        dispatch(registerAttemptAction())
+        const { data, error } = await AuthService.save(formData)
+        if (error) {
+            dispatch(registerFailureAction(error))
+            return setError(error)
+        }
+        if (data) {
+            dispatch(registerSuccessAction(data))
+            setCurrentStep('success')
+
+            setTimeout(() => {
+                router.replace('/dashboard')
+            }, 1000);
         }
     };
 
