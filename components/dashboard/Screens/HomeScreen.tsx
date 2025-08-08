@@ -26,11 +26,10 @@ import IconArrow from 'svgs/IconArrow';
 import StoreLogo from 'svgs/StoreLogo';
 import IconStores from 'svgs/IconStores';
 import IconManage from 'svgs/IconManage';
-import { store } from 'expo-router/build/global-state/router-store';
 
 export const HomeScreen = () => {
-    const { user, loading } = useAuthStore()
-    const { dispatch, error, stores } = useShopStore()
+    const { user, loading: loadingAuth } = useAuthStore()
+    const { dispatch, error, stores, loading: loadingStores } = useShopStore()
     const { currentStore } = useGlobalStore()
   
     const reduceName = (name: string) => {
@@ -42,7 +41,6 @@ export const HomeScreen = () => {
     const [modalVisible, setModalVisible] = useState(false)
   
     const getAllStores = async () => {
-        if (stores.length > 0 || !user) return;
         dispatch(getStoresAttemptAction())
         const { data, error } = await StoreService.getStores(user?.id || '')
         if (error) {
@@ -54,8 +52,10 @@ export const HomeScreen = () => {
     }
   
     useEffect(() => {
+      if (stores.length === 0 && user?.id && !loadingAuth) {
         getAllStores()
-    }, [user])
+      }
+    }, [user?.id])
   
     useEffect(() => {
       if (error) {
@@ -96,7 +96,7 @@ export const HomeScreen = () => {
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}> 
-                    <CustomText style={{ fontSize: 16 }}>{loading ? 'WH' : reduceName(user?.name || '')}</CustomText>
+                    <CustomText style={{ fontSize: 16 }}>{loadingAuth ? 'WH' : reduceName(user?.name || '')}</CustomText>
                 </View>
   
               </View>
