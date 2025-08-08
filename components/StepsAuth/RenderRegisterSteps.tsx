@@ -4,6 +4,7 @@ import CustomText from "@components/CustomText/CustomText";
 import { View, Image } from "react-native";
 import Button from "../Buttons/Button";
 import { stylesSteps } from "./styles";
+import { router } from "expo-router";
 
 type RegisterStep = 'email' | 'password' | 'confirmPassword' | 'userInfo' | 'success';
 
@@ -228,13 +229,10 @@ export const renderRegisterStep = ({
           
           <CustomText style={stylesSteps.successTitle}>¡Registro exitoso!</CustomText>
           <CustomText style={stylesSteps.successText}>
-            Hola {formData.firstName}, tu cuenta ha sido creada exitosamente.
+            Hola {formData.firstName.trim()}, tu cuenta ha sido creada exitosamente.
           </CustomText>
-          <Button
-            title="Continuar"
-            onPress={() => {console.log("Buenas tardes")}}
-            style={stylesSteps.fullWidthButton}
-          />
+          
+          <CustomText style={[stylesSteps.successText, { color: 'rgb(255, 120, 96)' }]}>En unos momentos serás redirigido a la pantalla principal.</CustomText>
         </Animated.View>
       );
 
