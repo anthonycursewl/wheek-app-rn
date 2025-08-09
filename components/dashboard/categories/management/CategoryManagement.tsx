@@ -10,7 +10,7 @@ import { categoryAttemptAction, categoryFailureAction, categorySuccessAllAction 
 import { CategoryItem } from "../components/CategoryItem";
 
 export default function CategoryManagement() {
-    const { categories, loading, error, dispatch, skip, take, hasMore  } = useCategoryStore()
+    const { categories, loading, error, dispatch, skip, take, hasMore } = useCategoryStore()
     const { currentStore } = useGlobalStore()
 
     const getAllCategories = async () => {
@@ -41,7 +41,7 @@ export default function CategoryManagement() {
                 contentContainerStyle={{ gap: 15 }}
                 data={categories}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => <CategoryItem item={item} />}
+                renderItem={({ item }) => <CategoryItem item={item} onSelectCategory={() => {console.log(item)}} />}
                 onEndReached={() => {
                     getAllCategories()
                 }}
