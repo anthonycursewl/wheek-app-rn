@@ -17,7 +17,6 @@ import { useAudioPlayer } from "expo-audio";
 import { useGlobalStore } from "@flux/stores/useGlobalStore";
 import { useShopStore } from "@flux/stores/useShopStore";
 import { generateEAN13 } from "shared/services/generateEAN13";
-import { FormProductData } from "shared/interfaces/ProductFormData";
 import { useCategoryStore } from "@flux/stores/useCategoryStore";
 import { useProviderStore } from "@flux/stores/useProviderStore";
 import { categoryAttemptAction, categoryFailureAction, categorySuccessAllAction } from "@flux/Actions/CategoryAction";
@@ -27,17 +26,23 @@ import { getAllProvidersSuccessAction, providerAttemptAction, providerFailureAct
 import ModalOptions from "@components/Modals/ModalOptions";
 import CategorySelectorModal from "@components/dashboard/categories/modals/CategorySelectorModal";
 import ProviderSelectorModal from "@components/dashboard/providers/modals/ProviderSelectorModal";
-import { Category } from "@flux/entities/Category";
-import { Provider } from "@flux/entities/Provider"
 
 // styles
 import { styles } from "@components/dashboard/products/styles/styleProducts";
 import { CategoryItem } from "@components/dashboard/categories/components/CategoryItem";
 import { ProviderItem } from "@components/dashboard/providers/components/ProviderItem";
+import { Product } from "@flux/entities/Product";
+import { ProductService } from "@flux/services/Products/ProductService";
+import { useProductStore } from "@flux/stores/useProductStore";
+import { productCreateAttemptAction, productCreateFailureAction, productCreateSuccessAction } from "@flux/Actions/ProductActions";
+import { router, useLocalSearchParams } from "expo-router";
 
 const audioSource = require('@assets/sounds/beep_barcode.mp3');
 
 export default function CreateProduct() {
+  // Get params 
+  const { product, md } = useLocalSearchParams();
+
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -49,6 +54,7 @@ export default function CreateProduct() {
   const { loading: loadingCategories, hasMore: hasMoreCategories, categories, dispatch: dispatchCategory, skip: skipCategories, take: takeCategories } = useCategoryStore();
   const { loading: loadingProviders, hasMore: hasMoreProviders, providers, dispatch: dispatchProvider, page: skipProviders, limit: takeProviders } = useProviderStore();
   const { stores, dispatch: dispatchShop } = useShopStore();
+  const { loading: loadingProducts, dispatch: dispatchProduct } = useProductStore()
 
   // local states
   const [storesList, setStoresList] = useState<{label: string, value: string}[]>([]);
@@ -74,7 +80,6 @@ export default function CreateProduct() {
   };
 
   const getAllProviders = async () => {
-    console.log("[CREATE PRODUCT - getAllProviders] ", hasMoreProviders)
     if (loadingProviders || !hasMoreProviders || providers.length !== 0) return;
 
     dispatchProvider(providerAttemptAction());
@@ -92,11 +97,39 @@ export default function CreateProduct() {
     getAllProviders()
   }, []);
 
-  const [formData, setFormData] = useState<FormProductData>({
+  useEffect(() => {
+    if (product && md === 'edit') {
+      const decodedProduct = decodeURIComponent(product as string);
+      const parsedProduct: Product = JSON.parse(decodedProduct);
+      console.log("[CREATE PRODUCT - useEffect] \n", parsedProduct);
+      
+
+      setFormData({ 
+        ...parsedProduct,
+        w_ficha: {
+          ...parsedProduct.w_ficha,
+          cost: parsedProduct.w_ficha.cost.toString(),
+          benchmark: parsedProduct.w_ficha.benchmark.toString(),
+        }
+      });
+      
+      const category = categories.find(cat => cat.id === parsedProduct.category_id);
+      if (category) {
+        setSelectedCategory({ id: category.id, name: category.name });
+      }
+      const provider = providers.find(prov => prov.id === parsedProduct.provider_id);
+      if (provider) {
+        setSelectedProvider({ id: provider.id, name: provider.name });
+      }
+    }
+  }, [product, categories, providers, selectedStore]);
+
+
+  const [formData, setFormData] = useState<Omit<Product, 'id' | 'created_at'>>({
     name: '',
     barcode: '',
     store_id: selectedStore,
-    ficha: {
+    w_ficha: {
       condition: 'UND',
       cost: '',
       benchmark: '',
@@ -182,14 +215,14 @@ export default function CreateProduct() {
     }
   };
 
-  const handleChange = (field: keyof FormProductData, value: string | boolean) => {
+  const handleChange = (field: keyof Product, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleFichaChange = (field: keyof FormProductData['ficha'], value: string | boolean) => {
+  const handleFichaChange = (field: keyof Product['w_ficha'], value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
-      ficha: { ...prev.ficha, [field]: value }
+      w_ficha: { ...prev.w_ficha, [field]: value }
     }));
   };
 
@@ -198,14 +231,88 @@ export default function CreateProduct() {
     handleChange('provider_id', selectedProvider?.id || '');
   }, [selectedCategory, selectedProvider]);
 
-  const handleSubmit = () => {
-    if (!formData.name || !formData.barcode || !formData.store_id || !formData.category_id || !formData.provider_id || !formData.ficha.condition || !formData.ficha.cost || !formData.ficha.benchmark) {
-      Alert.alert('Error', 'Por favor completa todos los campos requeridos');
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      barcode: '',
+      store_id: selectedStore,
+      w_ficha: {
+        condition: 'UND',
+        cost: '',
+        benchmark: '',
+        tax: false,
+      },
+      category_id: selectedCategory?.id || '',
+      provider_id: selectedProvider?.id || ''
+    });
+
+    setSelectedCategory(null);
+    setSelectedProvider(null);
+  };
+
+  const validateForm = () => {
+    if (!formData.name || !formData.barcode || !formData.store_id || !formData.category_id || !formData.provider_id || !formData.w_ficha.condition || !formData.w_ficha.cost || !formData.w_ficha.benchmark) {
+      return false;
+    }
+    return true;
+  }
+
+  const handleCreateProduct = async () => {
+    if (!validateForm()) {
+      Alert.alert('Wheek | Error', 'Por favor completa todos los campos requeridos');
       return;
     }
 
-    console.log("[CREATE PRODUCT - handleSubmit] ", formData);
+    dispatchProduct(productCreateAttemptAction());
+    const { data, error } = await ProductService.createProduct(formData as Product);
+    if (error) {
+      dispatchProduct(productCreateFailureAction(error));
+      Alert.alert('Wheek | Error', error);
+      return;
+    }
+    
+    if (data) {
+      dispatchProduct(productCreateSuccessAction(data));
+      Alert.alert('Wheek | Éxito', 'Producto creado exitosamente');
+      
+      resetForm()
+      router.replace(`/store/manage/${selectedStore}`)
+    }
+    
   };
+  
+  const handleUpdateProduct = async () => {
+    if (!validateForm()) {
+      Alert.alert('Wheek | Error', 'Por favor completa todos los campos requeridos');
+      return;
+    }
+
+    dispatchProduct(productCreateAttemptAction())
+    const { data, error } = await ProductService.updateProduct(formData as Product)
+
+    if (error) {
+      dispatchProduct(productCreateFailureAction(error))
+      Alert.alert('Wheek | Error', error)
+      return;
+    }
+
+    if (data) {
+      dispatchProduct({ type: 'UPDATE_PRODUCT_SUCCESS', payload: { response: data } })
+      Alert.alert('Wheek | Éxito', 'Producto actualizado correctamente.')
+
+      resetForm()
+      router.replace(`/store/manage/${selectedStore}`)
+    }
+  }
+  
+  const handleSubmit = () => {
+    if (md === 'edit') {
+      handleUpdateProduct()
+    }
+    if (md !== 'edit') {
+      handleCreateProduct()
+    }
+  }
 
   if (showScanner) {
     const scanLineStyle = {
@@ -327,19 +434,19 @@ export default function CreateProduct() {
             <CustomText style={styles.sectionTitle}>Información de la Ficha</CustomText>
             <View style={styles.fieldGroup}>
               <CustomText style={styles.label}>Condición *</CustomText>
-              <Input placeholder="Ej: Nuevo, Usado" value={formData.ficha.condition} onChangeText={(text) => handleFichaChange('condition', text)} />
+              <Input placeholder="Ej: Nuevo, Usado" value={formData.w_ficha.condition} onChangeText={(text) => handleFichaChange('condition', text)} />
             </View>
             <View style={styles.fieldGroup}>
               <CustomText style={styles.label}>Costo *</CustomText>
-              <Input placeholder="Costo del producto" value={formData.ficha.cost} onChangeText={(text) => handleFichaChange('cost', text)} keyboardType="numeric" />
+              <Input placeholder="Costo del producto" value={formData.w_ficha.cost} onChangeText={(text) => handleFichaChange('cost', text)} keyboardType="numeric" />
             </View>
             <View style={styles.fieldGroup}>
               <CustomText style={styles.label}>Margen Referencial *</CustomText>
-              <Input placeholder="Margen de ganancia" value={formData.ficha.benchmark} onChangeText={(text) => handleFichaChange('benchmark', text)} keyboardType="numeric" />
+              <Input placeholder="Margen de ganancia" value={formData.w_ficha.benchmark} onChangeText={(text) => handleFichaChange('benchmark', text)} keyboardType="numeric" />
             </View>
             <View style={styles.switchContainer}>
               <CustomText style={styles.label}>Incluye impuesto</CustomText>
-              <Switch value={formData.ficha.tax} onValueChange={(value) => handleFichaChange('tax', value)} style={{ marginLeft: 10 }} />
+              <Switch value={formData.w_ficha.tax} onValueChange={(value) => handleFichaChange('tax', value)} style={{ marginLeft: 10 }} />
             </View>
           </View>
 
@@ -364,9 +471,17 @@ export default function CreateProduct() {
           </View>
 
         </View>
-
+        
+        {/* Switch para poder actualizar o crear */}
         <View style={styles.submitButtonContainer}>
-          <Button title={'Crear Producto'} variant='primary' onPress={handleSubmit} disabled={false} />
+          <Button title={md === 'edit' ? 'Actualizar Producto' : 'Crear Producto'} variant='primary' 
+          onPress={() => {
+            if (md === 'edit') {
+              handleUpdateProduct()
+            } else {
+              handleSubmit()
+            }
+          }} disabled={loadingProducts} />
         </View>
 
       </LayoutScreen>
