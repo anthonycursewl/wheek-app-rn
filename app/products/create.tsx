@@ -94,16 +94,14 @@ export default function CreateProduct() {
 
   useEffect(() => {
     getAllCategories();
-    getAllProviders()
+    getAllProviders();
   }, []);
 
   useEffect(() => {
     if (product && md === 'edit') {
       const decodedProduct = decodeURIComponent(product as string);
       const parsedProduct: Product = JSON.parse(decodedProduct);
-      console.log("[CREATE PRODUCT - useEffect] \n", parsedProduct);
       
-
       setFormData({ 
         ...parsedProduct,
         w_ficha: {
