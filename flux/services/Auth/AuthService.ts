@@ -4,6 +4,7 @@ import { useFetch } from "hooks/http/secureFetch";
 // constans
 import { WheekConfig } from "config/config.wheek.breadriuss";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FormData } from "shared/interfaces/FormUserData";
 
 export const AuthService = {
     async login(email: string, password: string, ref: 'email' | 'password'): Promise<{ data: UserResponse | null, error: string | null }> {
@@ -28,6 +29,38 @@ export const AuthService = {
         await AsyncStorage.setItem('token', data.access_token);
         await AsyncStorage.setItem('tokenr', data.refresh_token);
         return { data, error: null};
+    },
+
+    async save(formData: FormData): Promise<{ data: UserResponse | null, error: string | null }> {
+        if (!formData.username || !formData.lastName || !formData.firstName || !formData.password || !formData.email) {
+            return { data: null, error: 'El correo electrónico es obligatorio! Intenta de nuevo.' };
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+            return { data: null, error: 'Las contraseñas no coinciden! Intenta de nuevo.' };
+        }
+
+        const { data, error } = await useFetch({
+            options: {
+                url: `${WheekConfig.API_BASE_URL}/auth/save`,
+                method: 'POST',
+                body: {
+                    email: formData.email.trim(),
+                    password: formData.password.trim(),
+                    name: formData.firstName.trim(),
+                    last_name: formData.lastName.trim(),
+                    username: formData.username.trim()
+                }
+            }
+        })
+    
+        if (error) {
+            return { data: null, error: error };
+        }
+        
+        await AsyncStorage.setItem('token', data.access_token);
+        await AsyncStorage.setItem('tokenr', data.refresh_token);
+        return { data, error: null };
     },
     
     async verifyToken(token: string): Promise<{ data: any | null, error: string | null }> {
