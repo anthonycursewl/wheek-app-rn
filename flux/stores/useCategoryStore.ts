@@ -18,6 +18,9 @@ interface CategoryStore {
 
     // dispatcher
     dispatch: (action: { type: string; payload?: any }) => void;
+
+    // clear store
+    clearStore: () => void;    
 }
 
 export const useCategoryStore = create<CategoryStore>((set, get) => ({
@@ -57,6 +60,18 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
             categories: [...get().categories, ...categories],
             skip: categories.length,
             hasMore: categories.length >= get().take
+        })
+    },
+
+    // clear store
+    clearStore: () => {
+        set({
+            loading: false,
+            error: null,
+            categories: [],
+            skip: 0,
+            take: 10,
+            hasMore: true
         })
     },
 
