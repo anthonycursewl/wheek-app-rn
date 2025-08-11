@@ -14,8 +14,8 @@ export default function ProviderManagement() {
     const { currentStore } = useGlobalStore()
     
     useEffect(() => {
-        const verifyStore = async () => {
-          if (!hasMore || loading || providers.length !== 0) return;
+        const getAllProviders = async () => {
+          if (providers.length !== 0) return;
           dispatch(getAllProvidersAttemptAction())
           const { data, error } = await ProviderService.getAllProviders(currentStore.id, page, limit) 
     
@@ -28,8 +28,9 @@ export default function ProviderManagement() {
           }
         };
         
-        verifyStore();
-      }, [currentStore, page]);
+        getAllProviders();
+      }, [currentStore]);
+
 
       const handleLoadMore = async () => {
         if (!hasMore || loading) return;
@@ -53,7 +54,7 @@ export default function ProviderManagement() {
                 onPress={() => router.push('/providers/create')}/>
                 
                 {loading && (
-                    <ActivityIndicator size="large" color="blue" />
+                    <ActivityIndicator size="large" color="black" />
                 )}
                 
                 {error && (
@@ -61,20 +62,20 @@ export default function ProviderManagement() {
                 )}
                 
                 <FlatList 
-                data={providers}
-                contentContainerStyle={{ gap: 0 }}
-                style={{ height: '92%' }}
-                showsVerticalScrollIndicator={false}
-                keyExtractor={(item) => item.id}
-                onRefresh={() => {
-                    resetPagination()
-                    }}
-                refreshing={loading && page === 1}
-                onEndReached={() => {handleLoadMore()}}
-                onEndReachedThreshold={0.1}
-                renderItem={({item}) => (
-                    <ProviderItem item={item} />
-                )}
+                  data={providers}
+                  contentContainerStyle={{ gap: 0 }}
+                  style={{ height: '92%' }}
+                  showsVerticalScrollIndicator={false}
+                  keyExtractor={(item) => item.id}
+                  onRefresh={() => {
+                      resetPagination()
+                      }}
+                  refreshing={loading && page === 1}
+                  onEndReached={() => {handleLoadMore()}}
+                  onEndReachedThreshold={0.1}
+                  renderItem={({item}) => (
+                      <ProviderItem item={item} onClose={() => {}} onSelectProvider={() => {}} />
+                  )}
                 />
             </View>
         </View>
