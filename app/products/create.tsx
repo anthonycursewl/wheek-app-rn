@@ -1,16 +1,23 @@
-// components
+// Components
 import CustomText from "@components/CustomText/CustomText";
 import Input from "@components/Input/Input";
 import Button from "@components/Buttons/Button";
 import LogoPage from "@components/LogoPage/LogoPage";
+import ModalOptions from "@components/Modals/ModalOptions";
+import ListCategory from "@components/dashboard/categories/components/ListCategory";
+import ListProviders from "@components/dashboard/providers/components/ListProviders";
+
 // layout
 import LayoutScreen from "@components/Layout/LayoutScreen";
+
 // React Native
-import { View, Alert, ScrollView, Switch, TouchableOpacity, StyleSheet, Animated, Modal, FlatList } from "react-native";
+import { View, Alert, ScrollView, Switch, TouchableOpacity, StyleSheet, Animated } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import { useState, useEffect, useRef } from "react";
+
 // Icons
 import { MaterialIcons } from "@expo/vector-icons";
+
 // Expo Libraries
 import { CameraView, Camera, BarcodeScanningResult } from 'expo-camera';
 import { useAudioPlayer } from "expo-audio";
@@ -19,32 +26,24 @@ import { useShopStore } from "@flux/stores/useShopStore";
 import { generateEAN13 } from "shared/services/generateEAN13";
 import { useCategoryStore } from "@flux/stores/useCategoryStore";
 import { useProviderStore } from "@flux/stores/useProviderStore";
-import { categoryAttemptAction, categoryFailureAction, categorySuccessAllAction } from "@flux/Actions/CategoryAction";
-import { CategoryService } from "@flux/services/Categories/CategoryService";
-import { ProviderService } from "@flux/services/Providers/ProviderService";
-import { getAllProvidersSuccessAction, providerAttemptAction, providerFailureAction, providerSuccessAction } from "@flux/Actions/ProviderActions";
-import ModalOptions from "@components/Modals/ModalOptions";
-import CategorySelectorModal from "@components/dashboard/categories/modals/CategorySelectorModal";
-import ProviderSelectorModal from "@components/dashboard/providers/modals/ProviderSelectorModal";
 
 // styles
 import { styles } from "@components/dashboard/products/styles/styleProducts";
-import { CategoryItem } from "@components/dashboard/categories/components/CategoryItem";
-import { ProviderItem } from "@components/dashboard/providers/components/ProviderItem";
-import { Product } from "@flux/entities/Product";
-import { ProductService } from "@flux/services/Products/ProductService";
 import { useProductStore } from "@flux/stores/useProductStore";
 import { productCreateAttemptAction, productCreateFailureAction, productCreateSuccessAction } from "@flux/Actions/ProductActions";
 import { router, useLocalSearchParams } from "expo-router";
-import ListCategory from "@components/dashboard/categories/components/ListCategory";
-import ListProviders from "@components/dashboard/providers/components/ListProviders";
+
+// Entities
 import { Provider } from "@flux/entities/Provider";
+import { Product } from "@flux/entities/Product";
 import { Category } from "@flux/entities/Category";
+
+// Services
+import { ProductService } from "@flux/services/Products/ProductService";
 
 const audioSource = require('@assets/sounds/beep_barcode.mp3');
 
 export default function CreateProduct() {
-  // Get params 
   const { product, md } = useLocalSearchParams();
 
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -69,7 +68,6 @@ export default function CreateProduct() {
   // states modals
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
-
 
   useEffect(() => {
     if (product && md === 'edit') {
@@ -112,27 +110,20 @@ export default function CreateProduct() {
   });
 
   useEffect(() => {
-    const loadStores = async () => {
-      try {
+    const loadStores = () => {
         if (stores.length > 0) {
           setStoresList(stores.map(store => ({
             label: store.name,
             value: store.id
           })));
         }
-      } catch (error) {
-        console.error('Error loading stores:', error);
-      }
     };
 
     loadStores();
   }, [stores]);
 
   useEffect(() => {
-    setFormData(prev => ({
-      ...prev,
-      store_id: selectedStore
-    }));
+    setFormData(prev => ({ ...prev, store_id: selectedStore }));
   }, [selectedStore]);
 
   const scanLineAnimation = useRef(new Animated.Value(0)).current;
