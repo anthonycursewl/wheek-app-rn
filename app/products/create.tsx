@@ -36,6 +36,10 @@ import { ProductService } from "@flux/services/Products/ProductService";
 import { useProductStore } from "@flux/stores/useProductStore";
 import { productCreateAttemptAction, productCreateFailureAction, productCreateSuccessAction } from "@flux/Actions/ProductActions";
 import { router, useLocalSearchParams } from "expo-router";
+import ListCategory from "@components/dashboard/categories/components/ListCategory";
+import ListProviders from "@components/dashboard/providers/components/ListProviders";
+import { Provider } from "@flux/entities/Provider";
+import { Category } from "@flux/entities/Category";
 
 const audioSource = require('@assets/sounds/beep_barcode.mp3');
 
@@ -51,8 +55,8 @@ export default function CreateProduct() {
 
   // states global
   const { currentStore } = useGlobalStore();
-  const { loading: loadingCategories, hasMore: hasMoreCategories, categories, dispatch: dispatchCategory, skip: skipCategories, take: takeCategories } = useCategoryStore();
   const { loading: loadingProviders, hasMore: hasMoreProviders, providers, dispatch: dispatchProvider, page: skipProviders, limit: takeProviders } = useProviderStore();
+  const { categories } = useCategoryStore()
   const { stores, dispatch: dispatchShop } = useShopStore();
   const { loading: loadingProducts, dispatch: dispatchProduct } = useProductStore()
 
@@ -66,19 +70,6 @@ export default function CreateProduct() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
 
-  const getAllCategories = async () => {
-    if (loadingCategories || !hasMoreCategories || categories.length !== 0) return;
-
-    dispatchCategory(categoryAttemptAction());
-    const { data, error } = await CategoryService.getAllCategories(currentStore.id, skipCategories, takeCategories);
-    if (error) {
-      dispatchCategory(categoryFailureAction(error));
-    }
-    if (data) {
-      console.log("[CREATE PRODUCT - getAllCategories] \n", data)
-    }
-  };
-
   const getAllProviders = async () => {
     if (loadingProviders || !hasMoreProviders || providers.length !== 0) return;
 
@@ -88,12 +79,11 @@ export default function CreateProduct() {
       dispatchProvider(providerFailureAction(error));
     }
     if (data) {
-      console.log("[CREATE PRODUCT - getAllProviders] \n", data)
+      dispatchProvider(getAllProvidersSuccessAction(data.value))
     }
   };
 
   useEffect(() => {
-    getAllCategories();
     getAllProviders();
   }, []);
 
@@ -377,6 +367,16 @@ export default function CreateProduct() {
     );
   }
 
+  const onSelectCategory = (item: Category) => {
+    setSelectedCategory({ id: item.id, name: item.name })
+    setShowCategoryModal(false)
+  }
+
+  const onSelectProvider = (item: Provider) => {
+    setSelectedProvider({ id: item.id, name: item.name})
+    setShowProviderModal(false)
+  }
+
   return (
     <>
     <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: 'transparent' }} keyboardShouldPersistTaps="handled">
@@ -493,23 +493,7 @@ export default function CreateProduct() {
           <View>
             <CustomText style={styles.modalTitle}>Selecciona una categoría</CustomText>
 
-              <FlatList
-                data={categories}
-                style={{ marginTop: 16 }}
-                renderItem={({ item }) => (
-                  <CategoryItem item={item} 
-                    onSelectCategory={() => setSelectedCategory({ id: item.id, name: item.name })} 
-                  onClose={() => setShowCategoryModal(false)} />
-                )}
-
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={{ gap: 10 }}
-                ListEmptyComponent={
-                  <View style={{ backgroundColor: 'rgb(184, 109, 109)', padding: 16 }}>
-                    <CustomText>No hay categorías disponibles</CustomText>
-                  </View>
-                }
-              />
+            <ListCategory height={'95%'} onSelectCategory={(item) => onSelectCategory(item)}/>
           </View>
         </ModalOptions>
 
@@ -522,27 +506,7 @@ export default function CreateProduct() {
                 <CustomText>Selecciona un proveedor</CustomText>
               </View>
 
-                <FlatList
-                  data={providers}
-
-                  renderItem={({ item }) => (
-                    <ProviderItem 
-                    item={item} 
-                    short={true} 
-                    onSelectProvider={(id, name) => setSelectedProvider({ id, name })} 
-                    onClose={() => setShowProviderModal(false)} 
-                    />
-                  )}
-
-                  keyExtractor={(item) => item.id}
-                  style={{ marginTop: 5 }}
-                  contentContainerStyle={{ gap: 1 }}
-                  ListEmptyComponent={
-                    <View>
-                      <CustomText>No hay proveedores disponibles</CustomText>
-                    </View>
-                  }
-                />
+                <ListProviders height={'95%'} onSelectProvider={(item) => onSelectProvider(item)}/>
         </ModalOptions>
 
     </>
