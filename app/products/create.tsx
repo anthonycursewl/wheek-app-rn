@@ -55,9 +55,9 @@ export default function CreateProduct() {
 
   // states global
   const { currentStore } = useGlobalStore();
-  const { loading: loadingProviders, hasMore: hasMoreProviders, providers, dispatch: dispatchProvider, page: skipProviders, limit: takeProviders } = useProviderStore();
+  const { providers } = useProviderStore();
   const { categories } = useCategoryStore()
-  const { stores, dispatch: dispatchShop } = useShopStore();
+  const { stores } = useShopStore();
   const { loading: loadingProducts, dispatch: dispatchProduct } = useProductStore()
 
   // local states
@@ -70,22 +70,6 @@ export default function CreateProduct() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
 
-  const getAllProviders = async () => {
-    if (loadingProviders || !hasMoreProviders || providers.length !== 0) return;
-
-    dispatchProvider(providerAttemptAction());
-    const { data, error } = await ProviderService.getAllProviders(currentStore.id, skipProviders, takeProviders);
-    if (error) {
-      dispatchProvider(providerFailureAction(error));
-    }
-    if (data) {
-      dispatchProvider(getAllProvidersSuccessAction(data.value))
-    }
-  };
-
-  useEffect(() => {
-    getAllProviders();
-  }, []);
 
   useEffect(() => {
     if (product && md === 'edit') {
