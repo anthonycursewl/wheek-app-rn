@@ -3,7 +3,7 @@ import CustomText from "@components/CustomText/CustomText";
 import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { IconCategories } from "svgs/IconCategories";
 
-export const CategoryItem = ({ item, onSelectCategory, onClose }: { item: Category, onSelectCategory: ({ id, name }: { id: string, name: string }) => void, onClose?: () => void }) => {
+export const CategoryItem = ({ item, onSelectCategory, onClose }: { item: Category, onSelectCategory: (item: Category) => void, onClose?: () => void }) => {
     const formatDate = (date: Date) => {
         const options: Intl.DateTimeFormatOptions = {
             year: 'numeric',
@@ -17,7 +17,7 @@ export const CategoryItem = ({ item, onSelectCategory, onClose }: { item: Catego
         <TouchableOpacity 
             style={styles.categoryCard}
             onPress={() => {
-                onSelectCategory({ id: item.id, name: item.name })
+                onSelectCategory(item)
                 onClose && onClose()
             }}
         >
