@@ -261,10 +261,23 @@ export default function CreateProduct() {
 
     if (data) {
       dispatchProduct({ type: 'UPDATE_PRODUCT_SUCCESS', payload: { response: data } })
-      Alert.alert('Wheek | Éxito', 'Producto actualizado correctamente.')
+      Alert.alert('Wheek | Éxito', 'Producto actualizado correctamente.', 
+        [
+          {
+            onPress: () => {
+              if (router.canGoBack()) {
+                router.back()
+              }
+
+              const productString = encodeURIComponent(JSON.stringify(data));
+              router.replace(`/products/ProductDetail?product=${productString}`)
+            }
+          }
+        ],
+        { cancelable: false }
+      )
 
       resetForm()
-      router.replace(`/store/manage/${selectedStore}`)
     }
   }
   

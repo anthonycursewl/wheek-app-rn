@@ -15,7 +15,6 @@ const AnimatedSplashScreen = ({ onAnimationFinish }: { onAnimationFinish: () => 
 
   useEffect(() => {
     const sequence = Animated.sequence([
-      // Initial fade and scale
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
