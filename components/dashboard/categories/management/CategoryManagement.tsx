@@ -11,7 +11,11 @@ export default function CategoryManagement() {
                 <Button title="Crear categoría" 
                 onPress={() => router.push('/categories/create')}/>
 
-                <ListCategory height={'93%'} onSelectCategory={(item) => {}} />
+                <ListCategory height={'93%'} onSelectCategory={(item) => 
+                    {
+                        router.push(`/categories/CategoryDetail?category=${encodeURIComponent(JSON.stringify(item))}`)
+                    }
+                } />
             </View>
         </View>
     );

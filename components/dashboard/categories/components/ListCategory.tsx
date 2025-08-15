@@ -8,6 +8,7 @@ import { CategoryService } from "@flux/services/Categories/CategoryService"
 import { useEffect } from "react"
 import { DimensionValue } from "react-native"
 import { Category } from "@flux/entities/Category"
+import FooterComponentList from "shared/components/FooterComponentList"
 
 export default function ListCategory({ height, onSelectCategory }: { height?: DimensionValue, onSelectCategory: (item: Category) => void }) {
     const { categories, loading, error, dispatch, skip, take, hasMore, clearStore } = useCategoryStore()
@@ -61,7 +62,10 @@ export default function ListCategory({ height, onSelectCategory }: { height?: Di
                 }}
                 refreshing={loading}
                 onEndReachedThreshold={0.1}
+                ListFooterComponent={
+                    <FooterComponentList message="Has llegado al final de la lista." isVisible={hasMore} />
+                }
                 />
-        </View>
+        </View> 
     )
 }
