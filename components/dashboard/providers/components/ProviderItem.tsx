@@ -2,7 +2,7 @@ import { Provider } from "@flux/entities/Provider";
 import CustomText from "@components/CustomText/CustomText";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 
-export const ProviderItem = ({ item, short = false, onSelectProvider, onClose }: { item: Provider, short?: boolean, onSelectProvider: (id: string, name: string) => void, onClose?: () => void }) => {
+export const ProviderItem = ({ item, short = false, onSelectProvider, onClose }: { item: Provider, short?: boolean, onSelectProvider: (item: Provider) => void, onClose?: () => void }) => {
     const formatDate = (dateString: string | Date) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('es-ES', {
@@ -14,7 +14,7 @@ export const ProviderItem = ({ item, short = false, onSelectProvider, onClose }:
 
     return (
         <TouchableOpacity onPress={() => {
-            onSelectProvider(item.id, item.name)
+            onSelectProvider(item)
             onClose && onClose()
         }}
         activeOpacity={0.9}
