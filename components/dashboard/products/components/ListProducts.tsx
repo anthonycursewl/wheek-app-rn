@@ -6,9 +6,10 @@ import { useGlobalStore } from "@flux/stores/useGlobalStore";
 import { ProductService } from "@flux/services/Products/ProductService";
 import { productCreateAttemptAction, productCreateFailureAction } from "@flux/Actions/ProductActions";
 
+
 // Components
+import FooterComponentList from "shared/components/FooterComponentList";
 import { ProductItem } from "./ProductItem";
-import CustomText from "@components/CustomText/CustomText";
 
 export default function ListProducts({ height, onPress }: { height: DimensionValue, onPress: (product: Product) => void }) {
     const { products, dispatch, take, hasMore, loading, error, clearStore } = useProductStore()
@@ -43,17 +44,11 @@ export default function ListProducts({ height, onPress }: { height: DimensionVal
         }
     }
 
-    const FooterComponent = () => {
-        return (
-            <View style={{ alignItems: 'center' }}>
-                <CustomText style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 12 }}>Has llegado al final de la lista.</CustomText>
-            </View>
-        )
-    }
+    
 
     useEffect(() => {
         getAllProductsData()
-    }, [])
+    }, [products.length])
 
    useEffect(() => {
         if (error) Alert.alert(error || 'Error al cargar los productos')
@@ -71,10 +66,14 @@ export default function ListProducts({ height, onPress }: { height: DimensionVal
                 onEndReachedThreshold={0.1}
                 onRefresh={() => {
                     clearStore()
-                    getAllProductsData()
                 }}
                 refreshing={loading}
-                ListFooterComponent={<FooterComponent />}
+                ListFooterComponent={
+                    <FooterComponentList 
+                    message="Has llegado al final de la lista." 
+                    isVisible={hasMore} 
+                    />
+                }
                 keyExtractor={(item) => item.id}
             />
     )
