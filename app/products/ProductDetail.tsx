@@ -1,10 +1,12 @@
 import { View, StyleSheet, ScrollView, TouchableOpacity, Share, Text, Alert } from "react-native";
-import LayoutScreen from "@components/Layout/LayoutScreen";
 import CustomText from "@components/CustomText/CustomText";
 import { router, useLocalSearchParams } from "expo-router";
 import { Product } from "@flux/entities/Product";
 import Barcode from 'react-native-barcode-svg';
 import { MaterialIcons } from '@expo/vector-icons';
+import { ProductService } from "@flux/services/Products/ProductService";
+import { useProductStore } from "@flux/stores/useProductStore";
+import { productCreateAttemptAction, productCreateFailureAction, productDeleteAction } from "@flux/Actions/ProductActions";
 
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -16,6 +18,7 @@ const formatDate = (dateString: string) => {
 };
 
 export default function ProductDetail() {
+    const { dispatch } = useProductStore()
     const { product } = useLocalSearchParams();
     const decodedProduct = decodeURIComponent(product as string);
     const parsedProduct: Product = JSON.parse(decodedProduct);
@@ -31,6 +34,20 @@ export default function ProductDetail() {
             });
         } catch (error) {
             console.error('Error sharing product:', error);
+        }
+    };
+
+    const deleteProduct = async (productId: string) => {
+        dispatch(productCreateAttemptAction())
+        const { data, error } = await ProductService.deleteProduct(productId)
+        if (error) {
+            dispatch(productCreateFailureAction(error))
+            Alert.alert(error || 'Error al eliminar el producto')
+        }
+        if (data) {
+            dispatch(productDeleteAction(data))
+            Alert.alert('Wheek | Eliminación exitosa', 'El producto ha sido movido a la papelera.');
+            router.back();
         }
     };
 
@@ -62,13 +79,12 @@ export default function ProductDetail() {
                         </TouchableOpacity>
                         <TouchableOpacity 
                             onPress={() => {
-                                // Add delete confirmation
                                 Alert.alert(
                                     'Eliminar Producto',
                                     '¿Estás seguro de que deseas eliminar este producto?',
                                     [
                                         { text: 'Cancelar', style: 'cancel' },
-                                        { text: 'Eliminar', style: 'destructive', onPress: () => console.log('Delete product', parsedProduct.id) }
+                                        { text: 'Eliminar', style: 'destructive', onPress: () => deleteProduct(parsedProduct.id) }
                                     ]
                                 );
                             }} 
