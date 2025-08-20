@@ -60,10 +60,6 @@ export default function ListProducts({ height, onPress }: { height: DimensionVal
         getAllProductsData()
     }, [])
 
-   useEffect(() => {
-        if (error) Alert.alert(error || 'Error al cargar los productos')
-    }, [error]) 
-
     return (
             <FlatList
                 data={products}
