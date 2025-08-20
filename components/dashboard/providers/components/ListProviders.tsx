@@ -9,7 +9,7 @@ import { Provider } from "@flux/entities/Provider";
 import FooterComponentList from "shared/components/FooterComponentList";
 
 export default function ListProviders({ height, onSelectProvider }: { height?: DimensionValue | undefined, onSelectProvider: (item: Provider) => void}) {
-    const { dispatch, providers, loading, error, hasMore, page, limit, clearStore } = useProviderStore()
+    const { dispatch, providers, loading, hasMore, page, limit, clearStore } = useProviderStore()
     const { currentStore } = useGlobalStore()
 
     const getAllProviders = async () => {
@@ -28,7 +28,7 @@ export default function ListProviders({ height, onSelectProvider }: { height?: D
 
     useEffect(() => {
         getAllProviders();
-    }, [currentStore, page]);
+    }, [currentStore]);
 
     const handleLoadMore = async () => {
         if (!hasMore || loading) return;

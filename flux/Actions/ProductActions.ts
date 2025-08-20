@@ -4,6 +4,7 @@ export enum ProductActions {
     PRODUCT_CREATE_ATTEMPT = 'PRODUCT_CREATE_ATTEMPT',    
     PRODUCT_CREATE_SUCCESS = 'PRODUCT_CREATE_SUCCESS',
     PRODUCT_CREATE_FAILURE = 'PRODUCT_CREATE_FAILURE',
+    PRODUCT_DELETE = 'PRODUCT_DELETE',
 }
 
 export const productCreateAttemptAction = () => ({
@@ -18,6 +19,11 @@ export const productCreateSuccessAction = (response: Product) => ({
 export const productCreateFailureAction = (error: string) => ({
   type: ProductActions.PRODUCT_CREATE_FAILURE,
   payload: { error },
+});
+
+export const productDeleteAction = (product: Product) => ({
+  type: ProductActions.PRODUCT_DELETE,
+  payload: { product },
 });
 
 
