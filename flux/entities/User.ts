@@ -1,3 +1,14 @@
+interface UserRole {
+    id: string;
+    created_at: string;
+    store_id: string;
+    is_active: boolean;
+    role: any;
+    role_id: string;
+    updated_at: string;
+    user_id: string;
+}
+
 export interface User {
     id: string;
     name: string;
@@ -9,6 +20,7 @@ export interface User {
     icon_url: string;
     username: string;
     email: string;
+    user_roles: UserRole[]
 }
 
 export interface UserResponse {
