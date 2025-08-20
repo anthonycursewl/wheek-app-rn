@@ -49,7 +49,23 @@ export const ProductService = {
             return { data: null, error: error };
         }
 
-        console.log(data)
+        return { data: data.value, error: null };
+    },
+
+    deleteProduct: async (product_id: string): Promise<{ data: Product | null, error: string | null }> => {
+        const { data, error } = await secureFetch({
+            options: {
+                url: `${WheekConfig.API_BASE_URL}/products/delete`,
+                method: 'POST',
+                body: { product_id },
+                stringify: true
+            }
+        })
+
+        if (error) {
+            return { data: null, error: error };
+        }
+
         return { data: data.value, error: null };
     }
 }

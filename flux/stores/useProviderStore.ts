@@ -21,6 +21,9 @@ interface ProviderStore {
 
     // dispatcher
     dispatch: (action: { type: string; payload?: any }) => void;
+
+    // clear store
+    clearStore: () => void;
 }
 
 export const useProviderStore = create<ProviderStore>((set, get) => ({
@@ -87,6 +90,18 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
             page: 1,
             hasMore: true,
             providers: []
+        })
+    },
+
+    // Clear store 
+    clearStore: () => {
+        set({
+            loading: false,
+            error: null,
+            providers: [],
+            page: 1,
+            limit: 10,
+            hasMore: true
         })
     },
 

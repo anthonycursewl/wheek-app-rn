@@ -9,13 +9,14 @@ interface ProductStore {
     skip: number;
     take: number;
     hasMore: boolean;
-    
+
     // actions
     _productCreateAttempt: () => void;
     _productCreateSuccess: (product: Product) => void;
     _productCreateFailure: (error: string) => void;
-    _getProductsSuccess: (products: Product[], isNewPage: boolean) => void;
+    _getProductsSuccess: (products: Product[], isRefreshing?: boolean) => void;
     _updateProduct(product: Product): void;
+    _deleteProduct(product: Product): void;
 
     // dispatcher
     dispatch: (action: { type: string; payload?: any }) => void;
@@ -54,24 +55,12 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         })
     },
 
-    _getProductsSuccess: (products: Product[], reset: boolean = false) => {
-        if (reset) {
-            set({
-                loading: false,
-                error: null,
-                products: products,
-                skip: 0,
-                take: 10,
-                hasMore: true
-            })
-            return;
-        }
-
+    _getProductsSuccess: (products: Product[], isRefreshing = false) => {
         set({
             loading: false,
             error: null,
-            products: get().products.length > 0 ? [...get().products, ...products] : products,
-            skip: get().products.length,
+            products: isRefreshing ? products : [...get().products, ...products],
+            skip: isRefreshing ? products.length : get().skip + products.length,
             hasMore: products.length >= get().take
         })
     },
@@ -89,6 +78,19 @@ export const useProductStore = create<ProductStore>((set, get) => ({
                 return acc;
             }, [])
         })
+    },
+
+    _deleteProduct: (product: Product) => {
+        const products = [...get().products];
+        const index = products.findIndex(p => p.id === product.id);
+        if (index !== -1) {
+            products.splice(index, 1);
+        }
+        set({
+            loading: false,
+            error: null,
+            products
+        });
     },
 
     // Clear store 
@@ -115,7 +117,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
                 get()._productCreateFailure(action.payload.error)
                 break;
             case 'GET_PRODUCTS_SUCCESS':
-                get()._getProductsSuccess(action.payload.products, action.payload.reset)
+                get()._getProductsSuccess(
+                    action.payload.response,
+                    action.payload.isRefreshing
+                )
                 break;
             case 'UPDATE_PRODUCT_SUCCESS':
                 get()._updateProduct(action.payload.response)
