@@ -5,27 +5,14 @@ import ListProducts from "../components/ListProducts";
 import { Product } from "@flux/entities/Product";
 import { useProductStore } from "@flux/stores/useProductStore";
 import CustomText from "@components/CustomText/CustomText";
-import { useGlobalStore } from "@flux/stores/useGlobalStore";
-import { useEffect } from "react";
-import useAuthStore from "@flux/stores/AuthStore";
 
 export default function ProductManagement() {
     const { error } = useProductStore()
-    const { currentStore } = useGlobalStore()
-    const { user } = useAuthStore()
 
     const goToProductDetail = (product: Product) => {
         const productString = encodeURIComponent(JSON.stringify(product));
         router.push(`/products/ProductDetail?product=${productString}`);
     }
-
-    useEffect(() => {
-        user?.user_roles.forEach((role: any) => {
-            role.role.permissions.forEach((permission: any) => {
-                console.log(`${permission.permission.resource}:${permission.permission.action}`)
-            })
-        })
-    }, [])
 
     return (
         <View style={{ marginTop: 15, gap: 10 }}>
