@@ -38,4 +38,5 @@ yarn-error.*
 
 app-example
 config/config.wheek.breadriuss.ts
+test.ts
 

@@ -20,8 +20,11 @@ export default function ProductManagement() {
     }
 
     useEffect(() => {
-        console.log(currentStore)
-        console.log(user)
+        user?.user_roles.forEach((role: any) => {
+            role.role.permissions.forEach((permission: any) => {
+                console.log(`${permission.permission.resource}:${permission.permission.action}`)
+            })
+        })
     }, [])
 
     return (

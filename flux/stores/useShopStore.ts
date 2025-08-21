@@ -15,6 +15,9 @@ interface ShopStore {
     _resetStore: () => void;
     _resetError: () => void;
     dispatch: (action: { type: string; payload?: any }) => void;
+
+    // clear store
+    clearStore: () => void;
 }
 
 export const useShopStore = create<ShopStore>((set, get) => ({
@@ -77,6 +80,15 @@ export const useShopStore = create<ShopStore>((set, get) => ({
     _resetError: () => {
         set({
             error: null
+        })
+    },
+
+    // clear store 
+    clearStore: () => {
+        set({
+            loading: false,
+            error: null,
+            stores: []
         })
     },
 

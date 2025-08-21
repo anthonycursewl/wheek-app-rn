@@ -3,7 +3,16 @@ interface UserRole {
     created_at: string;
     store_id: string;
     is_active: boolean;
-    role: any;
+    role: {
+        id: string;
+        created_at: string;
+        description: string;
+        is_active: boolean;
+        name: string;
+        permissions: any[];
+        store_id: string;
+        updated_at: string;
+    };
     role_id: string;
     updated_at: string;
     user_id: string;
@@ -14,7 +23,6 @@ export interface User {
     name: string;
     last_name: string;
     password: string;
-    role: string;
     created_at: string;
     is_active: boolean;
     icon_url: string;
