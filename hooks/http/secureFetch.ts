@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FetchProps } from "./interfaces/FetchProps";
 
 export const useFetch = async ({ options }: FetchProps): Promise<{ data: any | null, error: string | null }> => {

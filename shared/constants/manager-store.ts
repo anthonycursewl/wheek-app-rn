@@ -1,4 +1,4 @@
-export type TabType = 'products' | 'expenses' | 'receipts' | 'categories' | 'providers';
+export type TabType = 'products' | 'expenses' | 'receipts' | 'categories' | 'providers' | 'roles';
 
 export const TAB_WIDTH = 120;
 

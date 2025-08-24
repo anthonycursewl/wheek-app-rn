@@ -6,6 +6,7 @@ import CategoryManagement from '@components/dashboard/categories/management/Cate
 import ProviderManagement from '@components/dashboard/providers/management/ProviderManagement';
 import ReceptionManagement from '@components/dashboard/receptions/management/ReceptionManagement';
 import AdjustManagement from '@components/dashboard/adjust/management/AdjustManagement';
+import RolesManagement from '@components/dashboard/roles/management/RolesManagement';
 
 export const TABS_CONFIG = [
   { id: 'products', label: 'Productos', Icon: IconProducts, Component: ProductManagement },
@@ -13,4 +14,5 @@ export const TABS_CONFIG = [
   { id: 'providers', label: 'Proveedores', Icon: IconProducts, Component: ProviderManagement },
   { id: 'expenses', label: 'Recepciones', Icon: IconExpenses, Component: ReceptionManagement },
   { id: 'receipts', label: 'Ajustes', Icon: IconReceipts, Component: AdjustManagement },
+  { id: 'roles', label: 'Roles', Icon: IconReceipts, Component: RolesManagement },
 ];
