@@ -26,10 +26,7 @@ export default function ListProducts({ height, onPress }: { height: DimensionVal
         const skip = isRefreshing ? 0 : products.length;
         const { data, error } = await ProductService.getAllProducts(currentStore.id, skip, take)  
 
-        if (error) {
-            dispatch(productCreateFailureAction(error))
-            return;
-        }
+        if (error) return dispatch(productCreateFailureAction(error))
 
         if (data) {
             dispatch({ 
@@ -47,13 +44,8 @@ export default function ListProducts({ height, onPress }: { height: DimensionVal
 
         dispatch(productCreateAttemptAction())
         const { data, error } = await ProductService.getAllProducts(currentStore.id, products.length, take)
-        if (error) {
-            dispatch(productCreateFailureAction(error))
-            Alert.alert(error || 'Error al cargar los productos')
-        }
-        if (data) {
-            dispatch({ type: 'GET_PRODUCTS_SUCCESS', payload: { response: data } })
-        }
+        if (error) return dispatch(productCreateFailureAction(error))
+        if (data) return dispatch({ type: 'GET_PRODUCTS_SUCCESS', payload: { response: data } })
     }
 
     useEffect(() => {
