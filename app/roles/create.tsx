@@ -4,206 +4,188 @@ import CustomText from "@components/CustomText/CustomText"
 import LogoPage from "@components/LogoPage/LogoPage"
 import Input from "@components/Input/Input"
 import Button from "@components/Buttons/Button"
+import { PermissionSection, Permission, Permissions } from "@components/dashboard/roles/components/PermissionSection"
 
 // global store
 import { useGlobalStore } from "@flux/stores/useGlobalStore"
 
 // Core stuff
-import { View, StyleSheet, ScrollView, Switch } from "react-native"
+import { View, StyleSheet, ScrollView, ActivityIndicator } from "react-native"
 import StoreLogo from "svgs/StoreLogo"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { usePermissionStore } from "@flux/stores/usePermissionStore"
 
-type Permission = {
-  create: boolean
-  read: boolean
-  update: boolean
-  delete: boolean
-}
 
-type Permissions = {
-  products: Permission
-  categories: Permission
-  providers: Permission
-  roles: Permission
-  stores: Permission
-}
+// Entities
+import { Role } from "@flux/entities/Role"
+import { RoleService } from "@flux/services/Roles/RoleService"
+import { useRoleStore } from "@flux/stores/useRoleStore"
+import { roleAttemptAction, roleFailureAction, roleSuccessCreateAction } from "@flux/Actions/RoleActions"
 
-const defaultPermission: Permission = {
-  create: false,
-  read: false,
-  update: false,
-  delete: false
+const Block = ({ label, placeholder, handleChangeRole, field }: { label: string, placeholder: string, handleChangeRole: (text: string, field: keyof Role) => void, field: keyof Role }) => {
+  return (
+    <View style={{ gap: 10 }}>
+      <CustomText>{label}</CustomText>
+      <Input placeholder={placeholder} onChangeText={(text) => handleChangeRole(text, field)}/>
+    </View>
+  )
 }
 
 export default function CreateRole() {
+  const actions = { create: false, read: false, update: false, delete: false, manage: false }
   const { currentStore } = useGlobalStore()
-  const [permissions, setPermissions] = useState<Permissions>({
-    products: { ...defaultPermission },
-    categories: { ...defaultPermission },
-    providers: { ...defaultPermission },
-    roles: { ...defaultPermission },
-    stores: { ...defaultPermission, read: true, update: true }
-  })
+  const { groupedPermissions, fetchPermissions, loading, error } = usePermissionStore()
 
-  const Block = ({ label, placeholder }: { label: string, placeholder: string }) => {
-    return (
-      <View style={{ gap: 10 }}>
-        <CustomText>{label}</CustomText>
-        <Input placeholder={placeholder} />
-      </View>
-    )
-  }
+  const { dispatch, loading: loadingRoles, error: errorRoles } = useRoleStore()
 
-  const PermissionToggle = ({ 
-    module, 
-    permission, 
-    label 
-  }: { 
-    module: keyof Permissions
-    permission: keyof Permission
-    label: string 
-  }) => {
-    const isDisabled = module === 'stores' && (permission === 'create' || permission === 'delete')
+  const [selectedPermissions, setSelectedPermissions] = useState<Permissions>({
+    products: actions,
+    categories: actions,
+    providers: actions,
+    roles: actions,
+    stores: actions,
+    manage: actions,
+  });
 
-    return (
-      <View style={styles.permissionRow}>
-        <CustomText style={styles.permissionLabel}>{label}</CustomText>
-        <Switch
-          value={permissions[module][permission]}
-          onValueChange={(value) => {
-            if (isDisabled) return
-            setPermissions(prev => ({
-              ...prev,
-              [module]: {
-                ...prev[module],
-                [permission]: value
-              }
-            }))
-          }}
-          disabled={isDisabled}
-          trackColor={{ false: '#f4f3f4', true: '#7e57c2' }}
-          thumbColor={permissions[module][permission] ? '#5e35b1' : '#f4f3f4'}
-        />
-      </View>
-    )
-  }
+  const [role, setRole] = useState<Omit<Role, 'created_at' | 'updated_at' | 'deleted_at' | 'is_active' | 'id'>>({
+      name: '',
+      description: '',
+      store_id: currentStore.id,
+      permissions: [],
+    })
+  
+  useEffect(() => {
+    fetchPermissions(currentStore.id)
+  }, [fetchPermissions]); 
 
-  const PermissionSection = ({ module, title }: { module: keyof Permissions, title: string }) => (
-    <View style={styles.section}>
-      <CustomText style={styles.sectionTitle}>{title}</CustomText>
-      <View>
-        <View>
-            <PermissionToggle module={module} permission="read" label="Ver" />
-            <CustomText style={styles.permissionsDescription}>Leer información de {title.toLowerCase()} mediante API o desde la app.</CustomText>
-        </View>
+  useEffect(() => {
+    if (Object.keys(groupedPermissions).length > 0) {
+      const initialState: Permissions = { products: actions, categories: actions, providers: actions, roles: actions, stores: actions, manage: actions };
+      for (const resource in groupedPermissions) {
+        initialState[resource] = actions;
+      }
+      if (initialState.stores) {
+        initialState.stores.read = false;
+        initialState.stores.update = false;
+      }
+      setSelectedPermissions(initialState);
+    }
+  }, [groupedPermissions]);
 
-        {module !== 'stores' && 
-        <View>
-            <PermissionToggle module={module} permission="create" label="Crear" />
-            <CustomText style={styles.permissionsDescription}>Crear {title.toLowerCase()} mediante API o desde la app.</CustomText>
-        </View>}
+  const handlePermissionsChange = (
+    module: string,
+    newPermissions: Permission
+  ) => {
+    setSelectedPermissions(prevPermissions => ({
+      ...prevPermissions,
+      [module]: newPermissions
+    }));
+  };
 
-        <View>
-            <PermissionToggle module={module} permission="update" label="Editar" />
-            <CustomText style={styles.permissionsDescription}>Editar {title.toLowerCase()} mediante API o desde la app.</CustomText>
-        </View>
-
-        {module !== 'stores' && 
-        <View>
-            <PermissionToggle module={module} permission="delete" label="Eliminar" />
-            <CustomText style={styles.permissionsDescription}>Eliminar {title.toLowerCase()} mediante API o desde la app.</CustomText>
-        </View>
+  const parsePermissionsForAPI = (permissions: Permissions): string[] => {
+    const permissionsArray: string[] = [];
+    for (const resource of Object.keys(permissions)) {
+      for (const action of Object.keys(permissions[resource])) {
+        if (permissions[resource][action as keyof Permission]) {
+          permissionsArray.push(`${resource}:${action}`);
         }
-      </View>
-    </View>
-  )
+      }
+    }
+    return permissionsArray;
+  };
+
+  if (loading) {
+    return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center' }} />;
+  }
+
+  if (error) {
+    return <CustomText style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>Error al cargar permisos: {error}</CustomText>;
+  }
+
+  const handleChangeRole = (text: string, field: keyof Role) => {
+    setRole({
+      ...role,
+      [field]: text,
+    })
+  }
+
+  const handleCreateRole = async () => {
+    const permissions = parsePermissionsForAPI(selectedPermissions);
+    const newRole = { ...role, permissions: permissions }
+
+    if (!role.name || !role.description) return dispatch(roleFailureAction('Todos los campos son obligatorios'))
+    if (!permissions.length) return dispatch(roleFailureAction('Debes seleccionar al menos un permiso.'))
+
+    dispatch(roleAttemptAction())
+    const { data, error } = await RoleService.createRole(newRole)
+
+    if (error) return dispatch(roleFailureAction(error))
+    if (data) return dispatch(roleSuccessCreateAction(data))
+  }
+
+  useEffect(() => {
+    if (errorRoles) {
+      setTimeout(() => {
+        dispatch(roleFailureAction(''))
+      }, 3000)
+    }
+  }, [errorRoles])
 
   return (
     <LayoutScreen>
-        <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-          <LogoPage />
-        </View>
+      <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+        <LogoPage />
+      </View>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-
         <View style={{ gap: 15 }}>
           <View style={styles.storeName}>
-            <StoreLogo style={{ width: 20, height: 20 }}/>
+            <StoreLogo style={{ width: 20, height: 20 }} />
             <CustomText style={{ fontSize: 14 }}>{currentStore.name}</CustomText>
           </View>
-
-          <Block label="Nombre del rol" placeholder="Nombre del rol" />
-          <Block label="Descripción del rol" placeholder="Descripción del rol" />
-
+          <Block label="Nombre del rol" placeholder="Nombre del rol" handleChangeRole={handleChangeRole} field={"description"}/>
+          <Block label="Descripción del rol" placeholder="Descripción del rol" handleChangeRole={handleChangeRole} field={"name"}/>
           <View>
             <CustomText style={styles.permissionsTitle}>Permisos</CustomText>
             <CustomText style={styles.permissionsDescription}>Estos permisos se aplicarán al role que está siendo creado.</CustomText>
-
+            
             <View style={{ gap: 15 }}>
-              <PermissionSection module="products" title="Productos" />
-              <PermissionSection module="categories" title="Categorías" />
-              <PermissionSection module="providers" title="Proveedores" />
-              <PermissionSection module="roles" title="Roles" />
-              <PermissionSection module="stores" title="Tiendas" />
+              {Object.keys(groupedPermissions).map((resource) => {
+                const currentSelection = selectedPermissions[resource] ?? { create: false, read: false, update: false, delete: false };
+
+                return (
+                  <PermissionSection
+                    key={resource}
+                    module={resource}
+                    title={resource.charAt(0).toUpperCase() + resource.slice(1)} 
+                    availableActions={groupedPermissions[resource] as (keyof Permission)[]}
+                    permissions={currentSelection}
+                    onPermissionsChange={handlePermissionsChange}
+                  />
+                );
+              })}
             </View>
           </View>
         </View>
-
-        <Button 
-          title="Guardar rol" 
+        
+        {errorRoles && <CustomText style={{ color: 'red', textAlign: 'center', marginTop: 15 }}>{errorRoles}</CustomText>}
+        
+        <Button
+          title="Guardar rol"
+          disabled={loadingRoles}
           onPress={() => {
-            console.log('Permisos seleccionados:', permissions)
-          }} 
-          style={{ marginTop: 30, marginBottom: 20 }} 
+            handleCreateRole()
+          }}
+          style={{ marginTop: 30, marginBottom: 20 }}
         />
       </ScrollView>
     </LayoutScreen>
   )
 }
 
+// Tus estilos (sin cambios)
 const styles = StyleSheet.create({
-  container: {
-    paddingBottom: 30
-  },
-  storeName: { 
-    padding: 10, 
-    borderRadius: 20, 
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderWidth: 1, 
-    borderColor: 'rgb(155, 155, 155)',
-    borderStyle: 'dashed', 
-  },
-  permissionsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10
-  },
-  permissionsDescription: {
-    fontSize: 12,
-    color: 'rgb(158, 158, 158)',
-    marginBottom: 10
-  },
-  section: {
-    backgroundColor: '#f8f8f8',
-    borderRadius: 10,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#e0e0e0'
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: 'rgb(59, 59, 59)'
-  },
-  permissionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  permissionLabel: {
-    fontSize: 15,
-    color: 'rgb(27, 27, 27)', 
-  }
-})
+  container: { paddingBottom: 30 },
+  storeName: { padding: 10, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: 'rgb(155, 155, 155)', borderStyle: 'dashed' },
+  permissionsTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  permissionsDescription: { fontSize: 12, color: 'rgb(158, 158, 158)', marginBottom: 10 },
+});
