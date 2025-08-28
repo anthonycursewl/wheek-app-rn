@@ -204,6 +204,6 @@ const styles = StyleSheet.create({
   },
   permissionLabel: {
     fontSize: 15,
-    color: 'rgb(27, 27, 27)',
+    color: 'rgb(27, 27, 27)', 
   }
 })
