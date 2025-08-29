@@ -10,9 +10,11 @@ import { useShopStore } from "@flux/stores/useShopStore"
 import { useEffect, useState } from "react"
 import { Category } from "@flux/entities/Category"
 import { useCategoryStore } from "@flux/stores/useCategoryStore"
-import { categoryAttemptAction, categorySuccessAction, categoryFailureAction } from "@flux/Actions/CategoryAction"
+import { categoryAttemptAction, categorySuccessAction, categoryFailureAction, categorySuccessUpdateAction } from "@flux/Actions/CategoryAction"
 import { CategoryService } from "@flux/services/Categories/CategoryService"
-import { useRouter } from "expo-router"
+import { useLocalSearchParams, useRouter } from "expo-router"
+import IconCross from "svgs/IconCross"
+import CustomAlert from "shared/components/CustomAlert"
 
 export default function CreateCategory() {
     const router = useRouter()
@@ -22,6 +24,15 @@ export default function CreateCategory() {
         name: '',
         store_id: currentStore?.id || '',
     })
+    const [categoryUpdate, setCategoryUpdate] = useState<Category>({
+        id: '',
+        name: '',
+        store_id: '',
+        created_at: new Date(),
+        updated_at: new Date(),
+    })
+    const [alert, setAlert] = useState({ message: '', visible: false })
+    const { category: categoryRaw, mode } = useLocalSearchParams<{ category: string, mode: string }>()
 
     const { dispatch, loading, error } = useCategoryStore()
 
@@ -30,7 +41,7 @@ export default function CreateCategory() {
         const { data, error } = await CategoryService.createCategory(category)
         if (data) {
             dispatch(categorySuccessAction(data.value))
-            Alert.alert('Wheek | Éxito!', `La categoría ${category.name} se ha creado correctamente!`)
+            setAlert({ message: `La categoría ${category.name} se ha creado correctamente!`, visible: true })
             router.back()
         }
         if (error) {
@@ -38,14 +49,53 @@ export default function CreateCategory() {
         }
     }
 
+    const onClose = () => {
+        setAlert({ message: '', visible: false })
+    }
+
     useEffect(() => {
-        if (error) Alert.alert('Wheek | Error', error)
+        if (error) setAlert({ message: error, visible: true })
+
+        return () => {
+            setAlert({ message: '', visible: false })
+            dispatch(categoryFailureAction(''))
+        }
     }, [error])
 
+    useEffect(() => {
+        if (mode === 'update') {
+            const categoryParsed: Category = JSON.parse(decodeURIComponent(categoryRaw))
+            setCategory({
+                name: categoryParsed.name,
+                store_id: categoryParsed.store_id,
+            })
+            setCategoryUpdate(categoryParsed)
+        }
+    }, [categoryRaw, mode])
+
+    const handleUpdateCategory = async () => {
+        dispatch(categoryAttemptAction())
+        const { data, error } = await CategoryService.updateCategory(categoryUpdate.id, { name: category.name }, currentStore.id) 
+        if (data) {
+            dispatch(categorySuccessUpdateAction(data))
+            setAlert({ message: `La categoría ${category.name} se ha actualizado correctamente!`, visible: true })
+            router.back()
+            router.replace(`/categories/CategoryDetail?category=${encodeURIComponent(JSON.stringify(data))}`)
+        }
+        if (error) {
+            dispatch(categoryFailureAction(error))
+        }
+    }
+
+    const titleButton = mode === 'update' ? 'Actualizar categoría' : 'Crear categoría'
+
     return (
+        <>
         <LayoutScreen>
-            <View style={{ width: '100%', alignItems: 'center', 
-                justifyContent: 'space-between', flexDirection: 'row' }}>
+            <View style={{
+                width: '100%', alignItems: 'center',
+                justifyContent: 'space-between', flexDirection: 'row'
+            }}>
                 <LogoPage />
                 <CustomText>Crear Categoría</CustomText>
             </View>
@@ -53,26 +103,49 @@ export default function CreateCategory() {
             <View style={stylesRegisterCategory.containerFields}>
                 <View style={stylesRegisterCategory.containerFields}>
                     <CustomText>Nombre de la categoría</CustomText>
-                    <Input placeholder="Nombre de la categoría" 
-                    value={category.name}
-                    onChangeText={(text) => setCategory({ ...category, name: text })}/>
+                    <Input placeholder="Nombre de la categoría"
+                        value={category.name}
+                        onChangeText={(text) => setCategory({ ...category, name: text })} />
                 </View>
 
                 <View style={stylesRegisterCategory.containerFields}>
-                    <CustomText>Selecciona la tienda</CustomText>
-                    <Picker selectedValue={category.store_id} 
-                    onValueChange={(itemValue) => setCategory({ ...category, store_id: itemValue })}
-                    style={stylesRegisterCategory.storePicker}>
-                        {stores.map((store) => (
-                            <Picker.Item 
-                            key={store.id} 
-                            label={store.name} 
-                            value={store.id}
-                            color="rgb(100, 100, 100)"
-                            style={stylesRegisterCategory.storePickerItem}
+                    {
+                        mode === 'update' ? (
+                            <>
+                            <CustomText>Tienda Asignada</CustomText>
+                            <View 
+                                style={{ flexDirection: 'row', alignItems: 'center', gap: 5,
+                                    borderColor:'rgba(226, 60, 60, 0.74)', 
+                                    borderWidth: 1, borderRadius: 15, padding: 10, borderStyle: 'dashed' }}>
+                                    <IconCross height={12} width={12} fill={'rgb(202, 50, 50)'} />
+                                    <CustomText style={{ fontSize: 12, color: 'rgb(202, 50, 50)' }}>
+                                        La categoría no puede ser cambiada de tienda.
+                                    </CustomText>
+                            </View>
+                            <Input placeholder="Tienda"
+                                value={stores.find((store) => store.id === category.store_id)?.name || ''}
+                                editable={false}
                             />
-                        ))}
-                    </Picker>
+                            </>
+                        ) : (
+                            <>
+                                <CustomText>Selecciona la tienda</CustomText>
+                                <Picker selectedValue={category.store_id}
+                                    onValueChange={(itemValue) => setCategory({ ...category, store_id: itemValue })}
+                                    style={stylesRegisterCategory.storePicker}>
+                                    {stores.map((store) => (
+                                        <Picker.Item
+                                            key={store.id}
+                                            label={store.name}
+                                            value={store.id}
+                                            color="rgb(100, 100, 100)"
+                                            style={stylesRegisterCategory.storePickerItem}
+                                        />
+                                    ))}
+                                </Picker>
+                            </>
+                        )
+                    }
                 </View>
 
                 <View style={{ width: '100%', marginTop: 12, justifyContent: 'center', alignItems: 'center' }}>
@@ -80,7 +153,7 @@ export default function CreateCategory() {
                         loading ? (
                             <ActivityIndicator size={"small"} color={'rgb(255, 152, 0)'} />
                         ) : (
-                            <Button title="Crear categoría" onPress={handleSumbit} style={{ width: '100%' }}/>
+                            <Button title={titleButton} onPress={mode === 'update' ? handleUpdateCategory : handleSumbit} style={{ width: '100%' }} />
                         )
                     }
                 </View>
@@ -88,27 +161,29 @@ export default function CreateCategory() {
 
 
         </LayoutScreen>
+        <CustomAlert visible={alert.visible} message={alert.message} onClose={onClose} />
+        </>
     )
 }
 
 const stylesRegisterCategory = StyleSheet.create({
-  containerFields: {
-    width: '100%',
-    gap: 15
-  },
-  containerButton: {
-    width: '100%',
-    marginTop: 12
-  },
-  storePicker: {
-    backgroundColor: 'rgba(199, 189, 183, 0.08)',
-    borderColor: 'rgba(80, 80, 80, 0.62)',
-    borderWidth: 1,
-    borderRadius: 5,
-   },
-   storePickerItem: {
-    backgroundColor: 'rgba(199, 189, 183, 0.08)',
-    borderColor: 'rgba(0, 0, 0, 0.1)',
-    borderWidth: 1,
-   },
+    containerFields: {
+        width: '100%',
+        gap: 15
+    },
+    containerButton: {
+        width: '100%',
+        marginTop: 12
+    },
+    storePicker: {
+        backgroundColor: 'rgba(199, 189, 183, 0.08)',
+        borderColor: 'rgba(80, 80, 80, 0.62)',
+        borderWidth: 1,
+        borderRadius: 5,
+    },
+    storePickerItem: {
+        backgroundColor: 'rgba(199, 189, 183, 0.08)',
+        borderColor: 'rgba(0, 0, 0, 0.1)',
+        borderWidth: 1,
+    },
 })

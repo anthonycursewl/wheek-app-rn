@@ -1,15 +1,14 @@
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { View, StyleSheet, ScrollView, Image } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import { Category } from "@flux/entities/Category";
 import { useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Card, DataTable, Text } from "react-native-paper";
+import { ButtonWithoutTitle } from "@components/Buttons/ButtonWithoutTitle";
 
 // Components
-import Button from "@components/Buttons/Button";
 import CustomText from "@components/CustomText/CustomText";
-import { router } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
  
 const formatDate = (date: Date | string) => {
@@ -18,28 +17,14 @@ const formatDate = (date: Date | string) => {
 };
 
 export default function CategoryDetail() {
-  // La lógica para obtener y parsear la categoría no se ha modificado.
   const { category } = useLocalSearchParams<{ category: string }>();
   const categoryParsed: Category = useMemo(
     () => JSON.parse(decodeURIComponent(category)),
     [category]
   );
 
-  const ButtonWithoutTitle = ({ icon, onPress }: { icon: React.ReactNode, onPress: () => void}) => {
-    return (
-        <TouchableOpacity onPress={onPress}
-        style={{
-            padding: 10,
-            borderRadius: 100,
-            backgroundColor: 'rgba(192, 192, 192, 0.17)',
-            borderWidth: 1, 
-            borderColor: 'rgb(145, 124, 32)',
-            borderStyle: 'dashed',
-        }}
-        >
-            {icon}
-        </TouchableOpacity> 
-    )
+  const handleUpdateCategory = () => {
+      router.push(`/categories/create?category=${category}&mode=update`)
   }
 
   return (
@@ -50,7 +35,7 @@ export default function CategoryDetail() {
       </View>
 
       <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
-        <ButtonWithoutTitle icon={<MaterialIcons name="edit" size={22} color="black" />} onPress={() => console.log('Edit pressed')} />
+        <ButtonWithoutTitle icon={<MaterialIcons name="edit" size={22} color="black" />} onPress={handleUpdateCategory} />
         <ButtonWithoutTitle icon={<MaterialIcons name="delete" size={22} color="black" />} onPress={() => console.log('Delete pressed')} />
       </View>
 
@@ -123,7 +108,7 @@ export default function CategoryDetail() {
                 borderColor: 'rgb(145, 124, 32)',
                 borderStyle: 'dashed',
                 borderRadius: 8,
-             }}>Esta categoría solo puede ser editada/borrada por quién fue creada. Más info en la sección de ayuda.</CustomText>
+             }}>Esta categoría solo puede ser editada/borrada con los permisos requeridos. Más info en la sección de ayuda.</CustomText>
         </View>
     </ScrollView>
   );
