@@ -1,92 +1,261 @@
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { SafeAreaView, StyleSheet } from "react-native";
+import { useEffect, useState, useRef } from "react";
+import { 
+    SafeAreaView, 
+    ScrollView, 
+    StyleSheet, 
+    View, 
+    Animated,
+    ActivityIndicator 
+} from "react-native";
 import CustomText from "@components/CustomText/CustomText";
-import { View } from "react-native";
-import { Role } from "@flux/entities/Role";
+import { RoleWithPermissions } from "@flux/entities/Role";
 import { useRoleStore } from "@flux/stores/useRoleStore";
 import { roleAttemptAction, roleFailureAction, roleSuccessGetAction } from "@flux/Actions/RoleActions";
 import { RoleService } from "@flux/services/Roles/RoleService";
 import { useGlobalStore } from "@flux/stores/useGlobalStore";
 import LogoPage from "@components/LogoPage/LogoPage";
-import { ActivityIndicator } from "react-native-paper";
+import Constants from 'expo-constants';
+import { ButtonWithoutTitle } from "@components/Buttons/ButtonWithoutTitle";
+import { MaterialIcons } from "@expo/vector-icons";
+
+const actionStyles: { [key: string]: { color: string; backgroundColor: string; label: string } } = {
+  create: { label: 'Crear', color: '#006400', backgroundColor: '#e6f4e6' },
+  read: { label: 'Leer', color: '#0000CD', backgroundColor: '#e6e6fa' },
+  update: { label: 'Actualizar', color: '#FF8C00', backgroundColor: '#fff4e6' },
+  delete: { label: 'Eliminar', color: '#DC143C', backgroundColor: '#fae6e6' },
+  manage: { label: 'Gestionar', color: '#4B0082', backgroundColor: '#f0e6fa' },
+};
+
+const PermissionTag = ({ action }: { action: string }) => {
+  const styleInfo = actionStyles[action] || { label: action, color: '#333', backgroundColor: '#eee' };
+  return (
+    <View style={[styles.tag, { backgroundColor: styleInfo.backgroundColor }]}>
+      <CustomText style={{ color: styleInfo.color, fontWeight: '500' }}>{styleInfo.label}</CustomText>
+    </View>
+  );
+};
+
+const PermissionsCard = ({ resource, actions }: { resource: string, actions: string[] }) => {
+  const resourceName = resource.charAt(0).toUpperCase() + resource.slice(1);
+  return (
+    <View style={styles.card}>
+      <CustomText style={styles.cardTitle}>{resourceName}</CustomText>
+      <View style={styles.tagsContainer}>
+        {actions.map((action, index) => (
+          <PermissionTag key={index} action={action} />
+        ))}
+      </View>
+    </View>
+  );
+};
 
 export default function RoleDetail() {
-    const { dispatch, loading, error } = useRoleStore()
-    const { currentStore } = useGlobalStore()
-    const { role } = useLocalSearchParams()
-    const roleData: Role = JSON.parse(decodeURIComponent(role as string))
-    const [roleDetail, setRoleDetail] = useState<Role>({ 
-        id: '',
-        name: '',
-        store_id: '',
-        description: '',
-        permissions: [],
-        created_at: new Date(),
-        updated_at: new Date(),
-        deleted_at: new Date(),
-        is_active: false
-     })
+    const { dispatch, loading } = useRoleStore();
+    const { currentStore } = useGlobalStore();
+    const { role } = useLocalSearchParams();
+    const roleData: RoleWithPermissions = JSON.parse(decodeURIComponent(role as string));
+    const [roleDetail, setRoleDetail] = useState<RoleWithPermissions>(roleData);
+
+    const scrollY = useRef(new Animated.Value(0)).current;
 
     const handleLoadRoleDetail = async () => {
-        dispatch(roleAttemptAction())
-        const { data, error } = await RoleService.getRoleById(roleData.id, currentStore.id)
-
-        if (error) return dispatch(roleFailureAction(error))
+        dispatch(roleAttemptAction());
+        const { data, error } = await RoleService.getRoleById(roleData.id, currentStore.id);
+        if (error) return dispatch(roleFailureAction(error));
         if (data) {
-            dispatch(roleSuccessGetAction(data))
-            setRoleDetail(data)
-            return 
+            setRoleDetail(data);
+            dispatch(roleSuccessGetAction(data));
         }
-    }
+    };
 
     useEffect(() => {
-        handleLoadRoleDetail()
-    }, [])
+        handleLoadRoleDetail();
+    }, []);
 
-    if (loading) return <ActivityIndicator size="small" color="black" />
+    const headerBackgroundColor = scrollY.interpolate({
+        inputRange: [0, 50],
+        outputRange: ['transparent', 'rgba(255, 255, 255, 0.95)'],
+        extrapolate: 'clamp',
+    });
+    
+    const headerBorderOpacity = scrollY.interpolate({
+        inputRange: [0, 50],
+        outputRange: [0, 1],
+        extrapolate: 'clamp',
+    });
 
-    const DetailRole = ({ label, value }: { label: string, value: string }) => {
+    const DetailRole = ({ label, value }: { label: string, value: string }) => (
+        <View style={styles.detailRow}>
+            <CustomText style={styles.detailLabel}>{label}</CustomText>
+            <CustomText style={styles.detailValue}>{value}</CustomText>
+        </View>
+    );
+
+    const parseDate = (date: Date) => new Date(date).toLocaleDateString('es-ES', {
+        year: 'numeric', month: 'long', day: 'numeric',
+    });
+
+    const groupPermissionsByResource = (permissions: { permission: { action: string, resource: string }}[]) => {
+        if (!permissions) return {};
+        return permissions.reduce((acc, current) => {
+            if (!acc[current.permission.resource]) acc[current.permission.resource] = [];
+            acc[current.permission.resource].push(current.permission.action);
+            return acc;
+        }, {} as Record<string, string[]>);
+    };
+
+    if (loading) {
         return (
-            <View style={{ gap: 5, borderBottomWidth: 1, borderBottomColor: 'rgb(226, 226, 226)', paddingVertical: 10 }}>
-                <CustomText style={{ fontSize: 15, color: 'rgb(85, 85, 85)' }}>{label}</CustomText>
-                <CustomText style={{ fontSize: 16 }}>{value}</CustomText>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#333" />
             </View>
-        )
+        );
     }
 
-    const parseDate = (date: Date) => {
-        return new Date(date).toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        })
-    }
+    const groupedPermissions = groupPermissionsByResource(roleDetail.permissions || []);
 
     return (
-        <SafeAreaView style={style.main}>
-            <View style={{ alignItems: 'center', marginTop: 15, marginBottom: 15 }}>
-                <LogoPage height={25}/>
-                <CustomText style={{ fontSize: 14 }}>Roles</CustomText>
-            </View>
+        <SafeAreaView style={styles.main}>
+            <Animated.View style={[
+                styles.statusBar,
+                { 
+                    backgroundColor: headerBackgroundColor,
+                    borderBottomColor: 'rgba(224, 224, 224, 1)',
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    opacity: headerBorderOpacity
+                }
+            ]} />
 
-            <View style={{ gap: 15 }}>
-                <DetailRole label="Nombre" value={roleDetail.name} />
-                <DetailRole label="Descripción" value={roleDetail.description || ''} />
-                <DetailRole label="ID de la tienda" value={roleDetail.store_id.slice(0, 30) + "..."} />                
-                <DetailRole label="Fecha de Creación" value={parseDate(roleDetail.created_at)} />                
-                <DetailRole label="Fecha de Actualización" value={parseDate(roleDetail.updated_at || new Date())} />
-                                
-            </View>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                    { useNativeDriver: false }
+                )}
+                scrollEventThrottle={16}
+            >
+                <View style={{ height: Constants.statusBarHeight }} />
+
+                <View style={styles.contentContainer}>
+                    <View style={styles.header}>
+                        <LogoPage height={20} width={80}/>
+                        <CustomText style={styles.headerTitle}>Roles</CustomText>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
+                        <ButtonWithoutTitle icon={<MaterialIcons name="edit" size={22} color="black" />} onPress={() => console.log('Edit pressed')} />
+                        <ButtonWithoutTitle icon={<MaterialIcons name="delete" size={22} color="black" />} onPress={() => console.log('Delete pressed')} />
+                    </View>
+
+                    <View style={styles.detailsSection}>
+                        <DetailRole label="Nombre" value={roleDetail.name} />
+                        <DetailRole label="Descripción" value={roleDetail.description || 'N/A'} />
+                        <DetailRole label="ID de la tienda" value={roleDetail.store_id ? roleDetail.store_id : 'N/A'} />
+                        <DetailRole label="Fecha de Creación" value={parseDate(roleDetail.created_at)} />
+                        <DetailRole label="Fecha de Actualización" value={parseDate(roleDetail.updated_at || new Date())} />
+                        <DetailRole label="Estado" value={roleDetail.is_active ? 'Activo 🌱' : 'Inactivo 🥀'} />
+                    </View>
+
+                    <View style={styles.permissionsSection}>
+                        <CustomText style={styles.sectionTitle}>Permisos Asignados</CustomText>
+                        {Object.keys(groupedPermissions).length > 0 ? (
+                            Object.keys(groupedPermissions).map((resource) => (
+                                <PermissionsCard key={resource} resource={resource} actions={groupedPermissions[resource]} />
+                            ))
+                        ) : (
+                            <CustomText style={styles.noPermissionsText}>
+                                Este rol no tiene permisos asignados.
+                            </CustomText>
+                        )}
+                    </View>
+                </View>
+            </ScrollView>
         </SafeAreaView>
-    )
+    );
 }
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
     main: {
         flex: 1,
-        padding: 16,
-        paddingTop: 40,
-        paddingHorizontal: 20
+        backgroundColor: '#fff',
+    },
+    statusBar: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: Constants.statusBarHeight,
+        zIndex: 1,
+    },
+    contentContainer: {
+        paddingHorizontal: 20,
+        paddingBottom: 40,
+    },
+    header: {
+        alignItems: 'center',
+        marginTop: 15,
+        marginBottom: 25,
+    },
+    headerTitle: {
+        fontSize: 14,
+    },
+    detailsSection: {
+        marginBottom: 20,
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+    },
+    detailRow: {
+        gap: 5,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+        paddingVertical: 12,
+    },
+    detailLabel: {
+        fontSize: 14,
+        color: '#666',
+        textTransform: 'uppercase',
+    },
+    detailValue: {
+        fontSize: 16,
+        color: '#111',
+    },
+    permissionsSection: {
+        marginTop: 20,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 15,
+        color: '#333'
+    },
+    noPermissionsText: {
+        textAlign: 'center',
+        color: '#888',
+        marginTop: 10,
+        fontStyle: 'italic',
+    },
+    card: {
+        backgroundColor: '#f9f9f9',
+        borderRadius: 12,
+        padding: 15,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
+    },
+    cardTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 10,
+    },
+    tagsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    tag: {
+        borderRadius: 16,
+        paddingVertical: 5,
+        paddingHorizontal: 12,
     }
-})
+});

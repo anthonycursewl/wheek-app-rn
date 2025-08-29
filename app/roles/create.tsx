@@ -21,6 +21,8 @@ import { Role } from "@flux/entities/Role"
 import { RoleService } from "@flux/services/Roles/RoleService"
 import { useRoleStore } from "@flux/stores/useRoleStore"
 import { roleAttemptAction, roleFailureAction, roleSuccessCreateAction } from "@flux/Actions/RoleActions"
+import CustomAlert from "shared/components/CustomAlert"
+import { router } from "expo-router"
 
 const Block = ({ label, placeholder, handleChangeRole, field }: { label: string, placeholder: string, handleChangeRole: (text: string, field: keyof Role) => void, field: keyof Role }) => {
   return (
@@ -35,7 +37,6 @@ export default function CreateRole() {
   const actions = { create: false, read: false, update: false, delete: false, manage: false }
   const { currentStore } = useGlobalStore()
   const { groupedPermissions, fetchPermissions, loading, error } = usePermissionStore()
-
   const { dispatch, loading: loadingRoles, error: errorRoles } = useRoleStore()
 
   const [selectedPermissions, setSelectedPermissions] = useState<Permissions>({
@@ -53,11 +54,13 @@ export default function CreateRole() {
       store_id: currentStore.id,
       permissions: [],
     })
+  const [alert, setAlert] = useState({ visible: false, message: '' })
   
   useEffect(() => {
     fetchPermissions(currentStore.id)
   }, [fetchPermissions]); 
 
+  
   useEffect(() => {
     if (Object.keys(groupedPermissions).length > 0) {
       const initialState: Permissions = { products: actions, categories: actions, providers: actions, roles: actions, stores: actions, manage: actions };
@@ -71,6 +74,22 @@ export default function CreateRole() {
       setSelectedPermissions(initialState);
     }
   }, [groupedPermissions]);
+
+  useEffect(() => {
+    if (errorRoles) {
+      const timer = setTimeout(() => {
+        dispatch(roleFailureAction(''));
+        setAlert({ visible: false, message: '' })
+      }, 3000);
+      
+      return () => {
+        dispatch(roleFailureAction(''));
+        setAlert({ visible: false, message: '' })
+        clearTimeout(timer)
+      };
+    }
+
+  }, [errorRoles, dispatch]);
 
   const handlePermissionsChange = (
     module: string,
@@ -93,15 +112,7 @@ export default function CreateRole() {
     }
     return permissionsArray;
   };
-
-  if (loading) {
-    return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center' }} />;
-  }
-
-  if (error) {
-    return <CustomText style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>Error al cargar permisos: {error}</CustomText>;
-  }
-
+  
   const handleChangeRole = (text: string, field: keyof Role) => {
     setRole({
       ...role,
@@ -113,25 +124,35 @@ export default function CreateRole() {
     const permissions = parsePermissionsForAPI(selectedPermissions);
     const newRole = { ...role, permissions: permissions }
 
-    if (!role.name || !role.description) return dispatch(roleFailureAction('Todos los campos son obligatorios'))
-    if (!permissions.length) return dispatch(roleFailureAction('Debes seleccionar al menos un permiso.'))
+    if (!role.name || !role.description) return setAlert({ visible: true, message: 'Todos los campos son obligatorios! Intenta de nuevo.' })
+    if (!permissions.length) return setAlert({ visible: true, message: 'Debes seleccionar al menos un permiso! Intenta de nuevo.' })
 
     dispatch(roleAttemptAction())
     const { data, error } = await RoleService.createRole(newRole)
 
-    if (error) return dispatch(roleFailureAction(error))
-    if (data) return dispatch(roleSuccessCreateAction(data))
+    if (error) {
+      setAlert({ visible: true, message: error })
+      return dispatch(roleFailureAction(error))
+    }
+    if (data) {
+      dispatch(roleSuccessCreateAction(data))
+      setAlert({ visible: true, message: 'Rol creado exitosamente!' })
+      setTimeout(() => {
+        if (router.canGoBack()) return router.back();
+      }, 3000);
+    }
   }
 
-  useEffect(() => {
-    if (errorRoles) {
-      setTimeout(() => {
-        dispatch(roleFailureAction(''))
-      }, 3000)
-    }
-  }, [errorRoles])
+  if (loading) {
+    return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center' }} />;
+  }
+
+  if (error) {
+    return <CustomText style={{ color: 'red', textAlign: 'center', marginTop: 20 }}>Error al cargar permisos: {error}</CustomText>;
+  }
 
   return (
+    <>
     <LayoutScreen>
       <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
         <LogoPage />
@@ -142,8 +163,8 @@ export default function CreateRole() {
             <StoreLogo style={{ width: 20, height: 20 }} />
             <CustomText style={{ fontSize: 14 }}>{currentStore.name}</CustomText>
           </View>
-          <Block label="Nombre del rol" placeholder="Nombre del rol" handleChangeRole={handleChangeRole} field={"description"}/>
-          <Block label="Descripción del rol" placeholder="Descripción del rol" handleChangeRole={handleChangeRole} field={"name"}/>
+          <Block label="Nombre del rol" placeholder="Nombre del rol" handleChangeRole={handleChangeRole} field={"name"}/>
+          <Block label="Descripción del rol" placeholder="Descripción del rol" handleChangeRole={handleChangeRole} field={"description"}/>
           <View>
             <CustomText style={styles.permissionsTitle}>Permisos</CustomText>
             <CustomText style={styles.permissionsDescription}>Estos permisos se aplicarán al role que está siendo creado.</CustomText>
@@ -167,8 +188,7 @@ export default function CreateRole() {
           </View>
         </View>
         
-        {errorRoles && <CustomText style={{ color: 'red', textAlign: 'center', marginTop: 15 }}>{errorRoles}</CustomText>}
-        
+              
         <Button
           title="Guardar rol"
           disabled={loadingRoles}
@@ -176,13 +196,14 @@ export default function CreateRole() {
             handleCreateRole()
           }}
           style={{ marginTop: 30, marginBottom: 20 }}
-        />
+          />
       </ScrollView>
     </LayoutScreen>
+    <CustomAlert visible={alert.visible} message={alert.message} onClose={() => setAlert({ visible: false, message: '' })} />
+    </>
   )
 }
 
-// Tus estilos (sin cambios)
 const styles = StyleSheet.create({
   container: { paddingBottom: 30 },
   storeName: { padding: 10, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: 'rgb(155, 155, 155)', borderStyle: 'dashed' },
