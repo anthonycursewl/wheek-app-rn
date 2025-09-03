@@ -24,7 +24,7 @@ export default function CategoryDetail() {
   );
 
   const handleUpdateCategory = () => {
-      router.push(`/categories/create?category=${category}&mode=update`)
+      router.push(`/categories/create?category=${encodeURIComponent(JSON.stringify(categoryParsed))}&mode=update`)
   }
 
   return (

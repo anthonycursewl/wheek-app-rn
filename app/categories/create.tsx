@@ -1,4 +1,4 @@
-import { View, StyleSheet, Alert, ActivityIndicator } from "react-native"
+import { View, StyleSheet, ActivityIndicator } from "react-native"
 import CustomText from "@components/CustomText/CustomText"
 import LayoutScreen from "@components/Layout/LayoutScreen"
 import LogoPage from "@components/LogoPage/LogoPage"
