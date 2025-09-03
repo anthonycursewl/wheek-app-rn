@@ -26,6 +26,7 @@ import IconArrow from 'svgs/IconArrow';
 import StoreLogo from 'svgs/StoreLogo';
 import IconStores from 'svgs/IconStores';
 import IconManage from 'svgs/IconManage';
+import LoadingScreen from 'shared/components/LoadingScreen';
 
 export const HomeScreen = () => {
     const { user, loading: loadingAuth } = useAuthStore()
@@ -41,22 +42,19 @@ export const HomeScreen = () => {
     const [modalVisible, setModalVisible] = useState(false)
   
     const getAllStores = async () => {
-        dispatch(getStoresAttemptAction())
-        const { data, error } = await StoreService.getStores(user?.id || '')
-        if (error) {
-          dispatch(getStoresFailureAction(error))
-        }
-        if (data) {
-          dispatch(getStoresSuccessAction(data))
+        if (stores.length !== 0) return;
+        if (user?.id) {
+          dispatch(getStoresAttemptAction())
+          const { data, error } = await StoreService.getStores(user?.id || '')
+          if (error) {
+            dispatch(getStoresFailureAction(error))
+          }
+          if (data) {
+            dispatch(getStoresSuccessAction(data))
+          }
         }
     }
-  
-    useEffect(() => {
-      if (stores.length === 0 && user?.id && !loadingAuth) {
-        getAllStores()
-      }
-    }, [user?.id])
-  
+
     useEffect(() => {
       if (error) {
         Alert.alert('Wheek | Error', error)
@@ -66,6 +64,8 @@ export const HomeScreen = () => {
         dispatch(resetErrorAction())
       }
     }, [error])
+
+    if (loadingAuth) return <LoadingScreen />
   
     return (
       <LayoutScreen>
@@ -76,7 +76,10 @@ export const HomeScreen = () => {
   
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
   
-                <TouchableOpacity onPress={() => setModalVisible(true)}>
+                <TouchableOpacity onPress={async () => {
+                  setModalVisible(true)
+                  await getAllStores()
+                }}>
                   <View style={{
                     height: 40,
                     alignItems: 'center',
