@@ -20,16 +20,17 @@ export default function CreateCategory() {
     const router = useRouter()
     const { currentStore } = useGlobalStore()
     const { stores } = useShopStore()
-    const [category, setCategory] = useState<Omit<Category, 'id' | 'created_at' | 'updated_at'>>({
+    const [category, setCategory] = useState<Omit<Category, 'id' | 'created_at' | 'updated_at' | 'is_active' | 'deleted_at'>>({
         name: '',
         store_id: currentStore?.id || '',
     })
-    const [categoryUpdate, setCategoryUpdate] = useState<Category>({
+    const [categoryUpdate, setCategoryUpdate] = useState<Omit<Category, 'deleted_at'>   >({
         id: '',
         name: '',
         store_id: '',
         created_at: new Date(),
         updated_at: new Date(),
+        is_active: true
     })
     const [alert, setAlert] = useState({ message: '', visible: false })
     const { category: categoryRaw, mode } = useLocalSearchParams<{ category: string, mode: string }>()
@@ -75,7 +76,7 @@ export default function CreateCategory() {
 
     const handleUpdateCategory = async () => {
         dispatch(categoryAttemptAction())
-        const { data, error } = await CategoryService.updateCategory(categoryUpdate.id, { name: category.name }, currentStore.id) 
+        const { data, error } = await CategoryService.updateCategory(categoryUpdate.id, { name: category.name, is_active: true, deleted_at: new Date() }, currentStore.id) 
         if (data) {
             dispatch(categorySuccessUpdateAction(data))
             setAlert({ message: `La categoría ${category.name} se ha actualizado correctamente!`, visible: true })
