@@ -1,10 +1,10 @@
 import { Image, StyleSheet, View } from "react-native";
 
-export default function LogoPage() {
+export default function LogoPage({ height = 50, width = 80 }: { height?: number, width?: number }) {
     return (
         <View style={{ position: 'relative' }}>
             <View style={stylesCreateProduct.decorationRight}></View>
-            <Image source={require('@assets/images/wheek/wheek.png')} style={{ width: 80, height: 50 }} resizeMode="contain" />
+            <Image source={require('@assets/images/wheek/wheek.png')} style={{ width: width, height: height }} resizeMode="contain" />
             <View style={stylesCreateProduct.decorationLeft}></View>
         </View>
     )
