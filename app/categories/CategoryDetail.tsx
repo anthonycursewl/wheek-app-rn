@@ -1,7 +1,7 @@
 import { View, StyleSheet, ScrollView, Image } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Category } from "@flux/entities/Category";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Card, DataTable, Text } from "react-native-paper";
@@ -10,6 +10,10 @@ import { ButtonWithoutTitle } from "@components/Buttons/ButtonWithoutTitle";
 // Components
 import CustomText from "@components/CustomText/CustomText";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useCategoryStore } from "@flux/stores/useCategoryStore";
+import { categoryAttemptAction, categorySuccessUpdateAction, categoryFailureAction } from "@flux/Actions/CategoryAction";
+import { CategoryService } from "@flux/services/Categories/CategoryService";
+import CustomAlert from "shared/components/CustomAlert";
  
 const formatDate = (date: Date | string) => {
   if (!date) return "N/A";
@@ -18,6 +22,9 @@ const formatDate = (date: Date | string) => {
 
 export default function CategoryDetail() {
   const { category } = useLocalSearchParams<{ category: string }>();
+  const { dispatch } = useCategoryStore()
+  const [alert, setAlert] = useState({ message: '', visible: false })
+
   const categoryParsed: Category = useMemo(
     () => JSON.parse(decodeURIComponent(category)),
     [category]
@@ -27,7 +34,23 @@ export default function CategoryDetail() {
       router.push(`/categories/create?category=${encodeURIComponent(JSON.stringify(categoryParsed))}&mode=update`)
   }
 
+  const handleSoftDeleteCategory = async () => {
+    const categoryUpdated = { ...categoryParsed, is_active: false }
+    dispatch(categoryAttemptAction())
+    const { data, error } = await CategoryService.updateCategory(categoryParsed.id, categoryUpdated, categoryParsed.store_id)
+    if (data) {
+        dispatch(categorySuccessUpdateAction(data))
+        setAlert({ message: `La categoría ${categoryParsed.name} se ha actualizado correctamente!`, visible: true })
+        router.back()
+        router.replace(`/categories/CategoryDetail?category=${encodeURIComponent(JSON.stringify(data))}`)
+    }
+    if (error) {
+        dispatch(categoryFailureAction(error))
+    }
+  }
+
   return (
+    <>
     <ScrollView style={styles.container}>
       <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 30 }}>
         <Image source={require('@assets/images/wheek/wheek.png')} style={{ width: 100, height: 30 }} resizeMode="contain" />
@@ -36,7 +59,7 @@ export default function CategoryDetail() {
 
       <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
         <ButtonWithoutTitle icon={<MaterialIcons name="edit" size={22} color="black" />} onPress={handleUpdateCategory} />
-        <ButtonWithoutTitle icon={<MaterialIcons name="delete" size={22} color="black" />} onPress={() => console.log('Delete pressed')} />
+        <ButtonWithoutTitle icon={<MaterialIcons name="delete" size={22} color="black" />} onPress={() => handleSoftDeleteCategory()} />
       </View>
 
       <Card style={styles.card}>
@@ -108,9 +131,12 @@ export default function CategoryDetail() {
                 borderColor: 'rgb(145, 124, 32)',
                 borderStyle: 'dashed',
                 borderRadius: 8,
-             }}>Esta categoría solo puede ser editada/borrada con los permisos requeridos. Más info en la sección de ayuda.</CustomText>
+              }}>Esta categoría solo puede ser editada/borrada con los permisos requeridos. Más info en la sección de ayuda.</CustomText>
         </View>
     </ScrollView>
+
+    <CustomAlert message={alert.message} visible={alert.visible} onClose={() => setAlert({ message: '', visible: false })} />
+    </>
   );
 }
 
