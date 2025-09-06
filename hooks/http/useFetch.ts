@@ -1,6 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FetchProps } from "./interfaces/FetchProps";
 
+/**
+ * Secure fetch
+ * Make a request to the API with secure token
+ * @param options 
+ * @returns Promise<{ data: any | null, error: string | null }>
+ */
 export const secureFetch = async ({ options }: FetchProps): Promise<{ data: any | null, error: string | null }> => {
     const { url, method = 'GET', headers, body, stringify = true } = options;
     try {

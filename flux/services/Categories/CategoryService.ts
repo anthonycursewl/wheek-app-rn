@@ -4,7 +4,7 @@ import { WheekConfig } from "config/config.wheek.breadriuss";
 import { secureFetch } from "hooks/http/useFetch";
 
 export const CategoryService = {
-    async createCategory(category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: any | null, error: string | null }> {
+    async createCategory(category: Omit<Category, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'is_active'>): Promise<{ data: any | null, error: string | null }> {
         if (!category.name || !category.store_id) {
             return { data: null, error: 'Todos los campos son obligatorios! Intenta de nuevo.' };
         }
@@ -39,5 +39,21 @@ export const CategoryService = {
         }
         
         return { data: data.value, error: null }
+    },
+
+    async updateCategory(id: string, category: Omit<Category, 'id' | 'created_at' | 'updated_at' | 'store_id'>, store_id: string): Promise<{ data: Category | null, error: string | null }> {
+        if (!id || !category.name) {
+            return { data: null, error: 'Todos los campos son obligatorios! Intenta de nuevo.' };
+        }
+        const { data, error } = await secureFetch({
+            options: {
+                url: `${WheekConfig.API_BASE_URL}/categories/update/${id}?store_id=${store_id}`,
+                method: 'PUT',
+                body: category,
+            }
+        })
+    
+        if (error) return { data: null, error: error };
+        return { data: data.value, error: null};
     }
 }

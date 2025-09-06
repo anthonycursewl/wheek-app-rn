@@ -15,6 +15,7 @@ interface CategoryStore {
     _categorySuccess: (category: Category) => void;
     _categoryFailure: (error: string) => void;
     _categorySuccessAll: (categories: Category[]) => void;
+    _categorySuccessUpdate: (category: Category) => void;
 
     // dispatcher
     dispatch: (action: { type: string; payload?: any }) => void;
@@ -63,6 +64,18 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
         })
     },
 
+    _categorySuccessUpdate: (category: Category) => {
+        const categories = get().categories
+        const updatedCategories = categories.map(cat => 
+            cat.id === category.id 
+                ? category 
+                : cat
+        )
+        set({
+            categories: updatedCategories
+        })
+    },
+
     // clear store
     clearStore: () => {
         set({
@@ -88,6 +101,9 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
                 break;
             case CategoryActions.CATEGORY_SUCCESS_ALL:
                 get()._categorySuccessAll(action.payload.categories)
+                break;
+            case CategoryActions.CATEGORY_SUCCESS_UPDATE:
+                get()._categorySuccessUpdate(action.payload.response)
                 break;
             default:
                 console.warn(`Acción desconocida: ${action.type}`);
