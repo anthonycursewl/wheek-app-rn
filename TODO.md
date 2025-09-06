@@ -7,7 +7,7 @@
   - [x] Mejorar manejo de soft delete en categorias.
 - [ ] [TAR-002] Modulo de providers
   - [ ] Hacer la vista para mostrar detalles del provider.
-  - [ ] Refactorizar la vista de creación de provider para ser usada en la vista de actualización `providers/create.tsx`.
+  - [ ] Refactorizar la vista de creación de provider para ser usada como vista de actualización `providers/create.tsx`.
   - [ ] Implementar el soft delete.
 - [ ] [TAR-003] Modulo de roles.
   - [x] Hacer la vista para mostrar detalles del rol.
