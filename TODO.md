@@ -5,10 +5,10 @@
   - [x] Corregir actualización de categorías
   - [x] Mejorar manejo de errores
   - [ ] Mejorar manejo de soft delete en cat, roles, permisos, etc...
-  - [] Terminar el sistema de permisos para los roles.
-  - [] Terminar el modulo de gestión de miembros de la tienda.
-  - [] Terminal el modulo de ventas.
-  - [] Empezar el modulo de inventarios (ajustes y recepciones). 
+  - [ ] Terminar el sistema de permisos para los roles.
+  - [ ] Terminar el modulo de gestión de miembros de la tienda.
+  - [ ] Terminal el modulo de ventas.
+  - [ ] Empezar el modulo de inventarios (ajustes y recepciones). 
 
 ## 📋 Pendientes
 ### 🐞 Errores
@@ -31,11 +31,11 @@
 ## 🔄 Revisión Pendiente
 - [ ] Revisar implementación de soft delete
 - [ ] Probar flujo completo de categorías
-- [] Probar flujo completo de roles
-- [] Probar flujo completo de permisos
-- [] Probar flujo completo de miembros de la tienda
-- [] Probar flujo completo de ventas
-- [] Probar flujo completo de inventarios
+- [ ] Probar flujo completo de roles
+- [ ] Probar flujo completo de permisos
+- [ ] Probar flujo completo de miembros de la tienda
+- [ ] Probar flujo completo de ventas
+- [ ] Probar flujo completo de inventarios
 
 ## 📊 Métricas
 - [ ] Configurar Analytics
