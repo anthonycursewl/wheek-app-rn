@@ -4,11 +4,22 @@
 - [x] [TAR-001] Mejoras en el módulo de categorías
   - [x] Corregir actualización de categorías
   - [x] Mejorar manejo de errores
-  - [ ] Mejorar manejo de soft delete en cat, roles, permisos, etc...
-  - [ ] Terminar el sistema de permisos para los roles.
-  - [ ] Terminar el modulo de gestión de miembros de la tienda.
-  - [ ] Terminal el modulo de ventas.
-  - [ ] Empezar el modulo de inventarios (ajustes y recepciones). 
+  - [x] Mejorar manejo de soft delete en categorias.
+- [ ] [TAR-002] Modulo de providers
+  - [ ] Hacer la vista para mostrar detalles del provider.
+  - [ ] Refactorizar la vista de creación de provider para ser usada en la vista de actualización `providers/create.tsx`.
+  - [ ] Implementar el soft delete.
+- [ ] [TAR-003] Modulo de roles.
+  - [x] Hacer la vista para mostrar detalles del rol.
+  - [ ] Refactorizar la vista de creación de rol para ser usada en la vista de actualización `roles/create.tsx`.
+  - [ ] Implementar el soft delete solo para roles con `$role:manage`.
+- [ ] [TAR-004] Modulo de permisos.
+  - [x] Hacer la vista para mostrar detalles del permiso donde se muestra el rol, mostrar los permisos del rol.
+- [ ] [TAR-005] Modulo de miembros de la tienda
+  - [ ] Hacer la vista para mostrar detalles del miembro de la tienda.
+  - [ ] Hacer la vista para poder mostrar los miembros de la tienda en total.
+  - [ ] Implementar la invitación de miembros en la tienda mediante tokens.
+  - [ ] Implementar el soft delete (solo para roles con `$stores:delete`).
 
 ## 📋 Pendientes
 ### 🐞 Errores
