@@ -5,14 +5,15 @@
   - [x] Corregir actualización de categorías
   - [x] Mejorar manejo de errores
   - [x] Mejorar manejo de soft delete en categorias.
-- [ ] [TAR-002] Modulo de providers
-  - [ ] Hacer la vista para mostrar detalles del provider.
-  - [ ] Refactorizar la vista de creación de provider para ser usada como vista de actualización `providers/create.tsx`.
-  - [ ] Implementar el soft delete.
-- [ ] [TAR-003] Modulo de roles.
+- [x] [TAR-002] Modulo de providers
+  - [x] Hacer la vista para mostrar detalles del provider.
+  - [x] Refactorizar la vista de creación de provider para ser usada como vista de actualización `providers/create.tsx`.
+  - [x] Implementar el soft delete.
+  - [x] Implementar el share para compartir datos del provider mediante email, whatsapp y telegram.
+- [x] [TAR-003] Modulo de roles.
   - [x] Hacer la vista para mostrar detalles del rol.
   - [ ] Refactorizar la vista de creación de rol para ser usada en la vista de actualización `roles/create.tsx`.
-  - [ ] Implementar el soft delete solo para roles con `$role:manage`.
+  - [x] Implementar el soft delete solo para roles con `$role:manage`.
 - [ ] [TAR-004] Modulo de permisos.
   - [x] Hacer la vista para mostrar detalles del permiso donde se muestra el rol, mostrar los permisos del rol.
 - [ ] [TAR-005] Modulo de miembros de la tienda.
@@ -21,6 +22,10 @@
   - [ ] Implementar la invitación de miembros en la tienda mediante tokens.
   - [ ] Implementar el soft delete (solo para roles con `$stores:delete`).
   - [ ] Implementar la eliminación de miembros de la tienda manteniendo los datos ingresados del miembro.
+- [ ] [TAR-006] Hacer filtros inteligente para las listas de cada entidad.
+  - [ ] Implementar filtros inteligentes para las listas de cada entidad.
+  - [ ] Implementar la paginación personalizada.
+  - [ ] Implementar la vista de trash para mostrar los datos eliminados con soft-delete.
 
 ## 📋 Pendientes
 ### 🐞 Errores
