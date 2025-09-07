@@ -12,9 +12,9 @@
   - [x] Implementar el share para compartir datos del provider mediante email, whatsapp y telegram.
 - [x] [TAR-003] Modulo de roles.
   - [x] Hacer la vista para mostrar detalles del rol.
-  - [ ] Refactorizar la vista de creación de rol para ser usada en la vista de actualización `roles/create.tsx`.
+  - [x] Refactorizar la vista de creación de rol para ser usada en la vista de actualización `roles/create.tsx`.
   - [x] Implementar el soft delete solo para roles con `$role:manage`.
-- [ ] [TAR-004] Modulo de permisos.
+- [x] [TAR-004] Modulo de permisos.
   - [x] Hacer la vista para mostrar detalles del permiso donde se muestra el rol, mostrar los permisos del rol.
 - [ ] [TAR-005] Modulo de miembros de la tienda.
   - [ ] Hacer la vista para mostrar detalles del miembro de la tienda.
