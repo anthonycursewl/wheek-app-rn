@@ -46,8 +46,8 @@
 - [x] Optimizar rendimiento de listas
 
 ## 🔄 Revisión Pendiente
-- [ ] Revisar implementación de soft delete
-- [ ] Probar flujo completo de categorías
+- [x] Revisar implementación de soft delete (todas las entidades)
+- [x] Probar flujo completo de categorías
 - [ ] Probar flujo completo de roles
 - [ ] Probar flujo completo de permisos
 - [ ] Probar flujo completo de miembros de la tienda
