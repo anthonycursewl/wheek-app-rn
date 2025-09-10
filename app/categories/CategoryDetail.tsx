@@ -1,7 +1,7 @@
 import { View, StyleSheet, ScrollView, Image } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Category } from "@flux/entities/Category";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Card, DataTable, Text } from "react-native-paper";
@@ -11,10 +11,12 @@ import { ButtonWithoutTitle } from "@components/Buttons/ButtonWithoutTitle";
 import CustomText from "@components/CustomText/CustomText";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useCategoryStore } from "@flux/stores/useCategoryStore";
-import { categoryAttemptAction, categorySuccessUpdateAction, categoryFailureAction } from "@flux/Actions/CategoryAction";
+import { categoryAttemptAction, categoryFailureAction, categorySuccessDeleteAction } from "@flux/Actions/CategoryAction";
 import { CategoryService } from "@flux/services/Categories/CategoryService";
 import CustomAlert from "shared/components/CustomAlert";
- 
+import { useAlert } from "shared/hooks/useAlert"; 
+import LogoPage from "@components/LogoPage/LogoPage";
+
 const formatDate = (date: Date | string) => {
   if (!date) return "N/A";
   return format(new Date(date), "PPPpp", { locale: es });
@@ -22,8 +24,8 @@ const formatDate = (date: Date | string) => {
 
 export default function CategoryDetail() {
   const { category } = useLocalSearchParams<{ category: string }>();
-  const { dispatch } = useCategoryStore()
-  const [alert, setAlert] = useState({ message: '', visible: false })
+  const { dispatch, loading } = useCategoryStore();
+  const { alertState, showSuccess, showError, hideAlert } = useAlert();
 
   const categoryParsed: Category = useMemo(
     () => JSON.parse(decodeURIComponent(category)),
@@ -31,29 +33,46 @@ export default function CategoryDetail() {
   );
 
   const handleUpdateCategory = () => {
-      router.push(`/categories/create?category=${encodeURIComponent(JSON.stringify(categoryParsed))}&mode=update`)
-  }
+    router.push(`/categories/create?category=${encodeURIComponent(JSON.stringify(categoryParsed))}&mode=update`);
+  };
 
   const handleSoftDeleteCategory = async () => {
-    const categoryUpdated = { ...categoryParsed, is_active: false }
-    dispatch(categoryAttemptAction())
-    const { data, error } = await CategoryService.updateCategory(categoryParsed.id, categoryUpdated, categoryParsed.store_id)
-    if (data) {
-        dispatch(categorySuccessUpdateAction(data))
-        setAlert({ message: `La categoría ${categoryParsed.name} se ha actualizado correctamente!`, visible: true })
-        router.back()
-        router.replace(`/categories/CategoryDetail?category=${encodeURIComponent(JSON.stringify(data))}`)
-    }
-    if (error) {
-        dispatch(categoryFailureAction(error))
-    }
-  }
+      const categoryUpdated = { ...categoryParsed, is_active: false };
+      showSuccess('¿Estás seguro de que deseas eliminar esta categoría?', {
+        showConfirm: true,
+        showCancel: true,
+        onConfirm: async () => {
+          dispatch(categoryAttemptAction());
+          const { data, error } = await CategoryService.updateCategory(
+            categoryParsed.id, 
+            categoryUpdated, 
+            categoryParsed.store_id
+          );
+          
+          if (data) {
+            dispatch(categorySuccessDeleteAction(data));
+            showSuccess(`La categoría ${categoryParsed.name} se ha eliminado correctamente!`, {
+              onConfirm: () => {
+                router.back();
+              },
+              isLoading: loading,
+            });
+          } else if (error) {
+            showError(error, { showConfirm: false, showCancel: true })
+            dispatch(categoryFailureAction(error));
+          }
+        },
+        isLoading: loading,
+      });  
+  };
 
   return (
     <>
     <ScrollView style={styles.container}>
       <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 30 }}>
-        <Image source={require('@assets/images/wheek/wheek.png')} style={{ width: 100, height: 30 }} resizeMode="contain" />
+        <View>
+          <LogoPage width={80} height={20}/>
+        </View>
         <CustomText style={{ fontSize: 12 }}>Categorias</CustomText>
       </View>
 
@@ -135,7 +154,7 @@ export default function CategoryDetail() {
         </View>
     </ScrollView>
 
-    <CustomAlert message={alert.message} visible={alert.visible} onClose={() => setAlert({ message: '', visible: false })} />
+    <CustomAlert {...alertState} onClose={hideAlert} />
     </>
   );
 }
@@ -145,7 +164,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
     padding: 16,
-    marginTop: 35,
+    paddingTop: 60,
   },
   card: {
     elevation: 4,
