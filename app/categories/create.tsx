@@ -15,6 +15,7 @@ import { CategoryService } from "@flux/services/Categories/CategoryService"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import IconCross from "svgs/IconCross"
 import CustomAlert from "shared/components/CustomAlert"
+import { useAlert } from "shared/hooks/useAlert"
 
 export default function CreateCategory() {
     const router = useRouter()
@@ -32,36 +33,33 @@ export default function CreateCategory() {
         updated_at: new Date(),
         is_active: true
     })
-    const [alert, setAlert] = useState({ message: '', visible: false })
+    const { alertState, showSuccess, showError, hideAlert } = useAlert()
     const { category: categoryRaw, mode } = useLocalSearchParams<{ category: string, mode: string }>()
 
-    const { dispatch, loading, error } = useCategoryStore()
+    const { dispatch, loading } = useCategoryStore()
 
     const handleSumbit = async () => {
         dispatch(categoryAttemptAction())
         const { data, error } = await CategoryService.createCategory(category)
         if (data) {
-            dispatch(categorySuccessAction(data.value))
-            setAlert({ message: `La categoría ${category.name} se ha creado correctamente!`, visible: true })
-            router.back()
+            dispatch(categorySuccessAction(data))
+            showSuccess(`La categoría ${category.name} se ha creado correctamente!`, {
+                showConfirm: true,
+                showCancel: false,
+                onConfirm: () => {
+                    router.back()
+                }
+            })
         }
         if (error) {
+            showError(error, { showConfirm: false, showCancel: true })
             dispatch(categoryFailureAction(error))
         }
     }
 
     const onClose = () => {
-        setAlert({ message: '', visible: false })
+        hideAlert()
     }
-
-    useEffect(() => {
-        if (error) setAlert({ message: error, visible: true })
-
-        return () => {
-            setAlert({ message: '', visible: false })
-            dispatch(categoryFailureAction(''))
-        }
-    }, [error])
 
     useEffect(() => {
         if (mode === 'update') {
@@ -73,17 +71,21 @@ export default function CreateCategory() {
             setCategoryUpdate(categoryParsed)
         }
     }, [categoryRaw, mode])
-
+    
     const handleUpdateCategory = async () => {
         dispatch(categoryAttemptAction())
         const { data, error } = await CategoryService.updateCategory(categoryUpdate.id, { name: category.name, is_active: true, deleted_at: new Date() }, currentStore.id) 
         if (data) {
             dispatch(categorySuccessUpdateAction(data))
-            setAlert({ message: `La categoría ${category.name} se ha actualizado correctamente!`, visible: true })
-            router.back()
-            router.replace(`/categories/CategoryDetail?category=${encodeURIComponent(JSON.stringify(data))}`)
+            showSuccess(`La categoría ${category.name} se ha actualizado correctamente!`, {
+                onConfirm: () => {
+                    router.back()
+                    router.replace(`/categories/CategoryDetail?category=${encodeURIComponent(JSON.stringify(data))}`)
+                }
+            })
         }
         if (error) {
+            showError(error, { showConfirm: false, showCancel: true })
             dispatch(categoryFailureAction(error))
         }
     }
@@ -162,7 +164,8 @@ export default function CreateCategory() {
 
 
         </LayoutScreen>
-        <CustomAlert visible={alert.visible} message={alert.message} onClose={onClose} />
+    
+        <CustomAlert {...alertState} onClose={onClose} />
         </>
     )
 }
