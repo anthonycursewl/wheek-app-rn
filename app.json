@@ -3,7 +3,7 @@
     "name": "Wheek",
     "slug": "wheek-app-rn",
     "version": "1.0.0",
-    "orientation": "contain",
+    "orientation": "portrait",
     "icon": "./assets/images/wheek/wheek_icon_adaptive.png",
     "scheme": "wheekapprn",
     "userInterfaceStyle": "automatic",
