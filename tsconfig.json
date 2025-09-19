@@ -1,5 +1,5 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": "expo/tsconfig.base.json",
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
@@ -7,12 +7,16 @@
       "@/*": ["./src/*"],
       "@assets/*": ["./assets/*"],
       "@components/*": ["./components/*"],
-      "@flux/*": ["./flux/*"]
+      "@flux/*": ["./flux/*"],
+      "@hooks/*": ["./hooks/*"]
     },
     "typeRoots": [
       "./node_modules/@types",
       "./src/types"
-    ]
+    ],
+    "declaration": false,
+    "emitDeclarationOnly": false,
+    "skipLibCheck": true
   },
   "include": [
     "**/*.ts",
