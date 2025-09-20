@@ -1,6 +1,6 @@
-import Svg, { Path, G } from 'react-native-svg'
+import Svg, { Path, G, SvgProps } from 'react-native-svg'
 
-export default function IconSearch({ ...props }: any) {
+export default function IconSearch({ ...props }: SvgProps) {
     return (
         <Svg
           fill="none"

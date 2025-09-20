@@ -1,9 +1,8 @@
-import Svg, { Path, G } from 'react-native-svg'
+import Svg, { Path, G, SvgProps } from 'react-native-svg'
 
-export default function StoreLogo({ ...props }: any) {
+export default function StoreLogo({ ...props }: SvgProps) {
     return (
     <Svg
-    xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24"
     {...props}
