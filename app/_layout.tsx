@@ -6,7 +6,6 @@ import { Animated, Dimensions, Image, StyleSheet, View } from 'react-native';
 import useAuthStore from 'flux/stores/AuthStore';
 
 SplashScreen.preventAutoHideAsync();
-
 const { width } = Dimensions.get('window');
 
 const AnimatedSplashScreen = ({ onAnimationFinish }: { onAnimationFinish: () => void }) => {
@@ -82,15 +81,17 @@ function RootLayoutContent() {
   if (isAppReady && !isSplashAnimationFinished) {
     return (
       <>
-        <StatusBar style="dark" />
+        <StatusBar style="dark" translucent backgroundColor="transparent" />
         <AnimatedSplashScreen onAnimationFinish={handleAnimationFinish} />
       </>
     );
   }
 
   return (
-    <View style={styles.appContainer}>
-      <Stack screenOptions={{ headerShown: false }}>
+    <>
+      <StatusBar style="dark" translucent backgroundColor="transparent" />
+      <View style={styles.appContainer}>
+        <Stack screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
           <>
             <Stack.Screen name="(tabs)" />
@@ -106,8 +107,9 @@ function RootLayoutContent() {
         ) : (
           <Stack.Screen name="index" />
         )}
-      </Stack>
-    </View>
+        </Stack>
+      </View>
+    </>
   );
 }
 
@@ -130,6 +132,7 @@ const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingTop: 0,
   },
   decorationRight: {
     position: 'absolute',

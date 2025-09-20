@@ -8,6 +8,7 @@ import { renderStep } from "@components/StepsAuth/RenderStepsLogin";
 import { stylesSteps } from "@components/StepsAuth/styles";
 import { TouchableOpacity } from "react-native";
 import CustomText from "@components/CustomText/CustomText";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Index() {
     const [step, setStep] = useState<'email' | 'password' | 'success'>('email');
@@ -21,6 +22,17 @@ export default function Index() {
     const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
     const { error, loading, dispatch } = useAuthStore();
+
+    useEffect(() => {
+        const checkToken = async () => {
+            const token = await AsyncStorage.getItem('token');
+            if (token) {
+                router.replace('/dashboard')
+            }
+        }
+        checkToken();
+    }, [])
+
 
     useEffect(() => {
         fadeAnim.setValue(0);
