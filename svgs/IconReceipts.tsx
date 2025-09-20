@@ -1,10 +1,9 @@
 import React from 'react';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, SvgProps } from 'react-native-svg';
 
-interface IconReceiptsProps {
+interface IconReceiptsProps extends Omit<SvgProps, 'width' | 'height'> {
   width?: number | string;
   height?: number | string;
-  color?: string;
 }
 
 const IconReceipts: React.FC<IconReceiptsProps> = ({ 
