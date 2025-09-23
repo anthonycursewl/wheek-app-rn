@@ -17,6 +17,7 @@ interface ProductStore {
     _getProductsSuccess: (products: Product[], isRefreshing?: boolean) => void;
     _updateProduct(product: Product): void;
     _deleteProduct(product: Product): void;
+    _productSearchSuccess: () => void;
 
     // dispatcher
     dispatch: (action: { type: string; payload?: any }) => void;
@@ -93,6 +94,13 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         });
     },
 
+    _productSearchSuccess: () => {
+        set({
+            loading: false,
+            error: null,
+        })
+    },
+
     // Clear store 
     clearStore: () => {
         set({
@@ -124,6 +132,12 @@ export const useProductStore = create<ProductStore>((set, get) => ({
                 break;
             case 'UPDATE_PRODUCT_SUCCESS':
                 get()._updateProduct(action.payload.response)
+                break;
+            case ProductActions.PRODUCT_SEARCH_SUCCESS:
+                get()._productSearchSuccess()
+                break;
+            case ProductActions.PRODUCT_DELETE:
+                get()._deleteProduct(action.payload.product)
                 break;
             default:
                 console.warn(`Acción desconocida: ${action.type}`);
