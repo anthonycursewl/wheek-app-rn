@@ -1,66 +1,72 @@
 import { useState, useCallback } from 'react';
 import { CustomAlertProps } from '../components/CustomAlert';
 
-type AlertOptions = Omit<CustomAlertProps, 'visible' | 'onClose' | 'onConfirm'>;
+// 1. CAMBIO PRINCIPAL: Ajustamos los tipos.
+// Solo necesitamos omitir 'visible', ya que el hook lo controla.
+// Permitimos que 'onClose' y 'onConfirm' se puedan pasar como opciones.
+type AlertOptions = Partial<Omit<CustomAlertProps, 'visible'>>;
+
+// Guardamos el estado inicial para poder resetearlo fácilmente.
+const initialState: CustomAlertProps = {
+  visible: false,
+  message: '',
+  onClose: () => {},
+};
 
 export const useAlert = () => {
-  const [alertState, setAlertState] = useState<CustomAlertProps>({
-    visible: false,
-    message: '',
-    type: 'info',
-    confirmText: 'Aceptar',
-    cancelText: 'Cancelar',
-    showCancel: false,
-    showConfirm: true,
-    isLoading: false,
-    onClose: () => {},
-    onConfirm: () => {}
-  });
+  const [alertState, setAlertState] = useState<CustomAlertProps>(initialState);
 
+  // 2. MEJORA: `showAlert` ahora resetea el estado anterior.
+  // Esto evita que un `onConfirm` o `onClose` de una alerta anterior
+  // se quede "pegado" en la siguiente.
   const showAlert = useCallback((options: AlertOptions) => {
-    setAlertState(prev => ({
-      ...prev,
-      ...options,
-      visible: true,
-    }));
+    setAlertState({
+      ...initialState, // Resetea al estado inicial
+      ...options,      // Aplica las nuevas opciones
+      visible: true,   // Muestra la alerta
+    });
   }, []);
 
+  // 3. MEJORA: `hideAlert` ahora ejecuta el callback `onClose` del estado.
   const hideAlert = useCallback(() => {
+    // Primero, llama a la función onClose que está actualmente en el estado
+    if (typeof alertState.onClose === 'function') {
+      alertState.onClose();
+    }
+    // Luego, oculta el modal
     setAlertState(prev => ({
       ...prev,
       visible: false,
     }));
-  }, []);
+  }, [alertState.onClose]); // Dependemos de la función actual onClose
 
-  const showSuccess = useCallback((message: string, options: Partial<AlertOptions> & { onConfirm?: () => void } = {}) => {
+  // 4. SIMPLIFICACIÓN: Las firmas de las funciones son más limpias.
+  // Ya no necesitan la intersección `& { onConfirm... }` porque AlertOptions ya lo permite.
+  const showSuccess = useCallback((message: string, options: AlertOptions = {}) => {
     showAlert({
       ...options,
       message,
-      type: 'success',
     });
   }, [showAlert]);
 
-  const showError = useCallback((message: string, options: Partial<AlertOptions> = {}) => {
+  const showError = useCallback((message: string, options: AlertOptions = {}) => {
     showAlert({
       ...options,
       message,
-      type: 'error',
     });
   }, [showAlert]);
 
-  const showWarning = useCallback((message: string, options: Partial<AlertOptions> = {}) => {
+  const showWarning = useCallback((message: string, options: AlertOptions = {}) => {
     showAlert({
       ...options,
       message,
-      type: 'warning',
     });
   }, [showAlert]);
 
-  const showInfo = useCallback((message: string, options: Partial<AlertOptions> = {}) => {
+  const showInfo = useCallback((message: string, options: AlertOptions = {}) => {
     showAlert({
       ...options,
       message,
-      type: 'info',
     });
   }, [showAlert]);
 
