@@ -2,25 +2,25 @@ import React from 'react';
 import { TouchableOpacity, StyleSheet, LayoutChangeEvent } from 'react-native';
 import CustomText from '@components/CustomText/CustomText';
 import { TAB_WIDTH, colors } from 'shared/constants/manager-store';
+import { SvgProps } from 'react-native-svg';
 
 interface TabButtonProps {
   label: string;
-  Icon: React.FC<any>;
+  Icon: React.ComponentType<SvgProps>;
   isActive: boolean;
   onPress: () => void;
   onLayout: (event: LayoutChangeEvent) => void;
+  iconProps?: SvgProps;
 }
 
-const TabButton = ({ label, Icon, isActive, onPress, onLayout }: TabButtonProps) => {
-  const color = isActive ? colors.primary : colors.gray;
-
+const TabButton = ({ label, Icon, isActive, onPress, onLayout, iconProps }: TabButtonProps) => {
   return (
     <TouchableOpacity
       style={[styles.tab, isActive && styles.activeTab]}
       onPress={onPress}
       onLayout={onLayout}
     >
-      <Icon width={20} height={20} color={color} />
+      {Icon && <Icon {...iconProps} fill={isActive ? colors.primary : iconProps?.fill} />}
       <CustomText style={[
         styles.tabText, 
         isActive ? styles.activeTabText : {}

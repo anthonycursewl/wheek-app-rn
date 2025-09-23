@@ -17,14 +17,14 @@ interface ModalOptionsProps {
   visible: boolean;
   onClose: () => void;
   children?: React.ReactNode;
-  gesturesEnabled?: boolean; // Prop para controlar los gestos
+  gesturesEnabled?: boolean;
 }
 
 export default function ModalOptions({
   visible,
   onClose,
   children,
-  gesturesEnabled = true, // <-- CAMBIO CLAVE: Ahora es TRUE por defecto
+  gesturesEnabled = true,
 }: ModalOptionsProps) {
   const [isModalRendered, setIsModalRendered] = useState(visible);
   const translateY = useRef(new Animated.Value(MODAL_HEIGHT)).current;
@@ -33,7 +33,6 @@ export default function ModalOptions({
   useEffect(() => {
     if (visible) {
       setIsModalRendered(true);
-      // Cuando se abre, animamos a la posición inicial (translateY: 0)
       Animated.parallel([
         Animated.spring(translateY, {
           toValue: 0,
@@ -47,7 +46,6 @@ export default function ModalOptions({
         }),
       ]).start();
     } else {
-      // Cuando se cierra, animamos hacia abajo
       Animated.parallel([
         Animated.timing(translateY, {
           toValue: MODAL_HEIGHT,
@@ -67,22 +65,19 @@ export default function ModalOptions({
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => gesturesEnabled, // Solo responde si los gestos están habilitados
+      onStartShouldSetPanResponder: () => gesturesEnabled,
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // La condición es: gestos habilitados Y el movimiento es principalmente vertical y hacia abajo.
         return gesturesEnabled && gestureState.dy > 5 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
       },
       onPanResponderMove: (_, gestureState) => {
-        // Solo mover si el gesto es hacia abajo (dy > 0)
         if (gestureState.dy > 0) {
           translateY.setValue(gestureState.dy);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 110) {
-          onClose(); // Cierra si el arrastre es suficientemente largo
+          onClose();
         } else {
-          // Si no, vuelve a la posición inicial
           Animated.spring(translateY, {
             toValue: 0,
             useNativeDriver: true,
@@ -93,7 +88,6 @@ export default function ModalOptions({
     })
   ).current;
   
-  // Si no debe renderizarse, no renderizamos nada
   if (!isModalRendered) {
     return null;
   }
@@ -109,6 +103,7 @@ export default function ModalOptions({
 
   // Objeto de handlers vacío para cuando los gestos están deshabilitados
   const emptyHandlers = {};
+  const panHandlers = gesturesEnabled ? panResponder.panHandlers : emptyHandlers;
 
   return (
     <Modal
@@ -122,16 +117,16 @@ export default function ModalOptions({
         <Animated.View style={[styles.backdrop, animatedStyles.backdrop]} />
       </TouchableWithoutFeedback>
 
+      {/* // <--- CAMBIO CLAVE 1: El contenedor principal ya NO tiene los panHandlers. */}
       <Animated.View
         style={[styles.modal, animatedStyles.modal]}
-        // Aplicamos los handlers solo si gesturesEnabled es true
-        {...(gesturesEnabled ? panResponder.panHandlers : emptyHandlers)}
       >
-        <View style={styles.header}>
+        {/* // <--- CAMBIO CLAVE 2: Los panHandlers ahora se aplican SOLO a la cabecera. */}
+        <View style={styles.header} {...panHandlers}>
           <View style={styles.dragHandle} />
         </View>
 
-        {/* El View 'content' es crucial para que la FlatList funcione con flexbox */}
+        {/* El contenido ahora es libre de gestionar sus propios gestos de scroll */}
         <View style={styles.content}>
           {children}
         </View>
@@ -162,8 +157,10 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: 16, // Espacio para agarrar
+    paddingTop: 16,
     paddingBottom: 15,
+    // Hacemos el área de toque un poco más ancha para que sea más fácil de agarrar
+    paddingHorizontal: 20, 
   },
   dragHandle: {
     width: 40,
@@ -172,9 +169,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   content: {
-    flex: 1, // Esto asegura que el contenido pueda usar flexbox para llenar el espacio
-    paddingHorizontal: 16, // Padding para el contenido
+    flex: 1,
+    paddingHorizontal: 16,
     paddingBottom: 16,
-    // Quitamos el padding del contenedor principal para dárselo al header y content por separado
   },
 });

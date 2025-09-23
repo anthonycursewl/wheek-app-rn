@@ -4,11 +4,33 @@ import IconStores from "svgs/IconStores";
 import { StyleSheet } from "react-native";
 import { useGlobalStore } from "@flux/stores/useGlobalStore";
 import { StoreData } from "@flux/entities/Store";
+import { useProductStore } from "@flux/stores/useProductStore";
+import { useCategoryStore } from "@flux/stores/useCategoryStore";
+import { useProviderStore } from "@flux/stores/useProviderStore";
+import { useReceptionStore } from "@flux/stores/useReceptionStore";
+import { useAdjustmentStore } from "@flux/stores/useAdjustmentStore";
+import { useInventoryStore } from "@flux/stores/useInventoryStore";
+import { useRoleStore } from "@flux/stores/useRoleStore";
 
 export default function TypeStore({ store, setModalVisible }: { store: StoreData, setModalVisible: (visible: boolean) => void }) {
-    const { currentStore, setCurrentStore } = useGlobalStore()
+    const { currentStore, setCurrentStore, clearStore: clGlobalState } = useGlobalStore()
+    const { clearStore: clProductState } = useProductStore()
+    const { clearStore: clCategoryState } = useCategoryStore()
+    const { clearStore: clProviderState } = useProviderStore()
+    const { clearStore: clReceptionState } = useReceptionStore()
+    const { clearStore: clAdjustmentState } = useAdjustmentStore()
+    const { clearStore: clInventoryState } = useInventoryStore()
+    const { clearStore: clRoleState } = useRoleStore() 
 
     const handlePress = () => {
+        clGlobalState()
+        clCategoryState()
+        clProductState()
+        clProviderState()
+        clReceptionState()
+        clAdjustmentState()
+        clInventoryState()
+        clRoleState()
         setCurrentStore(store)
         setModalVisible(false)
     }
