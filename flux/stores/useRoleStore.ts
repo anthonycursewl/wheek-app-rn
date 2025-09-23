@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Role } from "../entities/Role";
+import { Role, RoleWithPermissions } from "../entities/Role";
 import { RoleActions } from "@flux/Actions/RoleActions";
 
 interface RoleStore {
@@ -18,9 +18,12 @@ interface RoleStore {
     _getSuccessAllRoles: (roles: Role[], isRefreshing: boolean) => void;
     _successCreateRole: (role: Role) => void;
     _successGetRole: (role: Role) => void;
+    _successUpdateRole: (role: Role) => void;
 
     // dispatcher
     dispatch: (action: { type: string; payload?: any }) => void;
+    selectedRole: RoleWithPermissions;
+    setSelectedRole: (role: RoleWithPermissions) => void;
 
     // clear store
     clearStore: () => void;
@@ -33,6 +36,23 @@ export const useRoleStore = create<RoleStore>((set, get) => ({
     skip: 0,
     take: 10,
     hasMore: true,
+
+    selectedRole: {
+        id: '',
+        name: '',
+        description: '',
+        store_id: '',
+        permissions: [],
+        created_at: new Date(),
+        updated_at: new Date(),
+        deleted_at: new Date(),
+        is_active: false
+    },
+    setSelectedRole: (role: RoleWithPermissions) => {
+        set({
+            selectedRole: role
+        })
+    },
 
     _roleAttempt: () => {
         set({
@@ -73,6 +93,14 @@ export const useRoleStore = create<RoleStore>((set, get) => ({
         })
     },
 
+    _successUpdateRole: (role: Role) => {
+        set({
+            loading: false,
+            error: null,
+            roles: get().roles.map(r => r.id === role.id ? role : r) 
+        })
+    },
+
     // Clear store 
     clearStore: () => {
         set({
@@ -101,6 +129,9 @@ export const useRoleStore = create<RoleStore>((set, get) => ({
                 break;
             case RoleActions.ROLE_SUCCESS_GET:
                 get()._successGetRole(action.payload.response)
+                break;
+            case RoleActions.ROLE_SUCCESS_UPDATE:
+                get()._successUpdateRole(action.payload.response)
                 break;
             default:
                 console.warn(`Acción desconocida: ${action.type}`);
