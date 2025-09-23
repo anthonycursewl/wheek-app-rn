@@ -13,3 +13,11 @@ export interface Product {
     provider_id: string;
     created_at: string;
 }
+
+export interface ProductSearchResult {
+  id: string;
+  name: string;
+  barcode: string;
+  cost: number;
+  benchmark: number;
+}
