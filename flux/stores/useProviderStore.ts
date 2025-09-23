@@ -17,10 +17,17 @@ interface ProviderStore {
     _getAllProvidersAttempt: () => void;
     _getAllProvidersSuccess: (providers: Provider[], isNewPage?: boolean) => void;
     _getAllProvidersFailure: (error: string) => void;
+    _updateProviderSuccess: (provider: Provider) => void;
+    _softDeleteProviderSuccess: (provider: Provider) => void;
+    _loadMoreProvidersSuccess: (providers: Provider[]) => void;
     resetPagination: () => void;
 
     // dispatcher
     dispatch: (action: { type: string; payload?: any }) => void;
+    
+    // selected provider
+    selectedProvider: Provider | null;
+    setSelectedProvider: (provider: Provider | null) => void;
 
     // clear store
     clearStore: () => void;
@@ -33,6 +40,12 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
     page: 1,
     limit: 10,
     hasMore: true,
+    selectedProvider: null,
+    setSelectedProvider: (provider: Provider | null) => {
+        set({
+            selectedProvider: provider
+        })
+    },
 
     _providerAttempt: () => {
         set({
@@ -63,18 +76,26 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
         })
     },
 
-    _getAllProvidersSuccess: (newProviders: Provider[], isNewPage: boolean = true) => {
+    _getAllProvidersSuccess: (newProviders: Provider[]) => {
         const currentState = get();
-        const updatedProviders = isNewPage 
-            ? [...currentState.providers, ...newProviders]
-            : newProviders;
-            
+        set({
+            loading: false,
+            error: null,
+            providers: newProviders,
+            page: currentState.providers.length,
+            hasMore: newProviders.length >= currentState.limit
+        })
+    },
+
+    _loadMoreProvidersSuccess: (newProviders: Provider[]) => {
+        const currentState = get();
+        const updatedProviders = [...currentState.providers, ...newProviders];
         set({
             loading: false,
             error: null,
             providers: updatedProviders,
-            page: isNewPage ? currentState.page + 1 : 2,
-            hasMore: newProviders.length === currentState.limit
+            page: currentState.providers.length,
+            hasMore: newProviders.length >= currentState.limit
         })
     },
     
@@ -90,6 +111,22 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
             page: 1,
             hasMore: true,
             providers: []
+        })
+    },
+
+    _updateProviderSuccess: (provider: Provider) => {
+        set({
+            loading: false,
+            error: null,
+            providers: get().providers.map(p => p.id === provider.id ? provider : p)
+        })
+    },
+
+    _softDeleteProviderSuccess: (provider: Provider) => {
+        set({
+            loading: false,
+            error: null,
+            providers: get().providers.filter(p => p.id !== provider.id)
         })
     },
 
@@ -122,8 +159,17 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
             case ProviderActions.GET_ALL_PROVIDERS_SUCCESS:
                 get()._getAllProvidersSuccess(action.payload.response)
                 break;
+            case ProviderActions.LOAD_MORE_PROVIDERS_SUCCESS:
+                get()._loadMoreProvidersSuccess(action.payload.response)
+                break;
             case ProviderActions.GET_ALL_PROVIDERS_FAILURE:
                 get()._getAllProvidersFailure(action.payload.error)
+                break;
+            case ProviderActions.UPDATE_PROVIDER_SUCCESS:
+                get()._updateProviderSuccess(action.payload.response)
+                break;
+            case ProviderActions.SOFT_DELETE_PROVIDER_SUCCESS:
+                get()._softDeleteProviderSuccess(action.payload.response)
                 break;
             default:
                 console.warn(`Acción desconocida: ${action.type}`);
