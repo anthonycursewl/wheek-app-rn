@@ -16,6 +16,9 @@ interface CategoryStore {
     _categoryFailure: (error: string) => void;
     _categorySuccessAll: (categories: Category[]) => void;
     _categorySuccessUpdate: (category: Category) => void;
+    _categorySuccessDelete: (category: Category) => void;
+    _categoryRefreshSuccess: (response: Category[]) => void;
+    _categoryLoadMoreSuccess: (response: Category[]) => void;
 
     // dispatcher
     dispatch: (action: { type: string; payload?: any }) => void;
@@ -50,7 +53,7 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
         set({
             loading: false,
             error: null,
-            categories: [...get().categories, category]
+            categories: [category, ...get().categories]
         })
     },
 
@@ -72,8 +75,41 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
                 : cat
         )
         set({
-            categories: updatedCategories
+            categories: updatedCategories,
+            loading: false,
+            error: null
         })
+    },
+
+    _categorySuccessDelete: (category: Category) => {
+        const categories = get().categories
+        const updatedCategories = categories.filter(cat => cat.id !== category.id)
+        set({
+            categories: updatedCategories,
+            loading: false,
+            error: null
+        })
+    },
+
+    _categoryRefreshSuccess: (response: Category[]) => {
+        set({
+            loading: false,
+            error: null,
+            categories: response, 
+            skip: response.length, 
+            hasMore: response.length >= get().take,
+        });
+    },
+
+    // Esta acción AÑADE categorías. Ideal para la paginación (onEndReached).
+    _categoryLoadMoreSuccess: (response: Category[]) => {
+        set((state) => ({
+            loading: false,
+            error: null,
+            categories: [...state.categories, ...response],
+            skip: response.length, 
+            hasMore: response.length >= get().take,
+        }));
     },
 
     // clear store
@@ -99,11 +135,17 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
             case CategoryActions.CATEGORY_FAILURE:
                 get()._categoryFailure(action.payload.error)
                 break;
-            case CategoryActions.CATEGORY_SUCCESS_ALL:
-                get()._categorySuccessAll(action.payload.categories)
-                break;
             case CategoryActions.CATEGORY_SUCCESS_UPDATE:
                 get()._categorySuccessUpdate(action.payload.response)
+                break;
+            case CategoryActions.CATEGORY_SUCCESS_DELETE:
+                get()._categorySuccessDelete(action.payload.response)
+                break;
+            case CategoryActions.CATEGORY_REFRESH_SUCCESS:
+                get()._categoryRefreshSuccess(action.payload.response)
+                break;
+            case CategoryActions.CATEGORY_LOAD_MORE_SUCCESS:
+                get()._categoryLoadMoreSuccess(action.payload.response)
                 break;
             default:
                 console.warn(`Acción desconocida: ${action.type}`);
