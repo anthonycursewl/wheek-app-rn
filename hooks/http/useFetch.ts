@@ -8,13 +8,14 @@ import { FetchProps } from "./interfaces/FetchProps";
  * @returns Promise<{ data: any | null, error: string | null }>
  */
 export const secureFetch = async ({ options }: FetchProps): Promise<{ data: any | null, error: string | null }> => {
-    const { url, method = 'GET', headers, body, stringify = true } = options;
+    const { url, method = 'GET', headers, body, stringify = true, disableContentType = false } = options;
     try {
+        const contentType = disableContentType ? null : { 'Content-Type': 'application/json' }
         const token = await AsyncStorage.getItem('token')
         const response = await fetch(url, {
             method: method,
             headers: {
-                'Content-Type': 'application/json',
+                ...contentType,
                 ...headers,
                 'Authorization': `Bearer ${token}`
             },
