@@ -1,254 +1,238 @@
-import { useEffect, useState, useRef, ReactNode } from 'react';
-import { StyleSheet, View, TouchableOpacity, Modal, Animated, Easing, ActivityIndicator } from "react-native";
+import React, { useEffect, useState, useRef, ReactNode, useCallback } from 'react';
+import {
+    StyleSheet,
+    View,
+    Animated,
+    Easing,
+    ActivityIndicator,
+    Pressable,
+    Platform,
+    Text,
+    useWindowDimensions,
+    ViewStyle
+} from "react-native";
+
 import CustomText from "@components/CustomText/CustomText";
-import LogoPage from "@components/LogoPage/LogoPage";
-import IconCross from "svgs/IconCross";
 import Button from "@components/Buttons/Button";
+import { IconSuccess } from 'svgs/IconSuccess';
+import IconCross from 'svgs/IconCross';
+import { IconInfo } from 'svgs/IconInfo';
 
-type AlertType = 'info' | 'success' | 'warning' | 'error';
+const CONFIG = {
+    ANIMATION: {
+        DURATION: 350,
+        EASING_IN: Easing.out(Easing.cubic),
+        EASING_OUT: Easing.in(Easing.cubic),
+    },
+    UI: {
+        TOP_POSITION: Platform.OS === 'ios' ? 60 : 40,
+        HORIZONTAL_PADDING: 16,
+        MAX_WIDTH: 500,
+        BORDER_RADIUS: 16,
+        TEXT_MAX_HEIGHT: 120,
+    },
+    BEHAVIOR: {
+        DEFAULT_AUTO_HIDE_DURATION: 4000,
+    }
+};
 
-export interface CustomAlertProps {
-    visible: boolean;
-    message: string | ReactNode;
-    onClose: () => void;
-    onConfirm?: () => Promise<void> | void;
-    confirmText?: string;
-    cancelText?: string;
-    showCancel?: boolean;
-    showConfirm?: boolean;
-    isLoading?: boolean;
-    type?: AlertType;
-}
+type IconType = 'success' | 'error' | 'warning' | 'info';
 
-export default function CustomAlert({ 
-    visible, 
-    message, 
-    onClose, 
-    onConfirm,
-    confirmText = 'Aceptar',
-    cancelText = 'Cancelar',
-    showCancel = true,
-    showConfirm = true,
-    isLoading = false,
-    type = 'info'
-}: CustomAlertProps) {  
-    const [modalVisible, setModalVisible] = useState(visible);
-    const animatedValue = useRef(new Animated.Value(0)).current;
-    const [showContent, setShowContent] = useState(false);
+const ICONS: Record<IconType, { component: React.ComponentType<any>; color: string }> = {
+    success: { component: IconSuccess, color: 'rgb(143, 71, 226)' },
+    error: { component: IconCross, color: 'rgb(226, 81, 71)' },
+    warning: { component: () => <Text style={{ fontSize: 22 }}>⚠️</Text>, color: '#ffc107' },
+    info: { component: IconInfo, color: 'rgb(143, 71, 226)' },
+};
 
-    const getTypeStyles = () => {
-        const styles = {
-            container: {},
-            icon: {},
-            text: {}
-        };
+const AlertIcon = ({ icon }: { icon?: IconType }) => {
+    const selectedIcon = icon ? ICONS[icon] : ICONS.info;
+    const IconComponent = selectedIcon.component;
+    return <IconComponent fill={selectedIcon.color} width={26} height={26} />;
+};
 
-        switch (type) {
-            case 'success':
-                styles.text = { color: '#155724' };
-                break;
-            case 'warning':
-                styles.text = { color: '#856404' };
-                break;
-            case 'error':
-                styles.text = { color: '#721c24' };
-                break;
-            default:
-                styles.text = { color: '#0c5460' };
-        }
-
-        return styles;
-    };
-
-    const typeStyles = getTypeStyles();
+const useAlertAnimation = (visible: boolean) => {
+    const animValue = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        if (visible) {
-            setModalVisible(true);
-            
-            const timer = setTimeout(() => {
-                Animated.timing(animatedValue, {
-                    toValue: 1,
-                    duration: 250,
-                    easing: Easing.out(Easing.cubic),
-                    useNativeDriver: true,
-                }).start();
-            }, 1);
-
-            const contentTimer = setTimeout(() => {
-                setShowContent(true);
-            }, 50);
-
-            return () => {
-                clearTimeout(timer);
-                clearTimeout(contentTimer);
-            };
-        } else {
-            setShowContent(false);
-            Animated.timing(animatedValue, {
-                toValue: 0,
-                duration: 150,
-                easing: Easing.in(Easing.cubic),
-                useNativeDriver: true,
-            }).start(() => {
-                setModalVisible(false);
-            });
-        }
+        Animated.timing(animValue, {
+            toValue: visible ? 1 : 0,
+            duration: CONFIG.ANIMATION.DURATION,
+            easing: visible ? CONFIG.ANIMATION.EASING_IN : CONFIG.ANIMATION.EASING_OUT,
+            useNativeDriver: true,
+        }).start();
     }, [visible]);
 
-    const handleConfirm = async () => {
-        if (onConfirm) {
-            try {
-                await onConfirm();
-            } catch (error) {
-                console.error('Error in confirmation:', error);
-            }
-        }
-    };
-
-    const backdropStyle = {
-        opacity: animatedValue,
-    };
-    
-    const modalContainerStyle = {
-        opacity: animatedValue,
+    const animatedStyle: ViewStyle = {
+        opacity: animValue,
         transform: [
             {
-                scale: animatedValue.interpolate({
+                translateY: animValue.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0.9, 1],
-                    extrapolate: 'clamp',
+                    outputRange: [-100, 0],
                 }),
             },
         ],
     };
 
-    if (!modalVisible) {
-        return null;
-    }
+    return { animatedStyle };
+};
+
+export interface CustomAlertProps {
+    visible: boolean;
+    message: string | ReactNode;
+    icon?: IconType;
+    onClose: () => void;
+    isLoading?: boolean;
+    autoHide?: boolean;
+    duration?: number;
+    requiresConfirmation?: boolean;
+    onConfirm?: () => Promise<void> | void;
+    confirmText?: string;
+    cancelText?: string;
+}
+
+export default function CustomAlert({
+    visible,
+    message,
+    icon,
+    onClose,
+    isLoading = false,
+    autoHide = true,
+    duration = CONFIG.BEHAVIOR.DEFAULT_AUTO_HIDE_DURATION,
+    requiresConfirmation = false,
+    onConfirm,
+    confirmText = 'Confirmar',
+    cancelText = 'Cancelar',
+}: CustomAlertProps) {
+
+    const [isMounted, setIsMounted] = useState(visible);
+    const timerRef = useRef<number | null>(null);
+    const { animatedStyle } = useAlertAnimation(isMounted && visible);
+    const { width } = useWindowDimensions();
+
+    const hintText = useCallback(() => {
+        if (icon === 'success') return "Operación exitosa.";
+        if (icon === 'error') return "Operación fallida.";
+        if (icon === 'warning') return "Operación con advertencia.";
+        if (icon === 'info') return "Operación con información.";
+        return "";
+    }, [icon])
+    
+    useEffect(() => {
+        if (visible) {
+            setIsMounted(true);
+        } else {
+            const timeoutId = setTimeout(() => {
+                setIsMounted(false);
+            }, CONFIG.ANIMATION.DURATION);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [visible]);
+
+    useEffect(() => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+        if (visible && autoHide && !requiresConfirmation && !isLoading) {
+            timerRef.current = setTimeout(onClose, duration);
+        }
+        return () => {
+            if (timerRef.current) {
+                clearTimeout(timerRef.current);
+            }
+        };
+    }, [visible, autoHide, duration, requiresConfirmation, isLoading]);
+
+    const handlePress = () => {
+        if (!requiresConfirmation && !isLoading) {
+            onClose();
+        }
+    };
+
+    const handleConfirm = async () => {
+        if (isLoading) return;
+        if (onConfirm) await onConfirm();
+        onClose();
+    };
+
+    const alertWidth = Math.min(width - (CONFIG.UI.HORIZONTAL_PADDING * 2), CONFIG.UI.MAX_WIDTH);
+
+    if (!isMounted) return null;
 
     return (
-        <Modal transparent visible={modalVisible} onRequestClose={onClose} statusBarTranslucent>
-            <Animated.View style={[styles.backdrop, backdropStyle]}>
-                <Animated.View style={[styles.container, modalContainerStyle]}>
-                    <View style={styles.header}>
-                        <LogoPage height={15} width={58} />
-                        {!isLoading && (
-                            <TouchableOpacity onPress={onClose} disabled={isLoading}>
-                                <IconCross 
-                                    fill={type === 'error' ? '#dc3545' : '#6c757d'} 
-                                    height={20} 
-                                    width={20} 
-                                />
-                            </TouchableOpacity>
-                        )}
+        <Animated.View style={[styles.wrapper, { top: CONFIG.UI.TOP_POSITION }, animatedStyle]}>
+            <Pressable onPress={handlePress} style={[styles.container, { width: alertWidth }]}>
+                <View style={styles.content}>
+                    <View style={styles.iconContainer}>
+                        {isLoading ? <ActivityIndicator color="#555" /> : <AlertIcon icon={icon} />}
                     </View>
-
-                    <View style={styles.content}>
-                        {showContent && (
-                            typeof message === 'string' ? (
-                                <CustomText style={[styles.message, typeStyles.text]}>
-                                    {message}
-                                </CustomText>
-                            ) : (
-                                message
-                            )
-                        )}
-                        {isLoading && (
-                            <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color="#007bff" />
-                            </View>
-                        )}
+                    <View style={styles.textWrapper}>
+                        <CustomText style={styles.message}>
+                            {isLoading ? "Procesando..." : message}
+                        </CustomText>
+                        {!isLoading && icon ? 
+                        <CustomText style={{ fontSize: 12, color: 'gray' }}>
+                            {hintText()}
+                        </CustomText> : null}
                     </View>
+                </View>
 
-                    {showContent && (showCancel || showConfirm) && (
-                        <View style={styles.footer}>
-                            {showCancel && (
-                                <Button 
-                                    title={cancelText}
-                                    onPress={onClose}
-                                    style={[styles.button, styles.cancelButton]}
-                                    variant="secondary"
-                                    disabled={isLoading}
-                                />
-                            )}
-                            {showConfirm && onConfirm && (
-                                <Button 
-                                    title={isLoading ? 'Cargando...' : confirmText}
-                                    onPress={handleConfirm}
-                                    variant="primary"
-                                    disabled={isLoading}
-                                />
-                            )}
-                        </View>
-                    )}
-                </Animated.View>
-            </Animated.View>
-        </Modal>
+                {requiresConfirmation && !isLoading && (
+                     <View style={styles.buttonContainer}>
+                        <Button title={cancelText} onPress={onClose} style={styles.button} variant="secondary" />
+                        <Button title={confirmText} onPress={handleConfirm} style={styles.button} variant="primary" />
+                    </View>
+                )}
+            </Pressable>
+        </Animated.View>
     );
 }
 
 const styles = StyleSheet.create({
-    backdrop: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
+    wrapper: {
+        position: 'absolute',
+        alignSelf: 'center',
+        zIndex: 9999,
     },
     container: {
-        backgroundColor: '#fff',
-        minHeight: 200,
-        maxWidth: 280,
-        minWidth: 280,
-        borderRadius: 20,
-        overflow: 'hidden',
-    },
-    header: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: CONFIG.UI.BORDER_RADIUS,
         padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0,0,0,0.1)',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: '600',
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 15,
+        elevation: 10,
+        borderWidth: 1,
+        borderColor: '#F0F0F0',
     },
     content: {
-        padding: 20,
-        minHeight: 100,
-        justifyContent: 'center',
+        flexDirection: 'row',
         alignItems: 'center',
     },
+    iconContainer: {
+        marginRight: 7,
+        marginTop: 2,
+    },
+    textWrapper: {
+        flex: 1,
+    },
     message: {
-        textAlign: 'center',
-        lineHeight: 22,
+        fontSize: 14,
+        color: '#333333',
+        fontWeight: '500',
     },
-    loadingContainer: {
-        marginTop: 10,
-    },
-    footer: {
+    buttonContainer: {
         flexDirection: 'row',
-        justifyContent: 'flex-end',
-        padding: 12,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.1)',
-        gap: 8,
+        justifyContent: 'space-between',
+        marginTop: 16,
+        gap: 12,
     },
     button: {
-        minWidth: 100,
-    },
-    cancelButton: {
-        minWidth: 100,
-        backgroundColor: 'rgb(224, 116, 116)',
-    },
-    confirmButton: {
-        minWidth: 100,
-        backgroundColor: '#007bff',
-    },
-    cancelButtonText: {
-        color: '#fff',
+        flex: 1,
     },
 });

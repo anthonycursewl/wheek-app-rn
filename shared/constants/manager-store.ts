@@ -3,7 +3,7 @@ export type TabType = 'products' | 'expenses' | 'receipts' | 'categories' | 'pro
 export const TAB_WIDTH = 120;
 
 export const colors = {
-    primary: '#8a5cf5',
+    primary: 'rgb(146, 92, 245)',
     background: '#f5f5f7',
     white: '#ffffff',
     gray: '#8e8e93',

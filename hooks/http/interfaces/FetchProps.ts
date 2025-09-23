@@ -7,5 +7,6 @@ export interface FetchProps {
         headers?: Record<string, string>;
         body?: any;
         stringify?: boolean,
+        disableContentType?: boolean
     }
 }
