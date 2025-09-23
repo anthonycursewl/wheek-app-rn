@@ -1,5 +1,5 @@
 // React Native components
-import { View, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -13,6 +13,7 @@ import { useProviderStore } from "@flux/stores/useProviderStore";
 import { useGlobalStore } from "@flux/stores/useGlobalStore";
 import { useCategoryStore } from "@flux/stores/useCategoryStore";
 import { useShopStore } from "@flux/stores/useShopStore";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ProfileOption {
     title: string;
@@ -28,13 +29,30 @@ export const ProfileScreen = () => {
     const { clearStore: lgcat } = useCategoryStore();
     const { clearStore: lgshop } = useShopStore();
 
-    const handleLogout = () => {
-        lgprov();
-        lguser();
-        lggl();
-        lgcat();
-        lgshop();
-        router.replace('/');
+    const handleLogout = async () => {
+
+        Alert.alert('Wheek | Cerrar sesión', 
+            '¿Estás seguro que quieres cerrar la sesión?',
+            [
+                {
+                    text: 'Cancelar',
+                    onPress: () => {},
+                    style: 'cancel',
+                },
+                {
+                    text: 'Cerrar Sesión',
+                    onPress: async () => {
+                        lgprov();
+                        lguser();
+                        lggl();
+                        lgcat();
+                        lgshop();
+                        await AsyncStorage.removeItem('token');
+                        router.replace('/');
+                    },
+                },
+            ]
+        )
     };
 
     const profileOptions: ProfileOption[] = [
