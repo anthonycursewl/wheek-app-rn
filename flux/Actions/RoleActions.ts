@@ -7,6 +7,7 @@ export enum RoleActions {
     ROLE_SUCCESS_ALL = 'ROLE_SUCCESS_ALL',
     ROLE_SUCCESS_CREATE = 'ROLE_SUCCESS_CREATE',
     ROLE_SUCCESS_GET = 'ROLE_SUCCESS_GET',
+    ROLE_SUCCESS_UPDATE = 'ROLE_SUCCESS_UPDATE',
 }
 
 export const roleAttemptAction = () => ({
@@ -30,6 +31,11 @@ export const roleSuccessCreateAction = (response: Role) => ({
 
 export const roleSuccessGetAction = (response: RoleWithPermissions) => ({
     type: RoleActions.ROLE_SUCCESS_GET,
+    payload: { response },
+});
+
+export const roleSuccessUpdateAction = (response: Role) => ({
+    type: RoleActions.ROLE_SUCCESS_UPDATE,
     payload: { response },
 });
 

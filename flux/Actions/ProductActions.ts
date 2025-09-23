@@ -5,6 +5,7 @@ export enum ProductActions {
     PRODUCT_CREATE_SUCCESS = 'PRODUCT_CREATE_SUCCESS',
     PRODUCT_CREATE_FAILURE = 'PRODUCT_CREATE_FAILURE',
     PRODUCT_DELETE = 'PRODUCT_DELETE',
+    PRODUCT_SEARCH_SUCCESS = 'PRODUCT_SEARCH_SUCCESS',
 }
 
 export const productCreateAttemptAction = () => ({
@@ -24,6 +25,10 @@ export const productCreateFailureAction = (error: string) => ({
 export const productDeleteAction = (product: Product) => ({
   type: ProductActions.PRODUCT_DELETE,
   payload: { product },
+});
+
+export const productSearchSuccessAction = () => ({
+  type: ProductActions.PRODUCT_SEARCH_SUCCESS,
 });
 
 

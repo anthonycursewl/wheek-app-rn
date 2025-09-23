@@ -7,7 +7,6 @@ export interface Role {
     updated_at?: Date;
     deleted_at?: Date;
     is_active: boolean;
-
     permissions?: string[];
 }
 
