@@ -1,4 +1,4 @@
-import { Product } from "@flux/entities/Product";
+import { Product, ProductSearchResult } from "@flux/entities/Product";
 import { secureFetch } from "hooks/http/useFetch";
 import { WheekConfig } from "config/config.wheek.breadriuss";
 
@@ -37,10 +37,10 @@ export const ProductService = {
         return { data: data.value, error: null };
     },
 
-    getAllProducts: async (store_id: string, skip: number, take: number): Promise<{ data: Product[] | null, error: string | null }> => {
+    getAllProducts: async (store_id: string, skip: number, take: number, queryParams: string): Promise<{ data: Product[] | null, error: string | null }> => {
         const { data, error } = await secureFetch({
             options: {
-                url: `${WheekConfig.API_BASE_URL}/products/get/all?store_id=${store_id}&skip=${skip}&take=${take}`,
+                url: `${WheekConfig.API_BASE_URL}/products/get/all?store_id=${store_id}&skip=${skip}&take=${take}&${queryParams}`,
                 method: 'GET',
             }
         })
@@ -52,20 +52,28 @@ export const ProductService = {
         return { data: data.value, error: null };
     },
 
-    deleteProduct: async (product_id: string): Promise<{ data: Product | null, error: string | null }> => {
+    deleteProduct: async (product_id: string, store_id: string): Promise<{ data: Product | null, error: string | null }> => {
         const { data, error } = await secureFetch({
             options: {
-                url: `${WheekConfig.API_BASE_URL}/products/delete`,
-                method: 'POST',
-                body: { product_id },
-                stringify: true
+                url: `${WheekConfig.API_BASE_URL}/products/delete/${product_id}?store_id=${store_id}`,
+                method: 'DELETE',
+                disableContentType: true,
             }
         })
 
-        if (error) {
-            return { data: null, error: error };
-        }
+        if (error) return { data: null, error: error };
+        return { data: data.value, error: null };
+    },
 
+    search: async (store_id: string, term: string): Promise<{ data: ProductSearchResult[] | null, error: string | null }> => {
+        const { data, error } = await secureFetch({
+            options: {
+                url: `${WheekConfig.API_BASE_URL}/products/search?store_id=${store_id}&q=${term}`,
+                method: 'GET',
+            }
+        })
+
+        if (error) return { data: null, error: error };
         return { data: data.value, error: null };
     }
 }

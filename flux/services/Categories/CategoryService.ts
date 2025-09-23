@@ -5,7 +5,7 @@ import { secureFetch } from "hooks/http/useFetch";
 
 export const CategoryService = {
     async createCategory(category: Omit<Category, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'is_active'>): Promise<{ data: any | null, error: string | null }> {
-        if (!category.name || !category.store_id) {
+        if (!category.name.trim() || !category.store_id) {
             return { data: null, error: 'Todos los campos son obligatorios! Intenta de nuevo.' };
         }
         const { data, error } = await secureFetch({
@@ -20,16 +20,16 @@ export const CategoryService = {
             return { data: null, error: error };
         }
         
-        return { data, error: null};
+        return { data: data.value, error: null};
     },
 
-    async getAllCategories(store_id: string, skip: number, take: number): Promise<{ data: any | null, error: string | null }> {
+    async getAllCategories(store_id: string, skip: number, take: number, queryParams: string): Promise<{ data: any | null, error: string | null }> {
         if (!store_id) {
             return { data: null, error: 'El ID del almacén es obligatorio! Intenta de nuevo.' }
         }
         const { data, error } = await secureFetch({
             options: {
-                url: `${WheekConfig.API_BASE_URL}/categories/all/${store_id}?skip=${skip}&take=${take}`,
+                url: `${WheekConfig.API_BASE_URL}/categories/all/${store_id}?skip=${skip}&take=${take}&${queryParams}`,
                 method: 'GET',
             }
         })

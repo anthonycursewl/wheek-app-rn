@@ -29,6 +29,9 @@ export const RoleService = {
     },
 
     createRole: async (role: Omit<Role, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'is_active'>): Promise<{ data: Role | null, error: string | null }> => {
+        if (!role.name.trim() || !role.description?.trim() || !role.store_id) return { data: null, error: 'Todos los campos son obligatorios! Intenta de nuevo.' };
+        if (!role.permissions?.length || role.permissions.length === 0) return { data: null, error: 'Debes seleccionar al menos un permiso.' };
+
         const { data, error } = await secureFetch({
             options: {
                 url: `${WheekConfig.API_BASE_URL}/stores/create/role?store_id=${role.store_id}`,
@@ -53,4 +56,20 @@ export const RoleService = {
         if (error) return { data: null, error: error };
         return { data: data.value, error: null };
     },
+
+    update: async (id: string, role: Omit<Role, 'id' |'created_at' | 'updated_at' | 'deleted_at' | 'is_active'>, store_id: string): Promise<{ data: RoleWithPermissions | null, error: string | null }> => {
+        if (!role.name.trim() || !role.description?.trim() || !role.store_id) return { data: null, error: 'Todos los campos son obligatorios! Intenta de nuevo.' };
+        if (!role.permissions?.length || role.permissions.length === 0) return { data: null, error: 'Debes seleccionar al menos un permiso.' };
+
+        const { data, error } = await secureFetch({
+            options: {
+                url: `${WheekConfig.API_BASE_URL}/stores/update/role/${id}?store_id=${store_id}`,
+                method: 'PUT',
+                body: role,
+            }
+        })
+
+        if (error) return { data: null, error: error };
+        return { data: data.value, error: null };
+    }
 }
