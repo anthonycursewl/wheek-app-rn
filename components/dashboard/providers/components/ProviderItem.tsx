@@ -12,76 +12,95 @@ export const ProviderItem = ({ item, short = false, onSelectProvider, onClose }:
         });
     };
 
+    const isActive = item.is_active !== false;
+    
     return (
-        <TouchableOpacity onPress={() => {
-            onSelectProvider(item)
-            onClose && onClose()
-        }}
-        activeOpacity={0.9}
+        <TouchableOpacity 
+            onPress={() => {
+                onSelectProvider(item);
+                onClose?.();
+            }}
+            activeOpacity={0.7}
+            style={styles.container}
         >
             <View style={styles.card}>
+                {/* Header with avatar and basic info */}
                 <View style={styles.header}>
-                    <View style={styles.avatar}>
+                    <View style={[styles.avatar, { backgroundColor: isActive ? 'rgb(94, 36, 255)' : '#6b7280' }]}>
                         <CustomText style={styles.avatarText}>
                             {item.name.charAt(0).toUpperCase()}
                         </CustomText>
                     </View>
                     
-                    <View style={styles.headerText}>
-                        <View style={styles.nameWrapper}>
-                            <CustomText style={styles.name}>
-                                {item.name}
+                    <View style={styles.headerContent}>
+                        <CustomText style={styles.name}>
+                            {item.name}
+                        </CustomText>
+                        <View style={styles.statusContainer}>
+                            <View style={[styles.statusDot, { backgroundColor: isActive ? '#059669' : '#6b7280' }]} />
+                            <CustomText style={[styles.status, { color: isActive ? '#059669' : '#6b7280' }]}>
+                                {isActive ? 'Activo' : 'Inactivo'}
                             </CustomText>
                         </View>
-                        <CustomText style={styles.status}>
-                            {item.is_active !== false ? 'Activo' : 'Inactivo'}
-                        </CustomText>
                     </View>
                 </View>
                 
+                {/* Description */}
                 {item.description && (
-                    <View style={styles.descriptionContainer}>
-                        <CustomText style={styles.description}>
-                            {item.description}
-                        </CustomText>
-                    </View>
+                    <CustomText style={styles.description}>
+                        {item.description}
+                    </CustomText>
                 )}
                 
+                {/* Extended info (only when not short) */}
                 {!short && (
-                <View style={styles.footer}>
-                    <View style={styles.footerSection}>
-                        <CustomText style={styles.footerLabel}>Creado el:</CustomText>
-                        <CustomText style={styles.footerText}>
-                            {formatDate(item.created_at)}
-                        </CustomText>
+                    <View style={styles.details}>
+                        <View style={styles.detailRow}>
+                            <CustomText style={styles.detailLabel}>Creado</CustomText>
+                            <CustomText style={styles.detailValue}>
+                                {formatDate(item.created_at)}
+                            </CustomText>
+                        </View>
+                        
+                        {item.contact_phone && (
+                            <View style={styles.detailRow}>
+                                <CustomText style={styles.detailLabel}>Teléfono</CustomText>
+                                <CustomText style={styles.detailValue}>
+                                    {item.contact_phone}
+                                </CustomText>
+                            </View>
+                        )}
+                        
+                        {item.contact_email && (
+                            <View style={styles.detailRow}>
+                                <CustomText style={styles.detailLabel}>Email</CustomText>
+                                <CustomText style={styles.detailValue}>
+                                    {item.contact_email}
+                                </CustomText>
+                            </View>
+                        )}
                     </View>
-                    
-                    <View style={styles.contactInfo}>
-                        <CustomText style={styles.contact}>
-                            📞 {item.contact_phone}
-                        </CustomText>
-                        <CustomText style={styles.contact}>
-                            ✉️ {item.contact_email}
-                        </CustomText>
-                    </View>
-                </View>
                 )}
             </View>
         </TouchableOpacity>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
+    container: {
+        marginVertical: 6,
+    },
     card: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
+        backgroundColor: '#ffffff',
+        borderRadius: 16,
         padding: 16,
-        marginVertical: 8,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+        borderWidth: 1,
+        borderColor: '#f3f4f6',
     },
     header: {
         flexDirection: 'row',
@@ -89,71 +108,67 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     avatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#4A90E2',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
     },
     avatarText: {
-        color: '#fff',
-        fontSize: 20,
-        fontWeight: 'bold',
+        color: '#ffffff',
+        fontSize: 16,
+        fontWeight: '700',
     },
-    headerText: {
+    headerContent: {
         flex: 1,
-    },
-    nameWrapper: {
-        flex: 1,
-        marginRight: 8,
     },
     name: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#2c3e50',
+        color: '#111827',
+        marginBottom: 4,
+    },
+    statusContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    statusDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
     },
     status: {
         fontSize: 12,
-        color: '#7f8c8d',
-        marginTop: 4,
-    },
-    descriptionContainer: {
-        marginBottom: 12,
-        paddingVertical: 8,
-        borderTopWidth: 1,
-        borderBottomWidth: 1,
-        borderColor: '#f0f0f0',
+        fontWeight: '500',
     },
     description: {
         fontSize: 14,
-        color: '#34495e',
+        color: '#6b7280',
         lineHeight: 20,
+        marginBottom: 12,
     },
-    footer: {
+    details: {
+        gap: 8,
+    },
+    detailRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-end',
+        alignItems: 'center',
+        paddingVertical: 4,
     },
-    footerSection: {
+    detailLabel: {
+        fontSize: 12,
+        color: '#9ca3af',
+        fontWeight: '500',
+    },
+    detailValue: {
+        fontSize: 13,
+        color: '#374151',
+        fontWeight: '600',
         flex: 1,
+        textAlign: 'right',
+        marginLeft: 16,
     },
-    footerLabel: {
-        fontSize: 10,
-        color: '#95a5a6',
-        marginBottom: 2,
-    },
-    footerText: {
-        fontSize: 12,
-        color: '#7f8c8d',
-    },
-    contactInfo: {
-        alignItems: 'flex-end',
-    },
-    contact: {
-        fontSize: 12,
-        color: '#7f8c8d',
-        marginTop: 2,
-    },
-})
+});
