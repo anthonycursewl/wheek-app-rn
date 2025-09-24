@@ -8,7 +8,8 @@
       "@assets/*": ["./assets/*"],
       "@components/*": ["./components/*"],
       "@flux/*": ["./flux/*"],
-      "@hooks/*": ["./hooks/*"]
+      "@hooks/*": ["./hooks/*"],
+      "@svgs/*": ["./svgs/*"]
     },
     "typeRoots": [
       "./node_modules/@types",

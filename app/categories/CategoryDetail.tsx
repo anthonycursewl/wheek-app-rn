@@ -1,7 +1,7 @@
-import { View, StyleSheet, ScrollView, Image } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Category } from "@flux/entities/Category";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Card, DataTable, Text } from "react-native-paper";
@@ -13,9 +13,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useCategoryStore } from "@flux/stores/useCategoryStore";
 import { categoryAttemptAction, categoryFailureAction, categorySuccessDeleteAction } from "@flux/Actions/CategoryAction";
 import { CategoryService } from "@flux/services/Categories/CategoryService";
-import CustomAlert from "shared/components/CustomAlert";
-import { useAlert } from "shared/hooks/useAlert"; 
 import LogoPage from "@components/LogoPage/LogoPage";
+import { useGlobalStore } from "@flux/stores/useGlobalStore";
+import CustomAlert from "shared/components/CustomAlert";
 
 const formatDate = (date: Date | string) => {
   if (!date) return "N/A";
@@ -25,7 +25,11 @@ const formatDate = (date: Date | string) => {
 export default function CategoryDetail() {
   const { category } = useLocalSearchParams<{ category: string }>();
   const { dispatch, loading } = useCategoryStore();
-  const { alertState, showSuccess, showError, hideAlert } = useAlert();
+  const { showResponse, alertState, hideAlert, showSuccess, showError } = useGlobalStore()
+
+  const memoizedHideAlert = useCallback(() => {
+    hideAlert();
+  }, [hideAlert]);
 
   const categoryParsed: Category = useMemo(
     () => JSON.parse(decodeURIComponent(category)),
@@ -39,10 +43,16 @@ export default function CategoryDetail() {
   const handleSoftDeleteCategory = async () => {
       const categoryUpdated = { ...categoryParsed, is_active: false };
       showSuccess('¿Estás seguro de que deseas eliminar esta categoría?', {
-        showConfirm: true,
-        showCancel: true,
+        requiresConfirmation: true,
+        icon: 'info',
         onConfirm: async () => {
           dispatch(categoryAttemptAction());
+          showSuccess('Eliminando categoría...', {
+            icon: 'info',
+            isLoading: true,
+            autoHide: true,
+          });
+
           const { data, error } = await CategoryService.updateCategory(
             categoryParsed.id, 
             categoryUpdated, 
@@ -51,18 +61,20 @@ export default function CategoryDetail() {
           
           if (data) {
             dispatch(categorySuccessDeleteAction(data));
-            showSuccess(`La categoría ${categoryParsed.name} se ha eliminado correctamente!`, {
-              onConfirm: () => {
+            showResponse(`La categoría ${categoryParsed.name} se ha eliminado correctamente!`, {
+              icon: 'success',
+              duration: 1000,
+              autoHide: true,
+              onClose: () => {
                 router.back();
               },
-              isLoading: loading,
             });
           } else if (error) {
-            showError(error, { showConfirm: false, showCancel: true })
             dispatch(categoryFailureAction(error));
+            showError(error, { icon: 'error' })
           }
         },
-        isLoading: loading,
+        isLoading: loading
       });  
   };
 
@@ -154,7 +166,7 @@ export default function CategoryDetail() {
         </View>
     </ScrollView>
 
-    <CustomAlert {...alertState} onClose={hideAlert} />
+    <CustomAlert {...alertState} onClose={memoizedHideAlert} />
     </>
   );
 }
