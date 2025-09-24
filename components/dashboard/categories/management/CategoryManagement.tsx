@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Button from "@components/Buttons/Button";
 import { router } from "expo-router";
 import ListCategory from "../components/ListCategory";
@@ -6,8 +6,8 @@ import ListCategory from "../components/ListCategory";
 export default function CategoryManagement() {
     
     return (
-        <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center' }}>
-            <View style={{ width: '100%', marginTop: 20, gap: 10 }}>
+        <View style={styles.container}>
+            <View style={styles.content}>
                 <Button title="Crear categoría" 
                 onPress={() => router.push('/categories/create')}/>
 
@@ -20,3 +20,14 @@ export default function CategoryManagement() {
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    content: {
+        flex: 1,
+        gap: 10,
+        marginTop: 15,
+    },
+});
