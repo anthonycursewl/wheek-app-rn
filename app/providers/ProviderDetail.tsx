@@ -11,8 +11,8 @@ import { useShopStore } from "@flux/stores/useShopStore";
 import { router } from "expo-router";
 import { ProviderService } from "@flux/services/Providers/ProviderService";
 import { softDeleteProviderSuccessAction } from "@flux/Actions/ProviderActions";
-import { useGlobalStore } from "@flux/stores/useGlobalStore";
 import useAuthStore from "@flux/stores/AuthStore";
+import { useCallback } from "react";
 
 export default function ProviderDetail() {
     const { stores } = useShopStore()
@@ -42,8 +42,7 @@ export default function ProviderDetail() {
         if (!selectedProvider?.id) return;
 
         showSuccess('¿Estas seguro de eliminar este proveedor?', {
-            showConfirm: true,
-            showCancel: true,
+            requiresConfirmation: true,
             onConfirm: async () => {
                 const { data, error } = await ProviderService.delete(selectedProvider.id, selectedProvider.store_id)
                 if (data) {
@@ -52,14 +51,14 @@ export default function ProviderDetail() {
                     router.back()
                 }
                 if (error) {
-                    showError(error, { showCancel: true, showConfirm: false })
+                    showError(error, { icon: 'error' })
                     return
                 }
             }
         })
     }
 
-    const handleShare = async () => {
+    const handleShare = useCallback(async () => {
         if (!selectedProvider?.id) return;
 
         try {
@@ -76,7 +75,7 @@ export default function ProviderDetail() {
         } catch (error) {
             console.error('Error sharing provider:', error);
         }
-    }
+    }, [selectedProvider, user, storeName]);
 
     return (
         <>

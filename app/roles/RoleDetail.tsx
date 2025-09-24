@@ -18,6 +18,12 @@ import LogoPage from "@components/LogoPage/LogoPage";
 import Constants from 'expo-constants';
 import { ButtonWithoutTitle } from "@components/Buttons/ButtonWithoutTitle";
 import { MaterialIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
+
+// Components
+import { DetailRow } from "shared/components/DetailRow";
+import CustomAlert from "shared/components/CustomAlert";
+import { useAlert } from "shared/hooks/useAlert";
 
 const actionStyles: { [key: string]: { color: string; backgroundColor: string; label: string } } = {
   create: { label: 'Crear', color: '#006400', backgroundColor: '#e6f4e6' },
@@ -56,13 +62,20 @@ export default function RoleDetail() {
     const { role } = useLocalSearchParams();
     const roleData: RoleWithPermissions = JSON.parse(decodeURIComponent(role as string));
     const [roleDetail, setRoleDetail] = useState<RoleWithPermissions>(roleData);
+   
+    const { alertState, hideAlert, showSuccess } = useAlert()
+    const { setSelectedRole } = useRoleStore()
 
     const scrollY = useRef(new Animated.Value(0)).current;
 
     const handleLoadRoleDetail = async () => {
+        if (!roleData.id) return;
+
         dispatch(roleAttemptAction());
         const { data, error } = await RoleService.getRoleById(roleData.id, currentStore.id);
-        if (error) return dispatch(roleFailureAction(error));
+        if (error) {
+            return dispatch(roleFailureAction(error));
+        } 
         if (data) {
             setRoleDetail(data);
             dispatch(roleSuccessGetAction(data));
@@ -85,13 +98,6 @@ export default function RoleDetail() {
         extrapolate: 'clamp',
     });
 
-    const DetailRole = ({ label, value }: { label: string, value: string }) => (
-        <View style={styles.detailRow}>
-            <CustomText style={styles.detailLabel}>{label}</CustomText>
-            <CustomText style={styles.detailValue}>{value}</CustomText>
-        </View>
-    );
-
     const parseDate = (date: Date) => new Date(date).toLocaleDateString('es-ES', {
         year: 'numeric', month: 'long', day: 'numeric',
     });
@@ -105,6 +111,32 @@ export default function RoleDetail() {
         }, {} as Record<string, string[]>);
     };
 
+    const handleTapOnDelete = () => {
+        let loading: boolean = false
+
+        showSuccess('¿Estás seguro que deseas mandar a la basura este rol?', {
+            requiresConfirmation: true,
+            onConfirm: () => {
+                loading = true
+
+                setTimeout(() => {
+                    loading = false
+                }, 2000);
+            },
+            onClose: () => {
+                hideAlert()
+            },
+            isLoading: loading
+        })
+    }
+    
+    const handleTapOnUpdate = () => {   
+        router.push(`/roles/create?mode=update`)
+        setSelectedRole(roleDetail)
+    }
+    
+    const groupedPermissions = groupPermissionsByResource(roleDetail.permissions || []);
+    
     if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -113,9 +145,8 @@ export default function RoleDetail() {
         );
     }
 
-    const groupedPermissions = groupPermissionsByResource(roleDetail.permissions || []);
-
     return (
+        <>
         <SafeAreaView style={styles.main}>
             <Animated.View style={[
                 styles.statusBar,
@@ -139,22 +170,24 @@ export default function RoleDetail() {
 
                 <View style={styles.contentContainer}>
                     <View style={styles.header}>
-                        <LogoPage height={20} width={80}/>
+                        <View>
+                            <LogoPage height={20} width={80}/>
+                        </View>
                         <CustomText style={styles.headerTitle}>Roles</CustomText>
                     </View>
 
                     <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
-                        <ButtonWithoutTitle icon={<MaterialIcons name="edit" size={22} color="black" />} onPress={() => console.log('Edit pressed')} />
-                        <ButtonWithoutTitle icon={<MaterialIcons name="delete" size={22} color="black" />} onPress={() => console.log('Delete pressed')} />
+                        <ButtonWithoutTitle icon={<MaterialIcons name="edit" size={22} color="black" />} onPress={handleTapOnUpdate} />
+                        <ButtonWithoutTitle icon={<MaterialIcons name="delete" size={22} color="black" />} onPress={handleTapOnDelete} />
                     </View>
 
                     <View style={styles.detailsSection}>
-                        <DetailRole label="Nombre" value={roleDetail.name} />
-                        <DetailRole label="Descripción" value={roleDetail.description || 'N/A'} />
-                        <DetailRole label="ID de la tienda" value={roleDetail.store_id ? roleDetail.store_id : 'N/A'} />
-                        <DetailRole label="Fecha de Creación" value={parseDate(roleDetail.created_at)} />
-                        <DetailRole label="Fecha de Actualización" value={parseDate(roleDetail.updated_at || new Date())} />
-                        <DetailRole label="Estado" value={roleDetail.is_active ? 'Activo 🌱' : 'Inactivo 🥀'} />
+                        <DetailRow label="Nombre" value={roleDetail.name} />
+                        <DetailRow label="Descripción" value={roleDetail.description || 'N/A'} />
+                        <DetailRow label="ID de la tienda" value={roleDetail.store_id ? roleDetail.store_id : 'N/A'} />
+                        <DetailRow label="Fecha de Creación" value={parseDate(roleDetail.created_at)} />
+                        <DetailRow label="Fecha de Actualización" value={parseDate(roleDetail.updated_at || new Date())} />
+                        <DetailRow label="Estado" value={roleDetail.is_active ? 'Activo 🌱' : 'Inactivo 🥀'} />
                     </View>
 
                     <View style={styles.permissionsSection}>
@@ -172,6 +205,8 @@ export default function RoleDetail() {
                 </View>
             </ScrollView>
         </SafeAreaView>
+        <CustomAlert {...alertState} onClose={hideAlert}/>
+        </>
     );
 }
 
@@ -204,21 +239,6 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         borderTopWidth: 1,
         borderTopColor: '#f0f0f0',
-    },
-    detailRow: {
-        gap: 5,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-        paddingVertical: 12,
-    },
-    detailLabel: {
-        fontSize: 14,
-        color: '#666',
-        textTransform: 'uppercase',
-    },
-    detailValue: {
-        fontSize: 16,
-        color: '#111',
     },
     permissionsSection: {
         marginTop: 20,

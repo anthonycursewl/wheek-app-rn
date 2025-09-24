@@ -55,6 +55,7 @@ export default function StoreManagementScreen() {
             key={tab.id}
             label={tab.label}
             Icon={tab.Icon}
+            iconProps={tab.iconProps}
             isActive={activeTab === tab.id}
             onPress={() => handleTabPress(tab.id as TabType)}
             onLayout={(event: LayoutChangeEvent) => {

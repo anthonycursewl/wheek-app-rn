@@ -7,6 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { ProductService } from "@flux/services/Products/ProductService";
 import { useProductStore } from "@flux/stores/useProductStore";
 import { productCreateAttemptAction, productCreateFailureAction, productDeleteAction } from "@flux/Actions/ProductActions";
+import { useGlobalStore } from "@flux/stores/useGlobalStore";
 
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -22,6 +23,7 @@ export default function ProductDetail() {
     const { product } = useLocalSearchParams();
     const decodedProduct = decodeURIComponent(product as string);
     const parsedProduct: Product = JSON.parse(decodedProduct);
+    const { currentStore } = useGlobalStore();
 
     const handleShare = async () => {
         try {
@@ -39,7 +41,7 @@ export default function ProductDetail() {
 
     const deleteProduct = async (productId: string) => {
         dispatch(productCreateAttemptAction())
-        const { data, error } = await ProductService.deleteProduct(productId)
+        const { data, error } = await ProductService.deleteProduct(productId, currentStore.id)
         if (error) {
             dispatch(productCreateFailureAction(error))
             Alert.alert(error || 'Error al eliminar el producto')

@@ -1,60 +1,53 @@
-import CustomText from "@components/CustomText/CustomText";
-import LayoutScreen from "@components/Layout/LayoutScreen";
-import LogoPage from "@components/LogoPage/LogoPage";
-import { FlatList, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from "react-native";
-import Input from "@components/Input/Input";
-import { useGlobalStore } from "@flux/stores/useGlobalStore";
-import IconCross from "svgs/IconCross";
-import ModalOptions from "@components/Modals/ModalOptions";
-import ListProviders from "@components/dashboard/providers/components/ListProviders";
+// React
+import { FlatList, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useState, useEffect, useMemo } from "react";
-import useAuthStore from "@flux/stores/AuthStore";
-import { ProductSearchResult } from "@flux/entities/Product";
-import { ProductService } from "@flux/services/Products/ProductService";
+
+// SVGs
 import IconManage from "svgs/IconManage";
 import { IconCamera } from "svgs/IconCamera";
+import IconCross from "svgs/IconCross";
+
+// Stores & Services
+import useAuthStore from "@flux/stores/AuthStore";
+import { useReceptionStore } from "@flux/stores/useReceptionStore";
+import { useGlobalStore } from "@flux/stores/useGlobalStore";
+import { ReceptionService } from "@flux/services/Receptions/ReceptionService";
+import { ProductService } from "@flux/services/Products/ProductService";
+
+// Actions
+import { receptionAttemptAction, receptionCreateSuccessAction, receptionFailureAction } from "@flux/Actions/ReceptionActions";
+
+// Custom components
+import CustomText from "@components/CustomText/CustomText";
+import Input from "@components/Input/Input";
+import ModalOptions from "@components/Modals/ModalOptions";
+import LogoPage from "@components/LogoPage/LogoPage";
+import ListProviders from "@components/dashboard/providers/components/ListProviders";
 import Button from "@components/Buttons/Button";
+import CustomAlert from "shared/components/CustomAlert";
 
-
-// Interfaz para gestionar los items en la lista de la UI
-// Extiende el resultado de la búsqueda y añade la cantidad
-interface ReceptionLineItem extends ProductSearchResult {
-    quantity: number;
-}
-
-// Interfaz para el payload final de la API
-interface ReceptionItemPayload {
-    product_id: string;
-    quantity: number;
-    cost_price: number; // Renombrado para coincidir con el schema
-}
-
-interface ReceptionPayload {
-    store_id: string;
-    user_id: string;
-    provider_id?: string;
-    notes?: string;
-    items: ReceptionItemPayload[];
-}
+// Interfaces
+import { ProductSearchResult } from "@flux/entities/Product";
+import { ReceptionPayload, ReceptionLineItem } from "@flux/entities/Reception";
+import { router } from "expo-router";
+import { useInventoryStore } from "@flux/stores/useInventoryStore";
 
 export default function CreateReception() {
-    const { currentStore } = useGlobalStore();
+    const { currentStore, alertState, hideAlert, showSuccess, showResponse } = useGlobalStore();
     const { user } = useAuthStore();
-    const { height } = useWindowDimensions();
+    const { dispatch, loading: loadingReceptions } = useReceptionStore()
+    const { clearStore: clearInventory } = useInventoryStore()
 
-    // --- ESTADOS ---
     const [modalProviderStuff, setModalProviderStuff] = useState({ visible: false, provider: '' });
     const [modalSearchProduct, setModalSearchProduct] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<ProductSearchResult[]>([]);
     
-    // El estado clave: la lista de productos seleccionados para la recepción
     const [receptionItems, setReceptionItems] = useState<ReceptionLineItem[]>([]);
     
     const [notes, setNotes] = useState('');
     const [providerId, setProviderId] = useState<string | undefined>();
 
-    // --- LÓGICA DE BÚSQUEDA (con debounce) ---
     useEffect(() => {
         const searchProducts = async (term: string) => {
             if (!term) {
@@ -69,77 +62,93 @@ export default function CreateReception() {
 
         const timer = setTimeout(() => {
             searchProducts(searchQuery);
-        }, 500); // Debounce de 500ms
+        }, 500);
 
         return () => clearTimeout(timer);
     }, [searchQuery, currentStore.id]);
 
-
-    // --- MANEJO DE LA LISTA DE PRODUCTOS ---
-
-    // 1. Añadir un producto a la lista (o incrementar su cantidad si ya existe)
     const addProductToReception = (product: ProductSearchResult) => {
         setReceptionItems(currentItems => {
             const existingItem = currentItems.find(item => item.id === product.id);
             if (existingItem) {
-                // Si ya existe, incrementamos su cantidad
                 return currentItems.map(item =>
                     item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
                 );
             }
-            // Si no existe, lo añadimos con cantidad 1
             return [...currentItems, { ...product, quantity: 1 }];
         });
-        // Cerramos el modal y limpiamos la búsqueda para una mejor UX
         setModalSearchProduct(false);
         setSearchQuery('');
     };
 
-    // 2. Cambiar la cantidad de un producto en la lista
     const handleQuantityChange = (productId: string, amount: number) => {
         setReceptionItems(currentItems =>
             currentItems.map(item =>
                 item.id === productId
-                    ? { ...item, quantity: Math.max(1, item.quantity + amount) } // No permitir menos de 1
+                    ? { ...item, quantity: Math.max(1, item.quantity + amount) }
                     : item
             )
         );
     };
 
-    // 3. Quitar un producto de la lista
     const removeProductFromReception = (productId: string) => {
         setReceptionItems(currentItems => currentItems.filter(item => item.id !== productId));
     };
 
-
-    // --- CÁLCULOS (optimizados con useMemo) ---
     const totalReceptionCost = useMemo(() => {
         return receptionItems.reduce((total, item) => total + (item.quantity * item.cost), 0);
     }, [receptionItems]);
-
-
-    // --- MANEJO DE PROVEEDOR ---
+    
     const handleProviderPress = (name: string, id: string) => {
         setProviderId(id);
         setModalProviderStuff({ visible: false, provider: name });
     };
 
-    const handleSaveReception = () => {
+    const handleSaveReception = async () => {
+        
         const reception: ReceptionPayload = {
             store_id: currentStore.id,
             user_id: user?.id || '',
             provider_id: providerId,
-            notes: notes,
+            notes: notes.trim(),
             items: receptionItems.map(item => ({
                 product_id: item.id,
                 quantity: item.quantity,
                 cost_price: item.cost,
             }))
         }
-        console.log(reception)
+        
+        showSuccess('¿Estás seguro que deseas crear esta recepción?', {
+            icon: 'info',
+            requiresConfirmation: true,
+            onClose: () => {
+                dispatch(receptionFailureAction(''))
+            },
+            onConfirm: async () => {
+                dispatch(receptionAttemptAction())
+                const { data, error } = await ReceptionService.createReception(reception)
+                if (error) {
+                    dispatch(receptionFailureAction(error))
+                    showResponse(error, { icon: 'error', duration: 2500 })
+                }
+                if (data) {
+                    clearInventory()
+                    hideAlert()
+                    dispatch(receptionCreateSuccessAction(data))
+                    showResponse('Recepción creada exitosamente!', 
+                        { 
+                            icon: 'success', 
+                            duration: 20000,
+                            autoHide: true,
+                            onClose: () => {
+                                router.back();
+                            },
+                        })
+                }
+            }
+        })
     }
-
-    // --- RENDERIZADO DE COMPONENTES INTERNOS ---
+        
     const ProductCardReduced = ({ product }: { product: ProductSearchResult }) => (
         <TouchableOpacity onPress={() => addProductToReception(product)} style={styles.productCard}>
             <View style={styles.productCardHeader}>
@@ -296,13 +305,13 @@ export default function CreateReception() {
                     ListEmptyComponent={<CustomText style={{ textAlign: 'center', marginTop: 20 }}>No se encontraron productos.</CustomText>}
                 />
             </ModalOptions>
+
+            <CustomAlert {...alertState} onClose={hideAlert} isLoading={loadingReceptions} />
         </>
     );
 }
 
-// --- ESTILOS ---
 const styles = StyleSheet.create({
-    // Estilos para la tarjeta de producto en el modal de búsqueda
     productCard: {
         marginBottom: 10,
         backgroundColor: '#f9f9f9',
@@ -347,8 +356,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: 'rgb(165, 132, 255)'
     },
-    
-    // Estilos para la lista de productos en la pantalla principal
     receptionItemsContainer: {
         borderWidth: 1,
         borderColor: '#ddd',
@@ -382,8 +389,6 @@ const styles = StyleSheet.create({
         color: 'gray',
         paddingVertical: 20
     },
-
-    // Estilos para los totales
     totalsContainer: {
         marginTop: 20,
         padding: 15,
