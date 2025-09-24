@@ -17,7 +17,7 @@ export default function RolesManagement() {
     return (
         <View style={styles.container}>
             {error && <CustomText style={{ color: 'red', fontSize: 14 }}>{error}</CustomText>}
-            <Button title="Crear role"  onPress={() => router.push('/roles/create')}/>
+            <Button title="Crear role"  onPress={() => router.push('/roles/create?mode=create')}/>
             {loading && roles.length === 0 && <ActivityIndicator size="small" color="black" />}
             <ListRoles height={'92%'} onPress={(item: Role) => handleTapOnRole(item)} />
         </View>

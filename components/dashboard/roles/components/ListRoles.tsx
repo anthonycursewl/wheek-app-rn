@@ -6,6 +6,7 @@ import { roleAttemptAction, roleFailureAction, roleSuccessAllAction } from "@flu
 import { RoleService } from "@flux/services/Roles/RoleService"
 import { useEffect, useState } from "react"
 import { Role } from "@flux/entities/Role"
+import CustomText from "@components/CustomText/CustomText"
 
 export default function ListRoles({ height, onPress }: { height: DimensionValue, onPress: (item: Role) => void }) {
     const { dispatch, skip, take, roles, hasMore, clearStore, loading } = useRoleStore();
@@ -51,6 +52,13 @@ export default function ListRoles({ height, onPress }: { height: DimensionValue,
                 onEndReachedThreshold={0.1}
                 onRefresh={handleRefresh}
                 refreshing={loading && roles.length === 0}
+                ListEmptyComponent={() => (
+                    <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                        <CustomText style={{ color: '#9ca3af', fontSize: 16, textAlign: 'center' }}>
+                            No hay roles disponibles
+                        </CustomText>
+                    </View>
+                )}
             />
 
             {loading && roles.length !== 0 && 
