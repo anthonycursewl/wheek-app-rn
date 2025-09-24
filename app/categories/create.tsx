@@ -44,15 +44,14 @@ export default function CreateCategory() {
         if (data) {
             dispatch(categorySuccessAction(data))
             showSuccess(`La categoría ${category.name} se ha creado correctamente!`, {
-                showConfirm: true,
-                showCancel: false,
-                onConfirm: () => {
+                onClose: () => {
                     router.back()
-                }
+                },
+                icon: 'success'
             })
         }
         if (error) {
-            showError(error, { showConfirm: false, showCancel: true })
+            showError(error, { icon: 'error' })
             dispatch(categoryFailureAction(error))
         }
     }
@@ -78,14 +77,15 @@ export default function CreateCategory() {
         if (data) {
             dispatch(categorySuccessUpdateAction(data))
             showSuccess(`La categoría ${category.name} se ha actualizado correctamente!`, {
-                onConfirm: () => {
+                onClose: () => {
                     router.back()
                     router.replace(`/categories/CategoryDetail?category=${encodeURIComponent(JSON.stringify(data))}`)
-                }
+                },
+                icon: 'success'
             })
         }
         if (error) {
-            showError(error, { showConfirm: false, showCancel: true })
+            showError(error, { icon: 'error' })
             dispatch(categoryFailureAction(error))
         }
     }
@@ -161,8 +161,6 @@ export default function CreateCategory() {
                     }
                 </View>
             </View>
-
-
         </LayoutScreen>
     
         <CustomAlert {...alertState} onClose={onClose} />
