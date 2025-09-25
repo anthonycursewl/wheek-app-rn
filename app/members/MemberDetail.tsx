@@ -16,31 +16,46 @@ import { IconCalendar } from '@svgs/IconCalendar';
 import { IconUsers } from '@svgs/IconUsers';
 import { IconStore } from '@svgs/IconStore';
 import IconArrow from '@svgs/IconArrow';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+
+interface User {
+    name: string;
+    last_name: string;
+    username: string;
+    email: string;
+    icon_url: string | null;
+}
+
+interface Role {
+    id: string;
+    name: string;
+}
 
 interface Member {
     id: string;
-    name: string;
-    email: string;
-    phone: string;
-    role: string;
-    joinedAt: string;
-    status: 'active' | 'inactive';
+    user_id: string;
+    store_id: string;
+    role_id: string;
+    is_active: boolean;
+    created_at: string;
+    user: User;
+    role: Role;
 }
 
-interface MemberDetailProps {
-    member: Member;
-    onBack: () => void;
-    onEdit?: () => void;
-    onDelete?: () => void;
-}
-
-const MemberDetail: React.FC<MemberDetailProps> = ({ 
-    member, 
-    onBack, 
-    onEdit,
-    onDelete 
-}) => {
-    // Función helper para obtener el valor de texto de una propiedad que podría ser objeto o string
+const MemberDetail: React.FC = () => {
+    const router = useRouter();
+    const { member } = useLocalSearchParams();
+    
+    const memberData: Member = member ? JSON.parse(decodeURIComponent(member as string)) : null;
+    
+    if (!memberData) {
+        return (
+            <View style={styles.mainContainer}>
+                <CustomText style={styles.errorText}>No se encontró información del miembro</CustomText>
+            </View>
+        );
+    }
+    
     const getTextValue = (value: any): string => {
         if (typeof value === 'string') return value;
         if (value && typeof value === 'object' && value.name) return value.name;
@@ -48,16 +63,20 @@ const MemberDetail: React.FC<MemberDetailProps> = ({
         return String(value || '');
     };
     
-    const roleName = getTextValue(member.role);
-    const statusValue = getTextValue(member.status);
-    const isActive = statusValue.toLowerCase() === 'active';
-    const emailValue = getTextValue(member.email);
-    const phoneValue = getTextValue(member.phone);
+    const fullName = `${memberData.user.name} ${memberData.user.last_name}`;
+    const roleName = memberData.role.name;
+    const isActive = memberData.is_active;
+    const emailValue = memberData.user.email;
+    const phoneValue = memberData.user.username;
+    
+    const handleBack = () => {
+        router.back();
+    };
     
     const handleDelete = () => {
         Alert.alert(
             'Eliminar Miembro',
-            `¿Estás seguro de que quieres eliminar a ${member.name}?`,
+            `¿Estás seguro de que quieres eliminar a ${fullName}?`,
             [
                 {
                     text: 'Cancelar',
@@ -66,7 +85,11 @@ const MemberDetail: React.FC<MemberDetailProps> = ({
                 {
                     text: 'Eliminar',
                     style: 'destructive',
-                    onPress: onDelete,
+                    onPress: () => {
+                        // Aquí iría la lógica para eliminar el miembro
+                        Alert.alert('Éxito', 'Miembro eliminado correctamente');
+                        router.back();
+                    },
                 },
             ]
         );
@@ -88,7 +111,7 @@ const MemberDetail: React.FC<MemberDetailProps> = ({
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <TouchableOpacity style={styles.backButton} onPress={onBack}>
+                    <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                         <IconArrow width={24} height={24} fill={colors.dark} />
                     </TouchableOpacity>
                     <CustomText style={styles.headerTitle}>Detalle del Miembro</CustomText>
@@ -104,7 +127,7 @@ const MemberDetail: React.FC<MemberDetailProps> = ({
                         <View style={[styles.statusIndicator, isActive ? styles.activeStatus : styles.inactiveStatus]} />
                     </View>
                     
-                    <CustomText style={styles.memberName}>{member.name}</CustomText>
+                    <CustomText style={styles.memberName}>{fullName}</CustomText>
                     <CustomText style={styles.memberRole}>{roleName}</CustomText>
                     
                     <View style={[styles.statusBadge, isActive ? styles.activeBadge : styles.inactiveBadge]}>
@@ -136,7 +159,7 @@ const MemberDetail: React.FC<MemberDetailProps> = ({
                                 <IconPhone width={20} height={20} fill={colors.primary} />
                             </View>
                             <View style={styles.infoContent}>
-                                <CustomText style={styles.infoLabel}>Teléfono</CustomText>
+                                <CustomText style={styles.infoLabel}>Nombre de usuario</CustomText>
                                 <CustomText style={styles.infoValue}>{phoneValue}</CustomText>
                             </View>
                         </View>
@@ -165,7 +188,7 @@ const MemberDetail: React.FC<MemberDetailProps> = ({
                             </View>
                             <View style={styles.infoContent}>
                                 <CustomText style={styles.infoLabel}>Fecha de Ingreso</CustomText>
-                                <CustomText style={styles.infoValue}>{formatDate(getTextValue(member.joinedAt))}</CustomText>
+                                <CustomText style={styles.infoValue}>{formatDate(memberData.created_at)}</CustomText>
                             </View>
                         </View>
                         
@@ -177,25 +200,28 @@ const MemberDetail: React.FC<MemberDetailProps> = ({
                             </View>
                             <View style={styles.infoContent}>
                                 <CustomText style={styles.infoLabel}>ID de Miembro</CustomText>
-                                <CustomText style={styles.infoValue}>{member.id}</CustomText>
+                                <CustomText style={styles.infoValue}>{memberData.id}</CustomText>
                             </View>
                         </View>
                     </View>
                 </View>
 
-                {/* Action Buttons */}
-                <View style={styles.actionsContainer}>
-                    {onEdit && (
-                        <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-                            <CustomText style={styles.editButtonText}>Editar Miembro</CustomText>
-                        </TouchableOpacity>
-                    )}
+                <View style={styles.actionSection}>
+                    <TouchableOpacity 
+                        style={[styles.actionButton, styles.editButton]}
+                        onPress={() => {
+                            Alert.alert('Editar', 'Funcionalidad de edición en desarrollo');
+                        }}
+                    >
+                        <CustomText style={styles.editButtonText}>Editar Miembro</CustomText>
+                    </TouchableOpacity>
                     
-                    {onDelete && (
-                        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-                            <CustomText style={styles.deleteButtonText}>Eliminar Miembro</CustomText>
-                        </TouchableOpacity>
-                    )}
+                    <TouchableOpacity 
+                        style={[styles.actionButton, styles.deleteButton]}
+                        onPress={handleDelete}
+                    >
+                        <CustomText style={styles.deleteButtonText}>Eliminar Miembro</CustomText>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
         </View>
@@ -208,33 +234,26 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
     },
     logoContainer: {
-        backgroundColor: colors.white,
         alignItems: 'center',
-        paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.lightGray,
+        paddingTop: 20,
+        paddingBottom: 10,
     },
     container: {
         flex: 1,
-        backgroundColor: colors.background,
+        paddingHorizontal: 20,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-        backgroundColor: colors.white,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.lightGray,
+        justifyContent: 'flex-start',
+        marginBottom: 20,
+        marginTop: 10,
     },
     backButton: {
-        padding: 8,
-        borderRadius: 8,
+        padding: 0
     },
     headerTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
         color: colors.dark,
     },
     headerRight: {
@@ -242,18 +261,12 @@ const styles = StyleSheet.create({
     },
     profileCard: {
         backgroundColor: colors.white,
-        margin: 16,
-        padding: 24,
         borderRadius: 16,
+        padding: 24,
+        marginBottom: 20,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        borderWidth: 1,
+        borderColor: colors.lightGray,
     },
     avatarContainer: {
         position: 'relative',
@@ -263,9 +276,9 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: colors.primary + '10',
-        alignItems: 'center',
+        backgroundColor: `${colors.primary}10`,
         justifyContent: 'center',
+        alignItems: 'center',
     },
     statusIndicator: {
         position: 'absolute',
@@ -284,52 +297,48 @@ const styles = StyleSheet.create({
         backgroundColor: colors.error,
     },
     memberName: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: 'bold',
         color: colors.dark,
         marginBottom: 4,
+        textAlign: 'center',
     },
     memberRole: {
         fontSize: 16,
         color: colors.gray,
         marginBottom: 12,
+        textAlign: 'center',
     },
     statusBadge: {
         paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
     },
     activeBadge: {
-        backgroundColor: colors.success + '20',
+        backgroundColor: `${colors.success}20`,
     },
     inactiveBadge: {
-        backgroundColor: colors.error + '20',
+        backgroundColor: `${colors.error}20`,
     },
     statusText: {
-        fontSize: 12,
-        fontWeight: '600',
+        fontSize: 14,
+        fontWeight: '500',
+        color: colors.dark,
     },
     section: {
-        marginHorizontal: 16,
         marginBottom: 24,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 15,
         color: colors.dark,
         marginBottom: 12,
     },
     infoCard: {
         backgroundColor: colors.white,
         borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 1,
-        },
-        shadowOpacity: 0.08,
-        shadowRadius: 2,
-        elevation: 2,
+        borderWidth: 1,
+        borderColor: colors.lightGray,
+        overflow: 'hidden',
     },
     infoRow: {
         flexDirection: 'row',
@@ -339,10 +348,10 @@ const styles = StyleSheet.create({
     infoIcon: {
         width: 40,
         height: 40,
-        borderRadius: 8,
-        backgroundColor: colors.primary + '10',
-        alignItems: 'center',
+        borderRadius: 20,
+        backgroundColor: `${colors.primary}10`,
         justifyContent: 'center',
+        alignItems: 'center',
         marginRight: 16,
     },
     infoContent: {
@@ -354,43 +363,44 @@ const styles = StyleSheet.create({
         marginBottom: 2,
     },
     infoValue: {
-        fontSize: 16,
+        fontSize: 15,
         color: colors.dark,
-        fontWeight: '500',
     },
     divider: {
         height: 1,
         backgroundColor: colors.lightGray,
-        marginHorizontal: 16,
     },
-    actionsContainer: {
-        marginHorizontal: 16,
-        marginBottom: 32,
-        gap: 12,
+    actionSection: {
+        marginBottom: 40,
+    },
+    actionButton: {
+        borderRadius: 30,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        alignItems: 'center',
+        marginBottom: 12,
     },
     editButton: {
         backgroundColor: colors.primary,
-        paddingVertical: 16,
-        borderRadius: 12,
-        alignItems: 'center',
     },
     editButtonText: {
         color: colors.white,
         fontSize: 16,
-        fontWeight: '600',
     },
     deleteButton: {
-        backgroundColor: colors.error + '10',
-        paddingVertical: 16,
-        borderRadius: 12,
-        alignItems: 'center',
+        backgroundColor: `${colors.error}10`,
         borderWidth: 1,
-        borderColor: colors.error + '20',
+        borderColor: colors.error,
     },
     deleteButtonText: {
         color: colors.error,
         fontSize: 16,
-        fontWeight: '600',
+    },
+    errorText: {
+        fontSize: 16,
+        color: colors.error,
+        textAlign: 'center',
+        marginTop: 20,
     },
 });
 

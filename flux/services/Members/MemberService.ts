@@ -15,7 +15,7 @@ export const MemberService = {
     },
 
     async createMember(member: any): Promise<{ data: any | null, error: string | null }> {
-        if (!member.name || !member.email || !member.store_id) {
+        if (!member.user?.name || !member.user?.email || !member.store_id) {
             return { data: null, error: 'Todos los campos son obligatorios! Intenta de nuevo.' };
         }
         
@@ -31,8 +31,25 @@ export const MemberService = {
         return { data: data.value, error: null };
     },
 
+    async createInvitation(email: string, role_id: string, store_id: string, message: string): Promise<{ data: any | null, error: string | null }> {
+        if (!email || !role_id || !store_id || !message) {
+            return { data: null, error: 'Todos los campos son obligatorios! Intenta de nuevo.' };
+        }
+        
+        const { data, error } = await secureFetch({
+            options: {
+                url: `${WheekConfig.API_BASE_URL}/members/${store_id}/create/invitation`,
+                method: 'POST',
+                body: { email, role_id, message }
+            }
+        })
+    
+        if (error) return { data: null, error: error };
+        return { data: data.value, error: null };
+    },
+
     async updateMember(member: any, store_id: string): Promise<{ data: any | null, error: string | null }> {
-        if (!member.name || !member.email || !member.store_id || !member.id) {
+        if (!member.user?.name || !member.user?.email || !member.store_id || !member.id) {
             return { data: null, error: 'Todos los campos son obligatorios! Intenta de nuevo.' };
         }
 

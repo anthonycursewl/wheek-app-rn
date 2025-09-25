@@ -6,8 +6,8 @@ interface MemberStore {
     loading: boolean;
     error: string | null;
     members: any[];
-    page: number;
-    limit: number;
+    skip: number;
+    take: number;
     hasMore: boolean;
     
     // actions
@@ -37,8 +37,8 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
     loading: false,
     error: null,
     members: [],
-    page: 1,
-    limit: 10,
+    skip: 1,
+    take: 10,
     hasMore: true,
     selectedMember: null,
     setSelectedMember: (member: any | null) => {
@@ -82,8 +82,8 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
             loading: false,
             error: null,
             members: newMembers,
-            page: currentState.members.length,
-            hasMore: newMembers.length >= currentState.limit
+            skip: currentState.members.length,
+            hasMore: newMembers.length >= currentState.take
         })
     },
 
@@ -94,8 +94,8 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
             loading: false,
             error: null,
             members: updatedMembers,
-            page: currentState.members.length,
-            hasMore: newMembers.length >= currentState.limit
+            skip: currentState.members.length,
+            hasMore: newMembers.length >= currentState.take
         })
     },
 
@@ -130,7 +130,8 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
 
     resetPagination: () => {
         set({
-            page: 1,
+            skip: 1,
+            take: 10,
             hasMore: true,
             members: []
         })
@@ -141,8 +142,8 @@ export const useMemberStore = create<MemberStore>((set, get) => ({
             loading: false,
             error: null,
             members: [],
-            page: 1,
-            limit: 10,
+            skip: 1,
+            take: 10,
             hasMore: true,
             selectedMember: null
         })
