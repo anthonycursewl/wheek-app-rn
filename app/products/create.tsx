@@ -55,7 +55,6 @@ export default function CreateProduct() {
   const { currentStore } = useGlobalStore();
   const { providers } = useProviderStore();
   const { categories } = useCategoryStore()
-  const { stores } = useShopStore();
   const { loading: loadingProducts, dispatch: dispatchProduct } = useProductStore()
 
   // local states
@@ -225,7 +224,7 @@ export default function CreateProduct() {
       Alert.alert('Wheek | Éxito', 'Producto creado exitosamente');
       
       resetForm()
-      router.replace(`/store/manage/${currentStore?.id}`)
+      router.back()
     }
     
   };

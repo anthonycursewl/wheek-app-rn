@@ -44,6 +44,7 @@ export default function CreateCategory() {
         if (data) {
             dispatch(categorySuccessAction(data))
             showSuccess(`La categoría ${category.name} se ha creado correctamente!`, {
+                duration: 800,
                 onClose: () => {
                     router.back()
                 },
