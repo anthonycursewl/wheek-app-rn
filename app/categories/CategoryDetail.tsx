@@ -41,7 +41,7 @@ export default function CategoryDetail() {
   };
 
   const handleSoftDeleteCategory = async () => {
-      const categoryUpdated = { ...categoryParsed, is_active: false };
+      const categoryUpdated = { ...categoryParsed, is_active: !categoryParsed.is_active  };
       showSuccess('¿Estás seguro de que deseas eliminar esta categoría?', {
         requiresConfirmation: true,
         icon: 'info',
@@ -61,7 +61,7 @@ export default function CategoryDetail() {
           
           if (data) {
             dispatch(categorySuccessDeleteAction(data));
-            showResponse(`La categoría ${categoryParsed.name} se ha eliminado correctamente!`, {
+            showResponse(`La categoría ${categoryParsed.name} se ha ${!categoryParsed.is_active ? 'activado' : 'desactivado'} correctamente!`, {
               icon: 'success',
               duration: 1000,
               autoHide: true,

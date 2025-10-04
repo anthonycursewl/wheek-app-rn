@@ -157,7 +157,6 @@ export default function AdjustCreate() {
         }
 
         const adjustment: AdjustmentPayload = {
-            store_id: currentStore.id,
             user_id: user?.id || '',
             reason: reason,
             notes: notes.trim(),
@@ -176,7 +175,8 @@ export default function AdjustCreate() {
             },
             onConfirm: async () => {
                 dispatch(adjustmentAttemptAction());
-                const { data, error } = await AdjustmentService.createAdjustment(adjustment);
+                console.log("STORE_ID AQUUIIIIIII " + currentStore.id)
+                const { data, error } = await AdjustmentService.createAdjustment(adjustment, currentStore.id);
                 if (error) {
                     dispatch(adjustmentFailureAction(error));
                     showResponse(error, { icon: 'error', duration: 2500 });
@@ -233,14 +233,9 @@ export default function AdjustCreate() {
                         <CustomText>Crear ajuste</CustomText>
                     </View>
 
-                    <View style={{ gap: 10 }}>
-                        <CustomText>Tienda</CustomText>
-                        <Input 
-                            placeholder="" 
-                            value={currentStore.name} 
-                            editable={false}
-                        />
-                    </View>
+                    <CustomText style={{ marginBottom: 20, fontSize: 16, color: 'gray' }}>
+                        Se está creando el registro en la tienda actual: <CustomText style={{ fontWeight: 'bold' }}>{currentStore.name}</CustomText>
+                    </CustomText>
 
                     <View style={{ marginTop: 12, gap: 12 }}>
                         <View style={{ gap: 10 }}> 

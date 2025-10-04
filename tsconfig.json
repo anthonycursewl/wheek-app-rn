@@ -9,7 +9,8 @@
       "@components/*": ["./components/*"],
       "@flux/*": ["./flux/*"],
       "@hooks/*": ["./hooks/*"],
-      "@svgs/*": ["./svgs/*"]
+      "@svgs/*": ["./svgs/*"],
+      "@shared/*": ["./shared/*"]
     },
     "typeRoots": [
       "./node_modules/@types",
