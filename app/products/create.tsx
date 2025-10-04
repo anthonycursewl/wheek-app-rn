@@ -12,7 +12,6 @@ import LayoutScreen from "@components/Layout/LayoutScreen";
 
 // React Native
 import { View, Alert, ScrollView, Switch, TouchableOpacity, StyleSheet, Animated } from "react-native";
-import { Picker } from '@react-native-picker/picker';
 import { useState, useEffect, useRef } from "react";
 
 // Icons
@@ -60,14 +59,18 @@ export default function CreateProduct() {
   const { loading: loadingProducts, dispatch: dispatchProduct } = useProductStore()
 
   // local states
-  const [storesList, setStoresList] = useState<{label: string, value: string}[]>([]);
-  const [selectedStore, setSelectedStore] = useState<string>(currentStore?.id || '');
   const [selectedCategory, setSelectedCategory] = useState<{ id: string, name: string } | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<{ id: string, name: string } | null>(null);
 
   // states modals
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showProviderModal, setShowProviderModal] = useState(false);
+  const [showConditionModal, setShowConditionModal] = useState(false);
+
+  const conditionOptions = [
+    { id: 'KG', name: 'KG' },
+    { id: 'UND', name: 'UND' },
+  ];
 
   useEffect(() => {
     if (product && md === 'edit') {
@@ -92,13 +95,13 @@ export default function CreateProduct() {
         setSelectedProvider({ id: provider.id, name: provider.name });
       }
     }
-  }, [product, categories, providers, selectedStore]);
+  }, [product, categories, providers]);
 
 
   const [formData, setFormData] = useState<Omit<Product, 'id' | 'created_at'>>({
     name: '',
     barcode: '',
-    store_id: selectedStore,
+    store_id: currentStore?.id || '',
     w_ficha: {
       condition: 'UND',
       cost: '',
@@ -108,23 +111,6 @@ export default function CreateProduct() {
     category_id: selectedCategory?.id || '',
     provider_id: selectedProvider?.id || ''
   });
-
-  useEffect(() => {
-    const loadStores = () => {
-        if (stores.length > 0) {
-          setStoresList(stores.map(store => ({
-            label: store.name,
-            value: store.id
-          })));
-        }
-    };
-
-    loadStores();
-  }, [stores]);
-
-  useEffect(() => {
-    setFormData(prev => ({ ...prev, store_id: selectedStore }));
-  }, [selectedStore]);
 
   const scanLineAnimation = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -198,7 +184,7 @@ export default function CreateProduct() {
     setFormData({
       name: '',
       barcode: '',
-      store_id: selectedStore,
+      store_id: currentStore?.id || '',
       w_ficha: {
         condition: 'UND',
         cost: '',
@@ -239,7 +225,7 @@ export default function CreateProduct() {
       Alert.alert('Wheek | Éxito', 'Producto creado exitosamente');
       
       resetForm()
-      router.replace(`/store/manage/${selectedStore}`)
+      router.replace(`/store/manage/${currentStore?.id}`)
     }
     
   };
@@ -365,6 +351,11 @@ export default function CreateProduct() {
     setShowProviderModal(false)
   }
 
+  const onSelectCondition = (item: { id: string, name: string }) => {
+    handleFichaChange('condition', item.id);
+    setShowConditionModal(false);
+  };
+
   return (
     <>
     <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: 'transparent' }} keyboardShouldPersistTaps="handled">
@@ -396,31 +387,18 @@ export default function CreateProduct() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <CustomText style={styles.label}>Tienda *</CustomText>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedStore}
-                onValueChange={(itemValue) => setSelectedStore(itemValue)}
-                style={styles.picker}
-                dropdownIconColor="#666"
-                >
-                <Picker.Item label="Selecciona una tienda" value="" />
-                {storesList.map((store) => (
-                  <Picker.Item 
-                  key={store.value} 
-                  label={store.label} 
-                  value={store.value} 
-                  />
-                ))}
-              </Picker>
-            </View>
+            <CustomText style={{ fontSize: 16, color: 'gray', marginBottom: 10 }}>
+                Se está creando el registro en la tienda actual: <CustomText style={{ fontWeight: 'bold' }}>{currentStore?.name}</CustomText>
+            </CustomText>
           </View>
 
           <View style={styles.sectionContainer}>
             <CustomText style={styles.sectionTitle}>Información de la Ficha</CustomText>
             <View style={styles.fieldGroup}>
               <CustomText style={styles.label}>Condición *</CustomText>
-              <Input placeholder="Ej: Nuevo, Usado" value={formData.w_ficha.condition} onChangeText={(text) => handleFichaChange('condition', text)} />
+              <TouchableOpacity onPress={() => setShowConditionModal(true)} style={styles.selectInput}>
+                <CustomText style={styles.inputText}>{formData.w_ficha.condition || 'Selecciona una condición'}</CustomText>
+              </TouchableOpacity>
             </View>
             <View style={styles.fieldGroup}>
               <CustomText style={styles.label}>Costo *</CustomText>
@@ -495,6 +473,25 @@ export default function CreateProduct() {
               </View>
 
                 <ListProviders height={'95%'} onSelectProvider={(item) => onSelectProvider(item)}/>
+        </ModalOptions>
+
+        <ModalOptions
+          visible={showConditionModal}
+          onClose={() => setShowConditionModal(false)}
+          gesturesEnabled={false}
+        >
+          <View>
+            <CustomText style={styles.modalTitle}>Selecciona una condición</CustomText>
+            {conditionOptions.map((option) => (
+              <TouchableOpacity
+                key={option.id}
+                style={styles.modalOption}
+                onPress={() => onSelectCondition(option)}
+              >
+                <CustomText style={styles.modalOptionText}>{option.name}</CustomText>
+              </TouchableOpacity>
+            ))}
+          </View>
         </ModalOptions>
 
     </>

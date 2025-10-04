@@ -11,7 +11,7 @@ import {
 import CustomText from "@components/CustomText/CustomText";
 import { RoleWithPermissions } from "@flux/entities/Role";
 import { useRoleStore } from "@flux/stores/useRoleStore";
-import { roleAttemptAction, roleFailureAction, roleSuccessGetAction } from "@flux/Actions/RoleActions";
+import { roleAttemptAction, roleFailureAction, roleSuccessDeleteAction, roleSuccessGetAction } from "@flux/Actions/RoleActions";
 import { RoleService } from "@flux/services/Roles/RoleService";
 import { useGlobalStore } from "@flux/stores/useGlobalStore";
 import LogoPage from "@components/LogoPage/LogoPage";
@@ -57,13 +57,11 @@ const PermissionsCard = ({ resource, actions }: { resource: string, actions: str
 };
 
 export default function RoleDetail() {
-    const { dispatch, loading } = useRoleStore();
-    const { currentStore } = useGlobalStore();
+    const { dispatch, loading: loadingRoles } = useRoleStore();
+    const { currentStore, alertState, showSuccess, showResponse, hideAlert } = useGlobalStore();
     const { role } = useLocalSearchParams();
     const roleData: RoleWithPermissions = JSON.parse(decodeURIComponent(role as string));
     const [roleDetail, setRoleDetail] = useState<RoleWithPermissions>(roleData);
-   
-    const { alertState, hideAlert, showSuccess } = useAlert()
     const { setSelectedRole } = useRoleStore()
 
     const scrollY = useRef(new Animated.Value(0)).current;
@@ -112,21 +110,24 @@ export default function RoleDetail() {
     };
 
     const handleTapOnDelete = () => {
-        let loading: boolean = false
-
         showSuccess('¿Estás seguro que deseas mandar a la basura este rol?', {
             requiresConfirmation: true,
-            onConfirm: () => {
-                loading = true
-
-                setTimeout(() => {
-                    loading = false
-                }, 2000);
-            },
-            onClose: () => {
+            onConfirm: async () => {
+                dispatch(roleAttemptAction());
                 hideAlert()
+                showSuccess('Eliminando rol...', { isLoading: loadingRoles })
+
+                const { data, error } = await RoleService.delete(roleDetail.id, currentStore.id)  
+                if (error) return dispatch(roleFailureAction(error));
+                if (data) {
+                    dispatch(roleSuccessDeleteAction(data));
+                    showResponse(`¡Rol ${data.name} eliminado exitosamente!`, { 
+                        icon: 'success', 
+                        onClose() { router.back() },
+                        duration: 1500
+                    });
+                }
             },
-            isLoading: loading
         })
     }
     
@@ -137,7 +138,7 @@ export default function RoleDetail() {
     
     const groupedPermissions = groupPermissionsByResource(roleDetail.permissions || []);
     
-    if (loading) {
+    if (loadingRoles && !roleDetail.id) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#333" />
@@ -147,7 +148,7 @@ export default function RoleDetail() {
 
     return (
         <>
-        <SafeAreaView style={styles.main}>
+        <View style={styles.main}>
             <Animated.View style={[
                 styles.statusBar,
                 { 
@@ -204,7 +205,7 @@ export default function RoleDetail() {
                     </View>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
         <CustomAlert {...alertState} onClose={hideAlert}/>
         </>
     );

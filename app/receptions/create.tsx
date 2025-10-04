@@ -75,7 +75,14 @@ export default function CreateReception() {
                     item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
                 );
             }
-            return [...currentItems, { ...product, quantity: 1 }];
+            return [...currentItems, {
+                id: product.id,
+                quantity: 1,
+                cost_price: product.cost,
+                product: {
+                    name: product.name,
+                }
+            }];
         });
         setModalSearchProduct(false);
         setSearchQuery('');
@@ -96,7 +103,7 @@ export default function CreateReception() {
     };
 
     const totalReceptionCost = useMemo(() => {
-        return receptionItems.reduce((total, item) => total + (item.quantity * item.cost), 0);
+        return receptionItems.reduce((total, item) => total + (item.quantity * item.cost_price), 0);
     }, [receptionItems]);
     
     const handleProviderPress = (name: string, id: string) => {
@@ -114,7 +121,7 @@ export default function CreateReception() {
             items: receptionItems.map(item => ({
                 product_id: item.id,
                 quantity: item.quantity,
-                cost_price: item.cost,
+                cost_price: item.cost_price,
             }))
         }
         
@@ -171,9 +178,9 @@ export default function CreateReception() {
     const ReceptionItemRow = ({ item }: { item: ReceptionLineItem }) => (
         <View style={styles.receptionItemRow}>
             <View style={{ flex: 1, gap: 4 }}>
-                <CustomText style={{ fontSize: 16, fontWeight: '500' }}>{item.name}</CustomText>
+                <CustomText style={{ fontSize: 16, fontWeight: '500' }}>{item.product.name}</CustomText>
                 <CustomText style={{ fontSize: 13, color: 'gray' }}>
-                    Subtotal: ${(item.quantity * item.cost).toFixed(2)}
+                    Subtotal: ${(item.quantity * item.cost_price).toFixed(2)}
                 </CustomText>
             </View>
             <View style={styles.quantityControls}>
@@ -202,14 +209,9 @@ export default function CreateReception() {
                     </View>
 
                     {/* ... (Tu código para el input de Tienda) ... */}
-                    <View style={{ gap: 10 }}>
-                        <CustomText>Tienda</CustomText>
-                        <Input 
-                            placeholder="" 
-                            value={currentStore.name} 
-                            editable={false}
-                            />
-                    </View>
+                    <CustomText style={{ marginBottom: 20, fontSize: 16, color: 'gray' }}>
+                        Se está creando el registro en la tienda actual: <CustomText style={{ fontWeight: 'bold' }}>{currentStore.name}</CustomText>
+                    </CustomText>
 
                     <View style={{ marginTop: 12, gap: 12 }}>
                         <View style={{ gap: 10 }}> 

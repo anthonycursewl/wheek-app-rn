@@ -132,20 +132,9 @@ export default function CreateCategory() {
                             </>
                         ) : (
                             <>
-                                <CustomText>Selecciona la tienda</CustomText>
-                                <Picker selectedValue={category.store_id}
-                                    onValueChange={(itemValue) => setCategory({ ...category, store_id: itemValue })}
-                                    style={stylesRegisterCategory.storePicker}>
-                                    {stores.map((store) => (
-                                        <Picker.Item
-                                            key={store.id}
-                                            label={store.name}
-                                            value={store.id}
-                                            color="rgb(100, 100, 100)"
-                                            style={stylesRegisterCategory.storePickerItem}
-                                        />
-                                    ))}
-                                </Picker>
+                                <CustomText style={{ fontSize: 16, color: 'gray' }}>
+                                    Se está creando el registro en la tienda actual: <CustomText style={{ fontWeight: 'bold' }}>{currentStore?.name}</CustomText>
+                                </CustomText>
                             </>
                         )
                     }

@@ -16,7 +16,6 @@ import { usePermissionStore } from "@flux/stores/usePermissionStore";
 import { useRoleStore } from "@flux/stores/useRoleStore";
 import { roleAttemptAction, roleFailureAction, roleSuccessCreateAction, roleSuccessUpdateAction } from "@flux/Actions/RoleActions";
 import { RoleService } from "@flux/services/Roles/RoleService";
-import { useAlert } from "shared/hooks/useAlert";
 import { RoleWithPermissions } from "@flux/entities/Role";
 
 // --- COMPONENTE REUTILIZABLE ---
@@ -100,7 +99,7 @@ const CreateRole = () => {
     
     if (data) {
       dispatch(roleSuccessCreateAction(data));
-      showSuccess('¡Rol creado exitosamente!');
+      showSuccess(`¡Rol ${data.name} creado exitosamente!`, { icon: 'success', onClose: () => router.back(), duration: 1000 });
     }
   };
 
@@ -111,10 +110,9 @@ const CreateRole = () => {
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={{ gap: 15 }}>
-            <View style={styles.storeName}>
-                <StoreLogo style={{ width: 20, height: 20 }} />
-                <CustomText style={{ fontSize: 14 }}>{currentStore?.name}</CustomText>
-            </View>
+            <CustomText style={{ fontSize: 16, color: 'gray', marginBottom: 10 }}>
+                Se está creando el registro en la tienda actual: <CustomText style={{ fontWeight: 'bold' }}>{currentStore?.name}</CustomText>
+            </CustomText>
             <CustomText style={{fontSize: 20, fontWeight: 'bold'}}>Crear Rol</CustomText>
             
             <Block label="Nombre del rol" placeholder="Ej: Vendedor" value={role.name} handleChangeRole={handleChangeRole} field="name" />

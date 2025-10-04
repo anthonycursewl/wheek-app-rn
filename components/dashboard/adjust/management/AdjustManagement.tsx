@@ -1,6 +1,23 @@
 import React, { Suspense, useCallback, useEffect, useRef } from "react";
 import { View, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from "react-native";
 import Button from "@components/Buttons/Button";
+
+// Custom debounce implementation
+const debounce = (func: (...args: any[]) => void, delay: number) => {
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const debounced = (...args: any[]) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), delay);
+    };
+
+    debounced.cancel = () => {
+        clearTimeout(timeout);
+    };
+
+    return debounced;
+};
+
 import { router } from "expo-router";
 import CustomText from "@components/CustomText/CustomText";
 import { useAdjustmentStore } from "@flux/stores/useAdjustmentStore";
@@ -25,14 +42,22 @@ const adjustmentFilterConfig = [
         ]
     },
     {
+        title: 'Rango de Fechas',
+        icon: <IconDate width={20} height={20} fill="rgb(146, 146, 146)"/>,
+        items: [
+            { label: 'Rango de Fechas', key: 'adjustmentDateRange', type: 'dateRange' },
+        ],
+    },
+    {
         title: 'Tipo de ajuste',
         icon: <IconProviders width={20} height={20} fill="rgb(146, 146, 146)"/>,
         items: [
-            { label: 'Dañado', key: 'DAMA' },
+            { label: 'Dañado', key: 'DAMAGED' },
             { label: 'Perdido', key: 'LOST' },
-            { label: 'Devolución al proveedor', key: 'RETURN_TO_PROVIDER' },
-            { label: 'Merma', key: 'WASTE' },
+            { label: 'Vencido', key: 'EXPIRED' },
             { label: 'Uso interno', key: 'INTERNAL_USE' },
+            { label: 'Devolución a proveedor', key: 'RETURN_TO_SUPPLIER' },
+            { label: 'Otro', key: 'OTHER' }
         ]
     },
     {
@@ -48,7 +73,7 @@ export default function AdjustManagement() {
     const { adjustments, error, loading, dispatch, take, skip, hasMore } = useAdjustmentStore()
     const { currentStore } = useGlobalStore()
     const { filters, setFilters, showFilters, openFilterModal, closeFilterModal, queryParams } = useFilters({
-        today: false, thisWeek: false, thisMonth: false, deleted: false, dateDesc: true
+        today: false, thisWeek: false, thisMonth: false, deleted: false, dateDesc: true, adjustmentDateRange: { startDate: null, endDate: null }
     });
     
     const [refreshing, setRefreshing] = React.useState(false);
@@ -59,8 +84,7 @@ export default function AdjustManagement() {
         router.push('/adjustments/create');
     }, []);
 
-    const handleGetAllAdjustments = useCallback(async (isRefresh = false) => {
-        // Prevent multiple simultaneous requests
+    const handleGetAllAdjustments = useCallback(async (isRefresh = false, currentQueryParams: string) => {
         if (isFetching.current) {
             return;
         }
@@ -69,7 +93,7 @@ export default function AdjustManagement() {
         
         try {
             dispatch({ type: 'ADJUSTMENT_ATTEMPT'})
-            const { data, error: apiError } = await AdjustmentService.getAdjustments(currentStore.id, isRefresh ? 0 : skip, take, '')
+            const { data, error: apiError } = await AdjustmentService.getAdjustments(currentStore.id, isRefresh ? 0 : skip, take, currentQueryParams)
             
             if (apiError) {
                 dispatch({ type: 'ADJUSTMENT_FAILURE', payload: apiError })
@@ -93,27 +117,49 @@ export default function AdjustManagement() {
     }, [currentStore.id, skip, take, dispatch]);
 
     const handleLoadMore = useCallback(() => {
-        if (!loading && hasMore && !isFetching.current) {
-            handleGetAllAdjustments(false);
+        // Only load more if not already loading, there's more data, not currently fetching, and there are existing adjustments
+        if (!loading && hasMore && !isFetching.current && adjustments.length > 0) {
+            handleGetAllAdjustments(false, queryParams);
         }
-    }, [loading, hasMore, handleGetAllAdjustments]);
+    }, [loading, hasMore, isFetching, adjustments.length, handleGetAllAdjustments, queryParams]);
 
     const handleRefresh = useCallback(async () => {
         setRefreshing(true);
-        await handleGetAllAdjustments(true);
-    }, [handleGetAllAdjustments]);
+        await handleGetAllAdjustments(true, queryParams);
+    }, [handleGetAllAdjustments, queryParams]);
 
     const handleRetry = useCallback(() => {
-        handleGetAllAdjustments(true);
+        dispatch({ type: 'ADJUSTMENT_ATTEMPT' }); // Clear error and set loading before retrying
+        handleGetAllAdjustments(true, queryParams);
+    }, [handleGetAllAdjustments, dispatch, queryParams]);
+
+    // Use a ref to always get the latest handleGetAllAdjustments without putting it in useEffect dependencies
+    const latestHandleGetAllAdjustments = useRef(handleGetAllAdjustments);
+    useEffect(() => {
+        latestHandleGetAllAdjustments.current = handleGetAllAdjustments;
     }, [handleGetAllAdjustments]);
 
+    // Create a ref to hold the debounced function
+    const debouncedFetchAdjustmentsRef = useRef(
+        debounce((currentQueryParams: string) => {
+            latestHandleGetAllAdjustments.current(true, currentQueryParams);
+        }, 500)
+    );
+
     useEffect(() => {
-        // Only run on mount, not on every render
         if (!hasMounted.current) {
             hasMounted.current = true;
-            handleGetAllAdjustments(true);
+            latestHandleGetAllAdjustments.current(true, ''); // Initial fetch without debounce, with empty query params
+        } else {
+            // Fetch adjustments with debounce when queryParams change
+            debouncedFetchAdjustmentsRef.current(queryParams);
         }
-    }, [handleGetAllAdjustments]);
+
+        // Cleanup debounce on unmount
+        return () => {
+            debouncedFetchAdjustmentsRef.current.cancel();
+        };
+    }, [queryParams]); // Only queryParams here to prevent re-running when handleGetAllAdjustments changes
 
     const CardFallBack = React.memo(() => {
         return (
@@ -196,7 +242,7 @@ export default function AdjustManagement() {
                 )}
                 ListEmptyComponent={() => {
                     if (loading) {
-                        return null; // Don't show empty state while loading
+                        return null;
                     }
                     
                     if (error) {

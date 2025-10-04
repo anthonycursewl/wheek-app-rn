@@ -49,7 +49,7 @@ export default function CreateProvider() {
             router.back()
         }
         if (error) {
-            showError(error, { showCancel: true, showConfirm: false })
+            showError(error)
             dispatch(providerFailureAction(error))
         }
     }
@@ -61,8 +61,7 @@ export default function CreateProvider() {
         if (data) {
             dispatch(updateProviderSuccessAction(data))
             showSuccess(`El proveedor ${provider.name} se ha actualizado correctamente!`, {
-                showConfirm: true,
-                showCancel: false,
+                requiresConfirmation: true,
                 onConfirm: () => {
                     router.back()
                     setSelectedProvider(data)
@@ -71,7 +70,7 @@ export default function CreateProvider() {
             })
         }
         if (error) {
-            showError(error, { showCancel: true, showConfirm: false })
+            showError(error)
             dispatch(providerFailureAction(error))
             return
         }
@@ -158,22 +157,9 @@ export default function CreateProvider() {
                 
                 {
                     mode === 'create' ? (
-                        <View style={stylesRegisterCategory.containerFields}>
-                        <CustomText>Selecciona la tienda</CustomText>
-                        <Picker selectedValue={provider.store_id} 
-                    onValueChange={(itemValue) => setProvider({ ...provider, store_id: itemValue })}
-                    style={stylesRegisterCategory.storePicker}>
-                        {stores.map((store) => (
-                            <Picker.Item 
-                            key={store.id} 
-                            label={store.name} 
-                            value={store.id}
-                            color="rgb(100, 100, 100)"
-                            style={stylesRegisterCategory.storePickerItem}
-                            />
-                        ))}|
-                    </Picker>
-                </View>
+                        <CustomText style={{ fontSize: 16, color: 'gray', marginBottom: 10 }}>
+                            Se está creando el registro en la tienda actual: <CustomText style={{ fontWeight: 'bold' }}>{currentStore?.name}</CustomText>
+                        </CustomText>
                     ) : 
                     <>
                         <CustomText>Tienda Asignada</CustomText>
