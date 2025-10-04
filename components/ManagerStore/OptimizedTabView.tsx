@@ -17,7 +17,6 @@ export default function OptimizedTabView({ activeTab, onTabChange }: OptimizedTa
   const preloadComponents = useCallback(() => {
     TABS_CONFIG.forEach(tab => {
       if (!loadedComponents[tab.id]) {
-        // Simular carga asíncrona del componente
         setTimeout(() => {
           setLoadedComponents(prev => ({
             ...prev,

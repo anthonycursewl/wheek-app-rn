@@ -1,6 +1,7 @@
-import { ScrollView, StyleSheet, useWindowDimensions, LayoutChangeEvent } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions, LayoutChangeEvent } from 'react-native'
 import { useGlobalStore } from '@flux/stores/useGlobalStore';
 import { useRef, useState, useMemo } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 
 // Layout & Custom Components
 import LayoutScreen from '@components/Layout/LayoutScreen';
@@ -13,7 +14,9 @@ import { TABS_CONFIG } from '@components/ManagerStore/TabConfig';
 
 export default function StoreManagementScreen() {
   const { currentStore } = useGlobalStore();
-  const [activeTab, setActiveTab] = useState<TabType>('products');
+  const params = useLocalSearchParams();
+  const initialTab = (params.tab as TabType) || 'products';
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const scrollViewRef = useRef<ScrollView>(null);
   const tabPositions = useRef<Record<string, number>>({});
   const { width: windowWidth } = useWindowDimensions();

@@ -22,18 +22,21 @@ import { useAdjustmentStore } from '@flux/stores/useAdjustmentStore';
 import { useProductStore } from '@flux/stores/useProductStore';
 import { useReceptionStore } from '@flux/stores/useReceptionStore';
 
+type TabType = 'products' | 'categories' | 'providers' | 'receptions' | 'adjustments' | 'inventory' | 'roles' | 'profile' | 'settings';
+
 interface ProfileOption {
     title: string;
     icon: string | undefined;
-    route: string;
     color: string;
     description: string;
+    route: string;
+    tab: TabType;
 }
 
 export const ProfileScreen = () => {
     const { user, clearStore: lguser } = useAuthStore();
     const { clearStore: lgprov } = useProviderStore();
-    const { clearStore: lggl } = useGlobalStore();
+    const { clearStore: lggl, currentStore } = useGlobalStore();
     const { clearStore: lgcat } = useCategoryStore();
     const { clearStore: lgshop } = useShopStore();
     const { setCurrentStore } = useGlobalStore()
@@ -87,37 +90,42 @@ export const ProfileScreen = () => {
         {
             title: 'Gestionar Mis Tiendas',
             icon: 'store',
-            route: '/',
             color: 'rgb(165, 132, 255)',
-            description: 'Administra tus tiendas y sucursales'
+            description: 'Administra tus tiendas y sucursales',
+            route: '/store/manage/[id]',
+            tab: 'products'
         },
         {
             title: 'Gestionar Categorías',
             icon: 'tag-multiple',
-            route: '/',
             color: 'rgb(133, 87, 206)',
-            description: 'Organiza tus productos por categorías'
+            description: 'Organiza tus productos por categorías',
+            route: '/store/manage/[id]',
+            tab: 'categories'
         },
         {
             title: 'Gestionar Proveedores',
             icon: 'truck-delivery',
-            route: '/',
             color: 'rgb(219, 180, 255)',
-            description: 'Controla tus proveedores y pedidos'
+            description: 'Controla tus proveedores y pedidos',
+            route: '/store/manage/[id]',
+            tab: 'providers'
         },
         {
             title: 'Editar Perfil',
             icon: 'account-edit',
-            route: '/',
             color: 'rgb(165, 132, 255)',
-            description: 'Actualiza tu información personal'
+            description: 'Actualiza tu información personal',
+            route: '/profile/edit',
+            tab: 'profile'
         },
         {
             title: 'Configuración',
             icon: 'cog',
-            route: '/', 
             color: 'rgb(133, 87, 206)',
-            description: 'Personaliza la configuración de la app'
+            description: 'Personaliza la configuración de la app',
+            route: '/settings',
+            tab: 'settings'
         },
     ];
     return (
@@ -151,7 +159,20 @@ export const ProfileScreen = () => {
                         <TouchableOpacity 
                             key={index} 
                             style={styles.optionItem} 
-                            onPress={() => router.push(option.route as any)}
+                            onPress={() => {
+                                if (option.route === '/store/manage/[id]') {
+                                    if (!currentStore || !currentStore.id) {
+                                        Alert.alert('Seleccionar Tienda', 'Por favor, selecciona una tienda para gestionar.');
+                                    } else {
+                                        router.push({
+                                            pathname: option.route as any,
+                                            params: { id: currentStore.id, tab: option.tab },
+                                        });
+                                    }
+                                } else {
+                                    router.push(option.route as any);
+                                }
+                            }}
                         >
                             <LinearGradient
                                 colors={[option.color, `${option.color}80`]}

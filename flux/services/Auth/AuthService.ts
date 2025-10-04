@@ -80,5 +80,30 @@ export const AuthService = {
         
         console.log(`Datos de la verificación de jwt: ${JSON.stringify(data)}`)
         return { data: data.value, error: null};
+    },
+
+    async updateProfile(userData: { name: string, email: string }): Promise<{ data: UserResponse | null, error: string | null }> {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+            return { data: null, error: 'No authentication token found.' };
+        }
+
+        const { data, error } = await useFetch({
+            options: {
+                url: `${WheekConfig.API_BASE_URL}/user/update`, // Assuming this endpoint
+                method: 'PUT', // Or PATCH, depending on API design
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: userData,
+            }
+        });
+
+        if (error) {
+            return { data: null, error: error };
+        }
+
+        return { data, error: null };
     }
 }

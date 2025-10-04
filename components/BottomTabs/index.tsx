@@ -44,7 +44,7 @@ export default function BottomTabs({
       </View>
       
       {/* Barra de navegación inferior */}
-      <SafeAreaView style={[styles.tabBarContainer, tabBarStyle]}>
+      <View style={[styles.tabBarContainer, tabBarStyle]}>
         <View style={[styles.tabBar]}>
           {tabs.map((tab) => (
             <TouchableOpacity
@@ -76,7 +76,7 @@ export default function BottomTabs({
             </TouchableOpacity>
           ))}
         </View>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

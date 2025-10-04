@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import CustomText from '@components/CustomText/CustomText';
 import { TABS_CONFIG } from './TabConfig';
 import { useOptimizedTabs } from '@hooks/useOptimizedTabs';
+import { useLocalSearchParams } from 'expo-router';
 
 interface OptimizedTabBarProps {
   initialTab?: string;
@@ -10,7 +11,8 @@ interface OptimizedTabBarProps {
 }
 
 export default function OptimizedTabBar({ initialTab = 'products', onTabChange }: OptimizedTabBarProps) {
-  const { activeTab, isSwitching, switchTab } = useOptimizedTabs(initialTab);
+  const { tab } = useLocalSearchParams<{ tab: string }>()
+  const { activeTab, isSwitching, switchTab } = useOptimizedTabs(tab ? tab : initialTab);
 
   const handleTabPress = useCallback((tabId: string) => {
     if (isSwitching) return;

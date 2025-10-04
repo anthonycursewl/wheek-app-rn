@@ -1,17 +1,19 @@
 import React, { useState, useCallback, Suspense } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import CustomText from '@components/CustomText/CustomText';
-import { TABS_CONFIG } from './TabConfig';
 import OptimizedTabBar from './OptimizedTabBar';
 import { useOptimizedTabs } from '@hooks/useOptimizedTabs';
+import { useLocalSearchParams } from 'expo-router';
 
 interface OptimizedTabManagerProps {
   initialTab?: string;
 }
 
 export default function OptimizedTabManager({ initialTab = 'products' }: OptimizedTabManagerProps) {
-  const { activeTab, isSwitching, getTabComponent } = useOptimizedTabs(initialTab);
+  const { tab } = useLocalSearchParams<{ tab: string }>()
+  const { activeTab, isSwitching, getTabComponent } = useOptimizedTabs(tab ? tab : initialTab);
   const [mountedComponents, setMountedComponents] = useState<Set<string>>(new Set([initialTab]));
+
 
   // Manejar cambio de tab
   const handleTabChange = useCallback((tabId: string) => {
@@ -56,7 +58,7 @@ export default function OptimizedTabManager({ initialTab = 'products' }: Optimiz
   );
 
   function renderActiveTab() {
-    const ActiveComponent = getTabComponent(activeTab);
+    const ActiveComponent = getTabComponent(tab || activeTab);
     if (!ActiveComponent) {
       return (
         <View style={styles.errorContainer}>

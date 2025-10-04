@@ -1,5 +1,3 @@
-import IconProducts from 'svgs/IconProducts';
-import IconReceipts from 'svgs/IconReceipts';
 import { IconReceptions } from 'svgs/IconReceptions';
 
 import ProductManagement from '@components/dashboard/products/management/ProductManagement';
@@ -28,10 +26,10 @@ export const TABS_CONFIG = [
   { id: 'providers', label: 'Proveedores', Icon: IconProviders, Component: ProviderManagement, 
     iconProps: { width: 20, height: 20, fill: COLOR_TAB_DEFAULT }},
 
-  { id: 'expenses', label: 'Recepciones', Icon: IconReceptions, Component: ReceptionManagement, 
+  { id: 'receptions', label: 'Recepciones', Icon: IconReceptions, Component: ReceptionManagement, 
     iconProps: { width: 20, height: 20, fill: COLOR_TAB_DEFAULT }},
 
-  { id: 'receipts', label: 'Ajustes', Icon: IconAdjust, Component: AdjustManagement, 
+  { id: 'adjustments', label: 'Ajustes', Icon: IconAdjust, Component: AdjustManagement, 
     iconProps: { width: 20, height: 20, fill: COLOR_TAB_DEFAULT }},
 
   { id: 'inventory', label: 'Inventario', Icon: IconInventory, Component: InventoryManagement, 

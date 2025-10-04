@@ -103,6 +103,22 @@ function RootLayoutContent() {
                 headerBackTitle: 'Atrás',
               }}
             />
+            <Stack.Screen 
+              name="profile/edit" 
+              options={{
+                headerShown: true,
+                title: 'Editar Perfil',
+                headerBackTitle: 'Atrás',
+              }}
+            />
+            <Stack.Screen 
+              name="settings/index" 
+              options={{
+                headerShown: true,
+                title: 'Configuración',
+                headerBackTitle: 'Atrás',
+              }}
+            />
           </>
         ) : (
           <Stack.Screen name="index" />
