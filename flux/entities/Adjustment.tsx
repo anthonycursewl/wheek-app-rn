@@ -8,7 +8,6 @@ export interface AdjustmentLineItem {
 }
 
 export interface AdjustmentPayload {
-    store_id: string;
     user_id: string;
     reason: string;
     notes: string;

@@ -12,6 +12,7 @@ type InputProps = Omit<TextInputProps, 'autoCapitalize'> & {
     onChangeText?: (text: string) => void;
     autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
     showPasswordToggle?: boolean;
+    iconLeft?: React.ReactNode; // Add iconLeft prop
 }
 
 export default function Input({ 
@@ -22,6 +23,7 @@ export default function Input({
     value, 
     onChangeText,
     showPasswordToggle = false,
+    iconLeft, // Destructure iconLeft
     ...props 
 }: InputProps) {
     
@@ -88,12 +90,17 @@ export default function Input({
     
     return (
         <View style={[styleInput.container, style]}>
+            {iconLeft && <View style={styleInput.iconLeftContainer}>{iconLeft}</View>}
             <TextInput 
                 value={displayValue}
                 onChangeText={handleTextChange}
                 placeholder={placeholder}
                 multiline={finalMultiline}
-                style={[styleInput.input, showPasswordToggle && styleInput.inputWithToggle]}
+                style={[
+                    styleInput.input, 
+                    showPasswordToggle ? styleInput.inputWithToggle : null,
+                    iconLeft ? styleInput.inputWithIconLeft : null
+                ]}
                 secureTextEntry={false} // Siempre false porque nosotros manejamos el enmascaramiento
                 placeholderTextColor="#999"
                 {...secureProps}
@@ -121,6 +128,11 @@ const styleInput = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
+    iconLeftContainer: {
+        position: 'absolute',
+        left: 12,
+        zIndex: 1,
+    },
     input: {
         fontFamily: 'Onest-Regular',
         borderWidth: 1,
@@ -132,6 +144,9 @@ const styleInput = StyleSheet.create({
     },
     inputWithToggle: {
         paddingRight: 50, // Espacio para el botón de toggle
+    },
+    inputWithIconLeft: {
+        paddingLeft: 40, // Espacio para el icono izquierdo
     },
     toggleButton: {
         position: 'absolute',

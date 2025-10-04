@@ -10,26 +10,31 @@ import { inventoryAttemptAction, inventoryFailureAction, inventoryGetAllSuccessA
 import { useEffect } from "react";
 import { useState } from "react";
 
-export const ListInventories = ({ onPress, height }: { onPress: (inventory: Inventory) => void, height: DimensionValue }) => {
-    const { currentStore } = useGlobalStore()
-    const { inventories, loading, hasMore, take, dispatch, clearStore } = useInventoryStore()
-    const [fc, setFc] = useState<number>(0)
+export const ListInventories = ({ onPress, height, queryParams, searchQuery }: { onPress: (inventory: Inventory) => void, height: DimensionValue, queryParams: string, searchQuery: string }) => {
+    const { currentStore } = useGlobalStore();
+    const { inventories, loading, hasMore, take, dispatch, clearStore } = useInventoryStore();
+    const [fc, setFc] = useState<number>(0);
 
     const getAllInventories = async () => {
-        if (inventories.length !== 0 || loading || !hasMore) return;
+        if (loading || !hasMore) return;
         
-        dispatch(inventoryAttemptAction())
-        const { data, error } = await InventoryService.getInventory(currentStore.id, inventories.length, take)
+        dispatch(inventoryAttemptAction());
+        const { data, error } = await InventoryService.getInventory(currentStore.id, inventories.length, take, queryParams, searchQuery);
         if (error) {
-            Alert.alert(error)
-            dispatch(inventoryFailureAction(error))
+            Alert.alert(error);
+            dispatch(inventoryFailureAction(error));
         }
-        if (data) return dispatch(inventoryGetAllSuccessAction(data))
-    }
+        if (data) return dispatch(inventoryGetAllSuccessAction(data));
+    };
 
     useEffect(() => {
-        getAllInventories()
-    }, [fc])
+        clearStore();
+        setFc(prev => prev + 1);
+    }, [queryParams, searchQuery]);
+
+    useEffect(() => {
+        getAllInventories();
+    }, [fc, queryParams, searchQuery]);
 
     const handleLoadMore = () => {
         if (!hasMore || loading || inventories.length === 0) {

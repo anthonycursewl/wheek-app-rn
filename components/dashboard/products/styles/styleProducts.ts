@@ -77,6 +77,15 @@ export const styles = StyleSheet.create({
       fontSize: 16,
       color: '#1F2937',
     },
+    modalOption: {
+      padding: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: '#E5E5E5',
+    },
+    modalOptionText: {
+      fontSize: 16,
+      color: '#1F2937',
+    },
     formContainer: { width: '100%', marginTop: 15, gap: 20 },
     fieldGroup: { width: '100%', gap: 8 },
     label: { fontSize: 18 },
