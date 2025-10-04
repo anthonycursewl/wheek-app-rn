@@ -1,6 +1,6 @@
 // React and React Native
 import { useState, useEffect, useMemo } from 'react';
-import { Alert, FlatList, Image, TouchableOpacity, View, StyleSheet, Pressable, TextInput } from 'react-native';
+import { Alert, FlatList, Image, TouchableOpacity, View, StyleSheet, Pressable, TextInput, ScrollView, Animated } from 'react-native';
 import { router } from 'expo-router';
 
 // Store and Services (asumimos que estas importaciones están disponibles para todos los componentes)
@@ -38,8 +38,15 @@ const wheekLogo = require('@assets/images/wheek/wheek.png');
 const UserProfileIcon = ({ userName }: { userName: string }) => {
   const reduceName = (name: string) => {
     if (!name) return 'WH';
-    const n = name.split(' ');
-    const fp = n.length > 1 ? n[0].slice(0, 1) + n[1].slice(0, 1) : n[0].slice(0, 2);
+    const n = name.split(' ').filter(part => part.trim() !== '');
+    if (n.length === 0) return 'WH';
+    
+    const firstPart = n[0] || '';
+    const secondPart = n[1] || '';
+    
+    const fp = n.length > 1 
+      ? (firstPart.slice(0, 1) + secondPart.slice(0, 1))
+      : firstPart.slice(0, 2);
     return fp.toUpperCase();
   };
 
@@ -81,26 +88,64 @@ const CurrentStoreInfo = ({ currentStore }: { currentStore: StoreData }) => {
   const isStoreSelected = !!currentStore?.id;
 
   return (
-    <>
-      <View style={styles.currentStoreContainer}>
-        <IconStores width={15} height={15} />
-        <CustomText style={{ fontSize: 14 }}>
-          {currentStore.name || 'Selecciona una tienda.'}
-        </CustomText>
+    <View style={styles.storeInfoContainer}>
+      {/* Store Info Card */}
+      <View style={[
+        styles.storeCard,
+        { 
+          backgroundColor: isStoreSelected ? 'rgba(219, 180, 255, 0.15)' : 'rgba(200, 200, 200, 0.1)',
+          borderColor: isStoreSelected ? 'rgb(165, 132, 255)' : 'rgba(200, 200, 200, 0.3)'
+        }
+      ]}>
+        <View style={styles.storeIconContainer}>
+          <IconStores 
+            width={16} 
+            height={16} 
+            fill={isStoreSelected ? 'rgb(165, 132, 255)' : 'rgba(150, 150, 150, 0.6)'} 
+          />
+        </View>
+        <View style={styles.storeTextContainer}>
+          <CustomText style={[
+            styles.storeLabel,
+            { color: isStoreSelected ? 'rgb(133, 87, 206)' : 'rgba(100, 100, 100, 0.7)' }
+          ]}>
+            Tienda actual
+          </CustomText>
+          <CustomText style={[
+            styles.storeName,
+            { color: isStoreSelected ? 'rgb(49, 49, 49)' : 'rgba(120, 120, 120, 0.8)' }
+          ]}>
+            {currentStore.name || 'Selecciona una tienda'}
+          </CustomText>
+        </View>
       </View>
       
+      {/* Manage Button */}
       <TouchableOpacity 
         onPress={handleManagePress}
         style={[
           styles.manageButton,
-          { backgroundColor: isStoreSelected ? 'rgba(223, 223, 223, 0.95)' : 'rgba(200, 200, 200, 0.6)' }
+          {
+            backgroundColor: isStoreSelected ? 'rgb(165, 132, 255)' : 'rgba(200, 200, 200, 0.4)',
+            opacity: isStoreSelected ? 1 : 0.6
+          }
         ]}
         disabled={!isStoreSelected}
+        activeOpacity={0.8}
       >
-        <IconManage width={25} height={25} fill={'rgb(49, 49, 49)'} />
-        <CustomText>Administrar tienda</CustomText>
+        <IconManage 
+          width={22} 
+          height={22} 
+          fill={isStoreSelected ? 'white' : 'rgba(120, 120, 120, 0.8)'} 
+        />
+        <CustomText style={[
+          styles.manageButtonText,
+          { color: isStoreSelected ? 'white' : 'rgba(100, 100, 100, 0.7)' }
+        ]}>
+          Administrar tienda
+        </CustomText>
       </TouchableOpacity>
-    </>
+    </View>
   );
 };
 
@@ -178,6 +223,9 @@ export const HomeScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [cotizacionVisible, setCotizacionVisible] = useState(false);
   const [loadingCotizaciones, setLoadingCotizaciones] = useState(false);
+  
+  // Animated value for skeleton pulse effect
+  const skeletonOpacity = useMemo(() => new Animated.Value(0.7), []);
 
   const getAllCotizaciones = async () => {
     if (cotizaciones.length !== 0) return;
@@ -195,21 +243,45 @@ export const HomeScreen = () => {
     getAllCotizaciones()
   }, [currentStore.id])
 
-  const RenderCotizacion = ({ onPress }: { onPress: () => void }) => {
+  // Skeleton pulse animation
+  useEffect(() => {
     if (loadingCotizaciones) {
-      return (
-        <View>
-          <CustomText style={{ fontSize: 12 }}>Cargando...</CustomText>
-        </View>
-      )
-    } 
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(skeletonOpacity, {
+            toValue: 0.3,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(skeletonOpacity, {
+            toValue: 0.7,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      
+      pulseAnimation.start();
+      
+      return () => {
+        pulseAnimation.stop();
+      };
+    }
+  }, [loadingCotizaciones, skeletonOpacity]);
 
+  const RenderCotizacion = ({ onPress }: { onPress: () => void }) => {
     return (
       <Pressable onPress={onPress}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <View style={{ alignItems: 'flex-start' }}>
             <CustomText style={{ fontSize: 12 }}>Tasa BCV</CustomText>
-            <CustomText style={{ fontSize: 14 }}>{cotizaciones && cotizaciones.length > 0 ? 'Bs ' + cotizaciones[0].promedio.toFixed(2) : 'N/A'}</CustomText>
+            {loadingCotizaciones ? (
+              <Animated.View style={[styles.skeleton, styles.cotizacionSkeleton, { opacity: skeletonOpacity }]} />
+            ) : (
+              <CustomText style={{ fontSize: 14 }}>
+                {cotizaciones && cotizaciones.length > 0 ? 'Bs ' + cotizaciones[0].promedio.toFixed(2) : 'N/A'}
+              </CustomText>
+            )}
           </View>
 
           <View>
@@ -225,7 +297,8 @@ export const HomeScreen = () => {
   }
 
   return (
-    <LayoutScreen>
+    <ScrollView showsVerticalScrollIndicator={false}>
+    <View style={{flex: 1, padding: 17, paddingTop: 35 }}>
       <View style={styles.mainContainer}>
         <HomeHeader 
           userName={user?.name || ''}
@@ -233,9 +306,13 @@ export const HomeScreen = () => {
           />
 
         <View style={{ marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-            <CustomText>¡Hola {user?.name.slice(0, 20) + (user?.name ? user?.name.length > 20 ? '...' : '' : '')}!</CustomText>
-            <IconSuccess width={20} height={20} fill={'rgb(133, 87, 206)'} />
+          <View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+              <CustomText>¡Hola {(user?.name || '').slice(0, 20) + ((user?.name || '').length > 20 ? '...' : '')}!</CustomText>
+              <IconSuccess width={20} height={20} fill={'rgb(133, 87, 206)'} />
+            </View>
+
+            <CustomText style={{ color: 'rgb(129, 129, 129)', fontSize: 12 }}>@{user?.username}</CustomText>
           </View>
 
             <RenderCotizacion onPress={() => setCotizacionVisible(true)} />
@@ -244,7 +321,7 @@ export const HomeScreen = () => {
 
         <View style={{ marginTop: 15, width: '100%' }}>
           <CustomText>Ventas</CustomText>
-          <CustomText style={{ color: 'rgb(129, 129, 129)', fontSize: 13 }}>Listado de ventas filtrado por fecha y divisa. </CustomText>
+          <CustomText style={{ color: 'rgb(129, 129, 129)', fontSize: 13, marginBottom: 10 }}>Listado de ventas filtrado por fecha y divisa. </CustomText>
 
           <MinimalistSales />
         </View>
@@ -280,7 +357,8 @@ export const HomeScreen = () => {
         visible={cotizacionVisible} 
         onClose={() => setCotizacionVisible(false)} 
       />
-    </LayoutScreen>
+    </View>
+    </ScrollView>
   );
 };
 
@@ -320,26 +398,61 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  currentStoreContainer: {
+  // Store Info Container
+  storeInfoContainer: {
+    width: '100%',
+    gap: 8,
+  },
+  
+  // Store Card Styles
+  storeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    borderRadius: 8,
+    padding: 12,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: 'rgba(219, 180, 255, 0.95)',
   },
+  
+  storeIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  
+  storeTextContainer: {
+    flex: 1,
+  },
+  
+  storeLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  
+  storeName: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  
+  // Manage Button Styles
   manageButton: {
-    marginTop: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    paddingRight: 12,
+    justifyContent: 'center',
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    gap: 6,
+  },
+  
+  manageButtonText: {
+    fontSize: 15,
+    fontWeight: '500',
   },
   // Estilos del Modal
   modalHeader: {
@@ -390,5 +503,20 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 16,
     textAlign: 'center',
+  },
+  // Skeleton loading styles
+  skeleton: {
+    backgroundColor: '#E1E1E1',
+    borderRadius: 4,
+    opacity: 0.7,
+  },
+  cotizacionSkeleton: {
+    height: 20,
+    width: 80,
+    marginBottom: 2,
+  },
+  // Pulse animation for skeleton
+  skeletonAnimated: {
+    opacity: 0.4,
   },
 });

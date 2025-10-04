@@ -1,11 +1,11 @@
 import IconHome from "svgs/IconHome"
 import IconSearch from "svgs/IconSearch"
-import IconHeart from "svgs/IconHeart"
 import IconProfile from "svgs/IconProfile"
 import { HomeScreen } from "@components/dashboard/Screens/HomeScreen"
 import { SearchScreen } from "@components/dashboard/Screens/SearchScreen"
-import { FavoritesScreen } from "@components/dashboard/Screens/FavoritesScreen"
+import NotificationsScreen from "@components/dashboard/Screens/NotificationsScreen"
 import { ProfileScreen } from "@components/dashboard/Screens/ProfileScreen"
+import { IconNotification } from "@svgs/IconNotification"
 
 export const tabs = [
     {
@@ -21,10 +21,10 @@ export const tabs = [
       component: <SearchScreen />
     },
     {
-      id: 'favorites',
-      label: 'Favoritos',
-      icon: <IconHeart width={20} height={20} />,
-      component: <FavoritesScreen />
+      id: 'notifications',
+      label: 'Notificaciones',
+      icon: <IconNotification width={20} height={20} fill={'rgb(113, 84, 150)'} />,
+      component: <NotificationsScreen />
     },
     {
       id: 'profile',

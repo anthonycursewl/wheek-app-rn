@@ -17,7 +17,7 @@ export default function Dashboard() {
   const verifyToken = async () => {
     dispatch(loginAttemptAction())
     const token = await AsyncStorage.getItem('token')
-    if (!token) {
+    if (token === null) {
       dispatch(loginFailureAction('Se ha vencido tu sesión. Por favor, vuelve a iniciar sesión.'))
       Alert.alert('Wheek | Error', errAuth || 'Ha ocurrido un error al verificar tu sesión.')
       await AsyncStorage.removeItem('token')
@@ -34,7 +34,7 @@ export default function Dashboard() {
       return
     }
     if (data) {
-      dispatch(verifySuccessAction(data.value))
+      dispatch(verifySuccessAction(data))
     }
   }
 

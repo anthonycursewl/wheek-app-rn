@@ -77,7 +77,8 @@ export const AuthService = {
         if (error) {
             return { data: null, error: error };
         }
-    
-        return { data, error: null};
+        
+        console.log(`Datos de la verificación de jwt: ${JSON.stringify(data)}`)
+        return { data: data.value, error: null};
     }
 }

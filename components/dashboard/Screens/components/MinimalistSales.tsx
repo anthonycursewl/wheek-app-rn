@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import CustomText from "@components/CustomText/CustomText";
 import IconArrow from "svgs/IconArrow";
 
@@ -13,27 +13,35 @@ const mockSalesData = [
     { month: 'Julio', amount: 2215.00, currency: 'MXN', change: -0.8 },
 ];
 
+// Datos de ejemplo para hoy
+const todaySalesData = {
+    total: 89.50,
+    currency: 'USD',
+    transactions: 12,
+    change: 3.2
+};
+
+// Datos de ejemplo para producto más vendido
+const topProductData = {
+    name: 'Camiseta Premium',
+    quantity: 8,
+    revenue: 56.00,
+    currency: 'USD'
+};
+
+// Datos de ejemplo para ventas del mes
+const monthSalesData = {
+    total: 2450.50,
+    currency: 'USD',
+    goal: 3000,
+    progress: 82
+};
+
 // --- Componente Principal ---
 export const MinimalistSales = () => {
     // --- ESTADOS ---
-    const [selectedDateFilter, setSelectedDateFilter] = useState('Este Mes');
+    const [selectedDateFilter, setSelectedDateFilter] = useState('Hoy');
     const [selectedCurrency, setSelectedCurrency] = useState('USD');
-    const [filteredData, setFilteredData] = useState<{ month: string; amount: number; currency: string; change: number; }[]>([]);
-    const [totalSales, setTotalSales] = useState(0);
-
-    // --- LÓGICA DE FILTRADO ---
-    // Este efecto se ejecuta cada vez que cambia el filtro de fecha o divisa
-    useEffect(() => {
-        // Aquí iría tu lógica de filtrado real. Por ahora, simulamos con los datos mock.
-        const data = mockSalesData.filter(sale => sale.currency === selectedCurrency);
-        
-        // Calculamos el total de ventas para el mes actual (en este caso, el primer item)
-        const currentMonthTotal = data.length > 0 ? data[0].amount : 0;
-
-        setFilteredData(data);
-        setTotalSales(currentMonthTotal); // El total principal mostrará las ventas del período seleccionado
-    }, [selectedDateFilter, selectedCurrency]);
-
 
     // --- HELPERS ---
     const getCurrencySymbol = (currency: string) => {
@@ -44,147 +52,236 @@ export const MinimalistSales = () => {
         return symbols[currency] || '$';
     };
 
-
     return (
-      <View style={{ width: '100%', marginTop: 15, gap: 10 }}>
-
-        {/* --- SECCIÓN DE FILTROS --- */}
-        <View style={styles.filtersContainer}>
-            {/* Filtro de Fecha */}
-            <TouchableOpacity style={styles.filterButton}>
-                <CustomText style={styles.filterLabel}>Filtro</CustomText>
-                <View style={styles.filterValueContainer}>
-                    <CustomText style={styles.filterValue}>{selectedDateFilter}</CustomText>
-                    <IconArrow height={14} width={14} fill={'rgb(15, 15, 15)'} transform="rotate(270)"/>
-                </View>
-            </TouchableOpacity>
-
-            {/* Filtro de Divisa */}
-            <TouchableOpacity 
-                style={styles.filterButton}
-                onPress={() => setSelectedCurrency(c => c === 'USD' ? 'MXN' : 'USD')}
-            >
-                <CustomText style={styles.filterLabel}>Divisa</CustomText>
-                <View style={styles.filterValueContainer}>
-                    <CustomText style={styles.filterValue}>{selectedCurrency}</CustomText>
-                    <IconArrow height={14} width={14} fill={'rgb(15, 15, 15)'} transform="rotate(270)"/>
-                </View>
-            </TouchableOpacity>
+      <ScrollView 
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.gridContainer}>
+        
+        {/* --- FILA 1: Ventas de hoy con filtros --- */}
+        <View style={styles.gridRow}>
+          <View style={[styles.gridItem, styles.fullWidthItem]}>
+            <View style={styles.cardHeader}>
+              <CustomText style={styles.cardTitle}>Ventas de hoy</CustomText>
+              <View style={styles.filtersContainer}>
+                <TouchableOpacity style={styles.filterButton}>
+                  <CustomText style={styles.filterValue}>{selectedDateFilter}</CustomText>
+                  <IconArrow height={12} width={12} fill={'rgb(15, 15, 15)'} transform="rotate(270)"/>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.filterButton}
+                  onPress={() => setSelectedCurrency(c => c === 'USD' ? 'MXN' : 'USD')}
+                >
+                  <CustomText style={styles.filterValue}>{selectedCurrency}</CustomText>
+                  <IconArrow height={12} width={12} fill={'rgb(15, 15, 15)'} transform="rotate(270)"/>
+                </TouchableOpacity>
+              </View>
+            </View>
+            
+            <View style={styles.todaySalesContent}>
+              <View style={styles.salesMainInfo}>
+                <CustomText style={styles.todaySalesAmount}>
+                  {getCurrencySymbol(todaySalesData.currency)}{todaySalesData.total.toFixed(2)}
+                </CustomText>
+                <CustomText style={[
+                  styles.salesChange,
+                  { color: todaySalesData.change >= 0 ? 'rgb(34, 154, 34)' : 'rgb(202, 50, 50)' }
+                ]}>
+                  {todaySalesData.change >= 0 ? '▲' : '▼'} {Math.abs(todaySalesData.change)}%
+                </CustomText>
+              </View>
+              <View style={styles.salesDetails}>
+                <CustomText style={styles.salesDetailText}>
+                  {todaySalesData.transactions} transacciones
+                </CustomText>
+              </View>
+            </View>
+          </View>
         </View>
 
-        {/* --- CONTENEDOR PRINCIPAL DE DATOS --- */}
-        <View style={styles.container}>
-            {/* Total Principal */}
-            <View style={{ alignItems: 'center', paddingBottom: 15, borderBottomWidth: 1, borderColor: 'rgb(223, 223, 223)',
-                padding: 15,
-             }}>
-                <CustomText style={styles.totalAmount}>{getCurrencySymbol(selectedCurrency)}{totalSales.toFixed(2)}</CustomText>
-                <CustomText style={styles.totalLabel}>Total de ventas ({selectedDateFilter})</CustomText>
+        {/* --- FILA 2: Producto más vendido del día --- */}
+        <View style={styles.gridRow}>
+          <View style={styles.gridItem}>
+            <CustomText style={styles.cardTitle}>Producto más vendido</CustomText>
+            <View style={styles.topProductContent}>
+              <CustomText style={styles.productName}>{topProductData.name}</CustomText>
+              <View style={styles.productStats}>
+                <CustomText style={styles.productQuantity}>
+                  {topProductData.quantity} unidades
+                </CustomText>
+                <CustomText style={styles.productRevenue}>
+                  {getCurrencySymbol(topProductData.currency)}{topProductData.revenue.toFixed(2)}
+                </CustomText>
+              </View>
             </View>
-
-            {/* Lista detallada de ventas */}
-            <View>
-                {filteredData.length > 0 ? (
-                    filteredData.map((item, index) => (
-                        <View key={index} style={styles.dataRow}>
-                            <View style={styles.monthInfo}>
-                                <CustomText style={styles.monthText}>{item.month}</CustomText>
-                            </View>
-                            <View style={styles.salesInfo}>
-                                <CustomText style={styles.salesAmount}>
-                                    {getCurrencySymbol(item.currency)}{item.amount.toFixed(2)}
-                                </CustomText>
-                                <CustomText style={[
-                                    styles.percentageText, 
-                                    { color: item.change >= 0 ? 'rgb(34, 154, 34)' : 'rgb(202, 50, 50)' }
-                                ]}>
-                                    {item.change >= 0 ? '▲' : '▼'} {Math.abs(item.change)}%
-                                </CustomText>
-                            </View>
-                        </View>
-                    ))
-                ) : (
-                    <CustomText style={styles.noDataText}>No hay ventas para mostrar.</CustomText>
-                )}
-            </View>
+          </View>
         </View>
-      </View>
+
+        {/* --- FILA 3: Ventas del mes --- */}
+        <View style={styles.gridRow}>
+          <View style={styles.gridItem}>
+            <CustomText style={styles.cardTitle}>Ventas del mes</CustomText>
+            <View style={styles.monthSalesContent}>
+              <CustomText style={styles.monthSalesAmount}>
+                {getCurrencySymbol(monthSalesData.currency)}{monthSalesData.total.toFixed(2)}
+              </CustomText>
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBackground}>
+                  <View style={[styles.progressBar, { width: `${monthSalesData.progress}%` }]} />
+                </View>
+                <CustomText style={styles.progressText}>
+                  {monthSalesData.progress}% de {getCurrencySymbol(monthSalesData.currency)}{monthSalesData.goal.toFixed(2)}
+                </CustomText>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        </View>
+      </ScrollView>
     );
   };
 
 const styles = StyleSheet.create({
-    filtersContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      width: '100%'
-    },
-    filterButton: {
-      alignItems: 'flex-start',
-      gap: 4,
-    },
-    filterLabel: {
-      fontSize: 13,
-      color: 'rgb(87, 87, 87)',
-    },
-    filterValueContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 2
-    },
-    filterValue: {
-      fontSize: 13,
-      fontWeight: '500',
-      color: 'rgb(15, 15, 15)',
-    },
-    container: {
-      backgroundColor: '#f7f7f7',
-      borderRadius: 12, 
-      borderWidth: 1,
-      borderColor: 'rgb(223, 223, 223)',
+    // Estilos de scroll
+    scrollContainer: {
       width: '100%',
     },
-    totalAmount: {
-      fontSize: 28,
-      fontWeight: 'bold',
+    
+    // Estilos de cuadrícula
+    gridContainer: {
+      width: '100%',
+      gap: 15,
     },
-    totalLabel: {
-      fontSize: 13,
-      color: 'rgb(87, 87, 87)',
-      marginTop: 4,
+    gridRow: {
+      flexDirection: 'row',
+      gap: 15,
     },
-    dataRow: {
+    gridItem: {
+      flex: 1,
+      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: 'rgb(165, 132, 255)',
+      padding: 16,
+      minHeight: 120,
+    },
+    fullWidthItem: {
+      width: '100%',
+    },
+
+    // Estilos de tarjeta
+    cardHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderBottomWidth: 1,
-      borderColor: '#eee',
+      marginBottom: 12,
     },
-    monthInfo: {
-      flex: 1,
+    cardTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: 'rgb(133, 87, 206)',
     },
-    monthText: {
-      fontSize: 16,
+
+    // Estilos de filtros
+    filtersContainer: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    filterButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: 'rgba(219, 180, 255, 0.15)',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: 'rgb(165, 132, 255)',
+    },
+    filterValue: {
+      fontSize: 12,
       fontWeight: '500',
-      color: '#333',
+      color: 'rgb(133, 87, 206)',
     },
-    salesInfo: {
-      alignItems: 'flex-end',
+
+    // Estilos de ventas de hoy
+    todaySalesContent: {
+      gap: 8,
     },
-    salesAmount: {
-      fontSize: 16,
+    salesMainInfo: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 8,
+    },
+    todaySalesAmount: {
+      fontSize: 24,
       fontWeight: 'bold',
-      color: '#000',
+      color: 'rgb(49, 49, 49)',
     },
-    percentageText: {
+    salesChange: {
       fontSize: 14,
       fontWeight: '500',
-      marginTop: 2,
     },
-    noDataText: {
-      textAlign: 'center',
-      paddingVertical: 10,
-      color: 'gray',
+    salesDetails: {
+      marginTop: 4,
+    },
+    salesDetailText: {
+      fontSize: 12,
+      color: 'rgb(129, 129, 129)',
+    },
+
+    // Estilos de producto más vendido
+    topProductContent: {
+      gap: 8,
+    },
+    productName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: 'rgb(49, 49, 49)',
+    },
+    productStats: {
+      gap: 4,
+    },
+    productQuantity: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: 'rgb(129, 129, 129)',
+    },
+    productRevenue: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: 'rgb(165, 132, 255)',
+    },
+
+    // Estilos de ventas del mes
+    monthSalesContent: {
+      gap: 12,
+    },
+    monthSalesAmount: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: 'rgb(49, 49, 49)',
+    },
+    progressContainer: {
+      gap: 4,
+    },
+    progressBackground: {
+      height: 8,
+      backgroundColor: 'rgba(200, 200, 200, 0.3)',
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    progressBar: {
+      height: '100%',
+      backgroundColor: 'rgb(165, 132, 255)',
+      borderRadius: 4,
+    },
+    progressText: {
+      fontSize: 11,
+      color: 'rgb(129, 129, 129)',
     },
 });

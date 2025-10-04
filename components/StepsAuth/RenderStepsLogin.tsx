@@ -68,7 +68,9 @@ export const renderStep = (
                         </CustomText>
                         <Input 
                             placeholder="Ingresa tu contraseña..." 
-                            secureTextEntry 
+                            autoCapitalize="none"
+                            secureTextEntry={true}
+                            showPasswordToggle={true}
                             value={formData.password}
                             onChangeText={(password) => setFormData({ ...formData, password })}
                             onSubmitEditing={handlePasswordSubmit}

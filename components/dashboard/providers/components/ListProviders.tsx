@@ -65,9 +65,10 @@ export default function ListProviders({ height, onSelectProvider }: { height?: D
     
     const hasMounted = useRef(false);
     const isFetching = useRef(false);
+    const permissionError = useRef(false);
 
     const getAllProviders = useCallback(async (isRefresh = false) => {
-        if (isFetching.current) {
+        if (isFetching.current || permissionError.current) {
             return;
         }
         
@@ -82,6 +83,10 @@ export default function ListProviders({ height, onSelectProvider }: { height?: D
             const { data, error: apiError } = await ProviderService.getAllProviders(currentStore.id, isRefresh ? 0 : providers.length, limit, queryParams)
 
             if (apiError) {
+                // Check if it's a permission error (403 or similar)
+                if (apiError.includes('Permisos insuficientes') || apiError.includes('permisos') || apiError.includes('403') || apiError.includes('permission')) {
+                    permissionError.current = true;
+                }
                 dispatch(getAllProvidersFailureAction(apiError))
                 return
             }
@@ -104,29 +109,35 @@ export default function ListProviders({ height, onSelectProvider }: { height?: D
     }, [currentStore.id, providers.length, limit, queryParams, hasMore, dispatch]);
 
     const handleRefresh = useCallback(async () => {
+        permissionError.current = false; // Reset permission error on manual refresh
         setRefreshing(true);
         await getAllProviders(true);
     }, [getAllProviders]);
 
     const handleRetry = useCallback(() => {
+        permissionError.current = false; // Reset permission error on manual retry
         getAllProviders(true);
     }, [getAllProviders]);
 
     useEffect(() => {
-        if (!hasMounted.current) {
+        if (!hasMounted.current && !permissionError.current) {
             hasMounted.current = true;
             getAllProviders(true);
         }
     }, [getAllProviders]);
 
     const handleLoadMore = useCallback(async () => {
-        if (!hasMore || loading || isFetching.current) return;
+        if (!hasMore || loading || isFetching.current || permissionError.current) return;
         
         try {
             dispatch(getAllProvidersAttemptAction())
             const { data, error: apiError } = await ProviderService.getAllProviders(currentStore.id, providers.length, limit, queryParams)
 
             if (apiError) {
+                // Check if it's a permission error (403 or similar)
+                if (apiError.includes('Permisos insuficientes') || apiError.includes('permisos') || apiError.includes('403') || apiError.includes('permission')) {
+                    permissionError.current = true;
+                }
                 dispatch(getAllProvidersFailureAction(apiError))
                 return
             }
@@ -142,7 +153,7 @@ export default function ListProviders({ height, onSelectProvider }: { height?: D
 
     useEffect(() => {
         const dbc = setTimeout(() => {
-            if (queryParams !== lastQueryParams.current && !isFetching.current) {
+            if (queryParams !== lastQueryParams.current && !isFetching.current && !permissionError.current) {
                 getAllProviders(true); 
                 lastQueryParams.current = queryParams;
             }

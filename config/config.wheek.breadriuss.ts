@@ -11,5 +11,5 @@
 */
 
 export const WheekConfig = {
-    API_BASE_URL: 'http://192.168.0.109:4001/api'
+    API_BASE_URL: 'http://192.168.0.106:4001/api'
 }

@@ -45,7 +45,36 @@ export const renderRegisterStep = ({
   handleRegister,
 }: RegisterStepProps) => {
   const updateFormData = (field: keyof FormData, value: string) => {
-    setFormData({ ...formData, [field]: value });
+    if (field === 'username') {
+      const sanitizedValue = value
+        .toLowerCase()
+        .replace(/[^a-z0-9_.]/g, '');
+      
+      const cleanedValue = sanitizedValue
+        .replace(/[_.]{2,}/g, '_')
+        .replace(/^[_.]/, '')
+        .replace(/[_.]$/, '');
+      
+      // Lista de nombres de usuario prohibidos para mantener la integridad del sistema
+      const forbiddenUsernames = [
+        'admin', 'administrator', 'root', 'system', 'user', 'users',
+        'username', 'usernames', 'nombredeusuario', 'nombredeusuarioi',
+        'wheek', 'app', 'application', 'support', 'help', 'info',
+        'test', 'testing', 'demo', 'dev', 'development',
+        'login', 'register', 'signup', 'signin', 'auth',
+        'api', 'www', 'web', 'site', 'home', 'index',
+        'contact', 'about', 'blog', 'news', 'forum',
+        'settings', 'config', 'profile', 'account', 'dashboard'
+      ];
+      
+      const isForbidden = forbiddenUsernames.includes(cleanedValue.toLowerCase());
+      
+      if (!isForbidden) {
+        setFormData({ ...formData, [field]: cleanedValue });
+      }
+    } else {
+      setFormData({ ...formData, [field]: value });
+    }
   };
 
   switch (step) {
@@ -93,7 +122,8 @@ export const renderRegisterStep = ({
             placeholder="Ingresa tu contraseña"
             value={formData.password}
             onChangeText={(text) => updateFormData('password', text)}
-            secureTextEntry
+            secureTextEntry={true}
+            showPasswordToggle={true}
             style={{ width: '100%'}}
           />
           <CustomText style={stylesSteps.hintText}>
@@ -133,7 +163,8 @@ export const renderRegisterStep = ({
             placeholder="Vuelve a ingresar tu contraseña"
             value={formData.confirmPassword}
             onChangeText={(text) => updateFormData('confirmPassword', text)}
-            secureTextEntry
+            secureTextEntry={true}
+            showPasswordToggle={true}
             style={{ width: '100%'}}
           />
           {error && <CustomText style={stylesSteps.errorText}>{error}</CustomText>}
@@ -171,7 +202,8 @@ export const renderRegisterStep = ({
             style={{ width: '100%' }}
           />
           <CustomText style={stylesSteps.hintText}>
-            El nombre de usuario debe tener al menos 2 caracteres.
+            Solo letras minúsculas, números, puntos (.) y guiones bajos (_). Mínimo 2 caracteres.
+            Nombres como admin, user, wheek, app están reservados.
           </CustomText>
           
           <CustomText style={[stylesSteps.label, { marginTop: 16 }]}>Nombre</CustomText>
