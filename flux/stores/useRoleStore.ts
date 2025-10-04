@@ -19,6 +19,7 @@ interface RoleStore {
     _successCreateRole: (role: Role) => void;
     _successGetRole: (role: Role) => void;
     _successUpdateRole: (role: Role) => void;
+    _successDeleteRole: (role: Role) => void;
 
     // dispatcher
     dispatch: (action: { type: string; payload?: any }) => void;
@@ -101,6 +102,14 @@ export const useRoleStore = create<RoleStore>((set, get) => ({
         })
     },
 
+    _successDeleteRole: (role: Role) => {
+        set({
+            loading: false,
+            error: null,
+            roles: get().roles.filter(r => r.id !== role.id) 
+        })
+    },
+
     // Clear store 
     clearStore: () => {
         set({
@@ -132,6 +141,9 @@ export const useRoleStore = create<RoleStore>((set, get) => ({
                 break;
             case RoleActions.ROLE_SUCCESS_UPDATE:
                 get()._successUpdateRole(action.payload.response)
+                break;
+            case RoleActions.ROLE_SUCCESS_DELETE:
+                get()._successDeleteRole(action.payload.response)
                 break;
             default:
                 console.warn(`Acción desconocida: ${action.type}`);

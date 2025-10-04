@@ -71,5 +71,18 @@ export const RoleService = {
 
         if (error) return { data: null, error: error };
         return { data: data.value, error: null };
+    },
+
+    delete: async (id: string, store_id: string): Promise<{ data: Role | null, error: string | null }> => {
+        const { data, error } = await secureFetch({
+            options: {
+                url: `${WheekConfig.API_BASE_URL}/stores/delete/role/${id}?store_id=${store_id}`,
+                method: 'DELETE',
+                disableContentType: true
+            }
+        })
+
+        if (error) return { data: null, error: error };
+        return { data: data.value, error: null };
     }
 }

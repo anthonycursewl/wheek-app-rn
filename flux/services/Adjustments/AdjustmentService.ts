@@ -1,12 +1,14 @@
-import { AdjustmentPayload, Adjustment, AdjustmentWithDetails } from "@flux/entities/Adjustment";
+import { AdjustmentPayload, AdjustmentWithDetails } from "@flux/entities/Adjustment";
 import { secureFetch } from "@hooks/http/useFetch";
 import { WheekConfig } from "config/config.wheek.breadriuss";
 
 export class AdjustmentService {
-    static async createAdjustment(adjustment: AdjustmentPayload): Promise<{ data: AdjustmentWithDetails | null; error: string | null }> {
+    static async createAdjustment(adjustment: AdjustmentPayload, store_id: string): Promise<{ data: AdjustmentWithDetails | null; error: string | null }> {
+        console.log("AdjustmentService.createAdjustment", adjustment);
+        console.log("STORE_ID AQUUIIIIIII " + store_id)
         const { data, error } = await secureFetch({
             options: {
-                url: `${WheekConfig.API_BASE_URL}/adjustments/create?store_id=${adjustment.store_id}`,
+                url: `${WheekConfig.API_BASE_URL}/adjustments/create?store_id=${store_id}`,
                 method: 'POST',
                 body: adjustment,
             }
