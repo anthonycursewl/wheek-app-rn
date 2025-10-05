@@ -1,10 +1,12 @@
-import React, { ReactNode, useState } from 'react';
-import { SafeAreaView, StyleSheet, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import React, { ReactNode, useEffect, useCallback } from 'react';
+import { StyleSheet, TextStyle, TouchableOpacity, View, ViewStyle, BackHandler } from 'react-native';
 import CustomText from '../CustomText/CustomText';
+import { useGlobalStore } from '@flux/stores/useGlobalStore';
+import { useFocusEffect } from 'expo-router';
 
 type TabItem = {
   id: string;
-  label: string;
+  label: string;    
   icon: ReactNode;
   component?: ReactNode;
 };
@@ -32,15 +34,40 @@ export default function BottomTabs({
   textStyle,
   activeTextStyle
 }: BottomTabsProps) {
-  const [activeTab, setActiveTab] = useState(initialTab || tabs[0]?.id);
-  
-  const activeComponent = tabs.find(tab => tab.id === activeTab)?.component || null;
+  const { activeTab, setActiveTab, showExitAlert } = useGlobalStore();
+  const currentTab = activeTab || initialTab || tabs[0]?.id || 'home';
+
+  useEffect(() => {
+    if (!activeTab) {
+      setActiveTab(currentTab);
+    }
+  }, [activeTab, currentTab, setActiveTab]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        showExitAlert();
+        return true; 
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription.remove();
+    }, [showExitAlert])
+  );
 
   return (
     <View style={[styles.container, style]}>
       {/* Contenido principal */}
       <View style={styles.content}>
-        {children || activeComponent}
+        {tabs.map(tab => (
+          <View
+            key={`content-${tab.id}`}
+            style={[styles.tabContent, { display: currentTab === tab.id ? 'flex' : 'none' }]}
+          >
+            {tab.component}
+          </View>
+        ))}
       </View>
       
       {/* Barra de navegación inferior */}
@@ -52,7 +79,7 @@ export default function BottomTabs({
               style={[
                 styles.tabItem,
                 tabItemStyle,
-                activeTab === tab.id && [styles.activeTabItem, activeTabItemStyle]
+                currentTab === tab.id ? [styles.activeTabItem, activeTabItemStyle] : undefined,
               ]}
               onPress={() => setActiveTab(tab.id)}
               activeOpacity={0.7}
@@ -60,16 +87,16 @@ export default function BottomTabs({
               <CustomText style={{
                 ...styles.tabText,
                 ...(textStyle || {}),
-                ...(activeTab === tab.id ? styles.activeTabText : {}),
-                ...(activeTab === tab.id && activeTextStyle ? activeTextStyle : {})
+                ...(currentTab === tab.id ? styles.activeTabText : {}),
+                ...(currentTab === tab.id && activeTextStyle ? activeTextStyle : {})
               }}>
                 {tab.icon}
               </CustomText>
               <CustomText style={{
                 ...styles.tabLabel,
                 ...(textStyle || {}),
-                ...(activeTab === tab.id ? styles.activeTabText : {}),
-                ...(activeTab === tab.id && activeTextStyle ? activeTextStyle : {})
+                ...(currentTab === tab.id ? styles.activeTabText : {}),
+                ...(currentTab === tab.id && activeTextStyle ? activeTextStyle : {})
               }}>
                 {tab.label}
               </CustomText>
@@ -88,8 +115,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingBottom: 60,
-    backgroundColor: 'rgb(248, 248, 248)',
+  },
+  tabContent: {
+    flex: 1,
   },
   tabBarContainer: {
     position: 'absolute',

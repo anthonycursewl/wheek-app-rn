@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Image, StyleSheet, View } from 'react-native';
 import useAuthStore from 'flux/stores/AuthStore';
+import CustomExitAlert from 'shared/components/CustomExitAlert';
 
 SplashScreen.preventAutoHideAsync();
 const { width } = Dimensions.get('window');
@@ -124,6 +125,7 @@ function RootLayoutContent() {
           <Stack.Screen name="index" />
         )}
         </Stack>
+        <CustomExitAlert />
       </View>
     </>
   );

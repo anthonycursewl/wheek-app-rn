@@ -1,12 +1,12 @@
 // React and React Native
-import { useState, useEffect, useMemo } from 'react';
-import { Alert, FlatList, Image, TouchableOpacity, View, StyleSheet, Pressable, TextInput, ScrollView, Animated } from 'react-native';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Alert, FlatList, Image, TouchableOpacity, View, StyleSheet, Pressable, Animated } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Store and Services (asumimos que estas importaciones están disponibles para todos los componentes)
 import useAuthStore from '@flux/stores/AuthStore';
 import { useShopStore } from '@flux/stores/useShopStore';
-import { Cotizacion, useGlobalStore } from '@flux/stores/useGlobalStore';
+import { useGlobalStore } from '@flux/stores/useGlobalStore';
 import { 
   getStoresAttemptAction, 
   getStoresFailureAction, 
@@ -16,7 +16,6 @@ import {
 import { StoreService } from '@flux/services/StoreS/StoreService';
 
 // Components
-import LayoutScreen from '@components/Layout/LayoutScreen';
 import CustomText from '@components/CustomText/CustomText';
 import TypeStore from '@components/TypeStore/TypeStore';
 import ModalOptions from '@components/Modals/ModalOptions';
@@ -36,6 +35,7 @@ import { IconCart } from 'svgs/IconCart';
 const wheekLogo = require('@assets/images/wheek/wheek.png');
 
 const UserProfileIcon = ({ userName }: { userName: string }) => {
+  const  { setActiveTab } = useGlobalStore()
   const reduceName = (name: string) => {
     if (!name) return 'WH';
     const n = name.split(' ').filter(part => part.trim() !== '');
@@ -50,27 +50,43 @@ const UserProfileIcon = ({ userName }: { userName: string }) => {
     return fp.toUpperCase();
   };
 
+  const goToProfile = useCallback(() => {
+    setActiveTab('profile');
+  }, []);
+
   return (
-    <View style={styles.profileIconContainer}>
-      <CustomText style={{ fontSize: 16 }}>{reduceName(userName || '')}</CustomText>
-    </View>
+    <TouchableOpacity onPress={goToProfile}>
+      <View style={styles.profileCircleIndicator}>
+        <View style={styles.profileIconContainer}>
+          <CustomText style={{ fontSize: 14 }}>{reduceName(userName || '')}</CustomText>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 
-const HomeHeader = ({ onOpenStoreSelector, userName }: { onOpenStoreSelector: () => void; userName: string }) => (
-  <View style={styles.headerContainer}>
+const HomeHeader = ({ 
+  onOpenStoreSelector, 
+  userName, 
+  headerStyle 
+}: { 
+  onOpenStoreSelector: () => void; 
+  userName: string;
+  headerStyle?: any;
+}) => (
+  <Animated.View style={[styles.headerContainer, headerStyle]}>
     <Image source={wheekLogo} style={styles.headerLogo} resizeMode="contain" />
     <View style={styles.headerRightContainer}>
       <TouchableOpacity onPress={onOpenStoreSelector}>
         <View style={styles.storeSelectorButton}>
-          <IconArrow width={14} height={14} fill={'rgb(15, 15, 15)'} transform="rotate(270)" />
-          <StoreLogo id='hoe' width={30} height={30} />
+          <IconArrow width={14} height={14} fill={headerStyle?.backgroundColor === 'black' ? 'white' : 'rgb(15, 15, 15)'} transform="rotate(270)" />
+          <StoreLogo id='hoe' width={30} height={30} fill={headerStyle?.backgroundColor === 'black' ? 'white' : undefined} />
         </View>
       </TouchableOpacity>
 
       <UserProfileIcon userName={userName} />
     </View>
-  </View>
+  </Animated.View>
 );
 
 const CurrentStoreInfo = ({ currentStore }: { currentStore: StoreData }) => {
@@ -223,8 +239,11 @@ export const HomeScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [cotizacionVisible, setCotizacionVisible] = useState(false);
   const [loadingCotizaciones, setLoadingCotizaciones] = useState(false);
+  const insets = useSafeAreaInsets();
+  const [headerHeight, setHeaderHeight] = useState(0);
+
+  const scrollY = useRef(new Animated.Value(0)).current;
   
-  // Animated value for skeleton pulse effect
   const skeletonOpacity = useMemo(() => new Animated.Value(0.7), []);
 
   const getAllCotizaciones = async () => {
@@ -243,7 +262,6 @@ export const HomeScreen = () => {
     getAllCotizaciones()
   }, [currentStore.id])
 
-  // Skeleton pulse animation
   useEffect(() => {
     if (loadingCotizaciones) {
       const pulseAnimation = Animated.loop(
@@ -296,14 +314,43 @@ export const HomeScreen = () => {
     return <LoadingScreen />;
   }
 
+  const animatedHeaderStyle = {
+    backgroundColor: scrollY.interpolate({
+      inputRange: [0, 100],
+      outputRange: ['rgb(247, 247, 247)', 'rgb(243, 243, 243)'],
+      extrapolate: 'clamp',
+    }),
+  } as const;
+
   return (
-    <ScrollView showsVerticalScrollIndicator={false}>
-    <View style={{flex: 1, padding: 17, paddingTop: 35 }}>
-      <View style={styles.mainContainer}>
+    <View style={{ flex: 1 }}>
+      <Animated.View
+        onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}
+        style={[styles.headerContainer, styles.animatedHeader, animatedHeaderStyle, { paddingTop: insets.top }]}
+      >
         <HomeHeader 
           userName={user?.name || ''}
           onOpenStoreSelector={() => setModalVisible(true)}
-          />
+          headerStyle={{
+            backgroundColor: 'transparent',
+          }}
+        />
+      </Animated.View>
+      
+      <Animated.ScrollView 
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        contentContainerStyle={{ 
+          paddingTop: headerHeight || insets.top,
+          paddingBottom: 60
+        }}
+      >
+      <View style={{ padding: 17, paddingTop: 15 }}>
+      <View style={styles.mainContainer}>
 
         <View style={{ marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
           <View>
@@ -358,7 +405,8 @@ export const HomeScreen = () => {
         onClose={() => setCotizacionVisible(false)} 
       />
     </View>
-    </ScrollView>
+    </Animated.ScrollView>
+  </View>
   );
 };
 
@@ -374,15 +422,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
+    paddingHorizontal: 8,
   },
   headerLogo: {
     width: 80,
-    height: 50,
+    height: 20,
   },
   headerRightContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+  },
+  animatedHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    paddingTop: 35,
   },
   storeSelectorButton: {
     height: 40,
@@ -391,10 +448,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   profileIconContainer: {
-    backgroundColor: 'rgb(240, 240, 240)',
+    backgroundColor: 'rgb(226, 226, 226)',
+    margin: 2,
     borderRadius: 50,
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileCircleIndicator: {
+    borderWidth: .8,
+    borderColor: 'rgb(171, 107, 231)',
+    borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
   },

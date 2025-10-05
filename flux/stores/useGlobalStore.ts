@@ -26,6 +26,15 @@ interface GlobalStore {
     cotizaciones: Cotizacion[];
     setCotizaciones: (cotizaciones: Cotizacion[]) => void;
 
+    // Bottom tabs global state
+    activeTab: string | null;
+    setActiveTab: (tabId: string) => void;
+
+    // Custom Exit Alert State
+    isExitAlertVisible: boolean;
+    showExitAlert: () => void;
+    hideExitAlert: () => void;
+
     alertState: CustomAlertProps;
     showAlert: (options: AlertOptions) => void;
     hideAlert: () => void;
@@ -41,6 +50,15 @@ export const useGlobalStore = create<GlobalStore>((set, get) => ({
     alertState: initialAlertState,
     cotizaciones: [],
     setCotizaciones: (cotizaciones: Cotizacion[]) => set({ cotizaciones }),
+
+    // Bottom tabs global state
+    activeTab: null,
+    setActiveTab: (tabId: string) => set({ activeTab: tabId }),
+
+    // Custom Exit Alert State
+    isExitAlertVisible: false,
+    showExitAlert: () => set({ isExitAlertVisible: true }),
+    hideExitAlert: () => set({ isExitAlertVisible: false }),
 
     showAlert: (options: AlertOptions) => {
         set({
@@ -69,7 +87,6 @@ export const useGlobalStore = create<GlobalStore>((set, get) => ({
     showError: (message: string, options: AlertOptions = {}) => {
         get().showAlert({ ...options, message });
     },
-
     showResponse: (message: string, options: AlertOptions = {}) => {
         setTimeout(() => {
             get().showAlert({ ...options, message });

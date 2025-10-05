@@ -8,7 +8,7 @@ export const ProductService = {
             options: {
                 url: `${WheekConfig.API_BASE_URL}/products/create`,
                 method: 'POST',
-                body: product,
+                body: product,  
                 stringify: true
             }
         })
