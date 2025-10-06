@@ -2,9 +2,9 @@
   "expo": {
     "name": "Wheek",
     "slug": "wheek-app-rn",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/images/wheek/wheek_icon_adaptive.png",
+    "icon": "./assets/images/wheek/wheek_adaptive_icon.png",
     "scheme": "wheekapprn",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,8 +13,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/wheek/wheek_icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/wheek/wheek_adaptive_icon.png",
+        "backgroundColor": "#fafafa"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.cursewlx.wheekapprn"
@@ -29,10 +29,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/wheek/wheek_icon_adaptive.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#fafafa"
         }
       ],
       [

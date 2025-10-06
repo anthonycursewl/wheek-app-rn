@@ -1,6 +1,7 @@
 import { secureFetch } from "hooks/http/useFetch"
 import { WheekConfig } from "config/config.wheek.breadriuss"
 import { Reception, ReceptionPayload } from "@flux/entities/Reception"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 export const ReceptionService = {
     createReception: async (reception: ReceptionPayload): Promise<{ data: Reception | null, error: string | null }> => {
@@ -46,5 +47,30 @@ export const ReceptionService = {
 
         if (error) return { data: null, error: error }
         return { data: data.value, error: null }
+    },
+
+    generateReceptionReport: async (reception_id: string, store_id: string): Promise<{ data: Blob | null, error: string | null }> => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            const url = `${WheekConfig.API_BASE_URL}/receptions/report/${reception_id}?store_id=${store_id}`;
+    
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+    
+            if (!response.ok) {
+                const errorText = await response.text();
+                return { data: null, error: errorText || `Error del servidor: ${response.status}` };
+            }
+    
+            const blobData = await response.blob();
+    
+            return { data: blobData, error: null };
+        } catch (error) {
+            return { data: null, error: error as string || 'Ocurrió un error de red.' };
+        }
     },
 }

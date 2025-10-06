@@ -1,13 +1,12 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import CustomText from '@components/CustomText/CustomText';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 import { Reception } from '@flux/entities/Reception';
 import { IconReceptions } from 'svgs/IconReceptions';
 import { IconProviders } from 'svgs/IconProviders';
 import IconProfile from 'svgs/IconProfile';
 import { IconCart } from 'svgs/IconCart';
-import { router } from 'expo-router';
 import Button from '@components/Buttons/Button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconTrash } from 'svgs/IconTrash';
@@ -15,23 +14,33 @@ import { useReceptionStore } from '@flux/stores/useReceptionStore';
 import { receptionAttemptAction, receptionDeleteSuccessAction, receptionFailureAction } from '@flux/Actions/ReceptionActions';
 import { ReceptionService } from '@flux/services/Receptions/ReceptionService';
 import { useGlobalStore } from '@flux/stores/useGlobalStore';
+import { cacheDirectory, EncodingType, writeAsStringAsync } from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+
+// Función de ayuda para convertir un Blob a un string Base64
+const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => {
+            const result = reader.result as string;
+            // El resultado es un string como "data:application/pdf;base64,JVBERi..."
+            // Nos quedamos solo con la parte de los datos.
+            const base64Data = result.split(',')[1];
+            resolve(base64Data);
+        };
+        reader.readAsDataURL(blob);
+    });
+};
 
 const formatDate = (date: Date | string | undefined) => {
     if (!date) return 'Fecha no disponible';
-    
     try {
         const dateObj = typeof date === 'string' ? new Date(date) : date;
-        
-        if (isNaN(dateObj.getTime())) {
-            return 'Fecha inválida';
-        }
-        
+        if (isNaN(dateObj.getTime())) return 'Fecha inválida';
         return dateObj.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',   
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
         });
     } catch (error) {
         console.error('Error formatting date:', error);
@@ -63,8 +72,9 @@ export default function ReceptionDetail() {
     const { reception }: { reception: string } = useLocalSearchParams();
     const receptionParsed: Reception = JSON.parse(decodeURIComponent(reception));
     const insets = useSafeAreaInsets();
-    const { dispatch, loading } = useReceptionStore()
-    const { currentStore } = useGlobalStore()
+    const { dispatch, loading } = useReceptionStore();
+    const { currentStore } = useGlobalStore();
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
     const { totalItems, totalCost } = useMemo(() => {
         const items = receptionParsed.items || [];
@@ -83,57 +93,70 @@ export default function ReceptionDetail() {
     };
 
     const deleteReception = async (id: string, store_id: string, isSoftDelete: boolean) => {
-        dispatch(receptionAttemptAction())
-        const { data, error } = await ReceptionService.deleteReception(id, store_id, isSoftDelete)
-
+        dispatch(receptionAttemptAction());
+        const { data, error } = await ReceptionService.deleteReception(id, store_id, isSoftDelete);
         if (error) {
-            dispatch(receptionFailureAction(error))
-            return
+            dispatch(receptionFailureAction(error));
+            return;
+        }
+        if (data) dispatch(receptionDeleteSuccessAction(data));
+        if (router.canGoBack()) router.back();
+    };
+
+    const generatePDF = async () => {
+        if (!currentStore?.id) {
+            Alert.alert('Error | Wheek', 'No se pudo identificar la tienda actual.');
+            return;
         }
 
-        if (data) dispatch(receptionDeleteSuccessAction(data))
-        if (router.canGoBack()) router.back()
-    }
+        setIsGeneratingPdf(true);
 
-    useEffect(() => {
-        console.log(receptionParsed.is_active)
-    }, [])
+        try {
+            const { data: pdfBlob, error } = await ReceptionService.generateReceptionReport(receptionParsed.id, currentStore.id);
+            
+            if (error || !pdfBlob) {
+                Alert.alert('Error | Wheek', error || 'No se pudo generar el reporte.');
+                return;
+            }
+
+            if (!(await Sharing.isAvailableAsync())) {
+                Alert.alert('No disponible', 'La función de compartir no está disponible en este dispositivo.');
+                return;
+            }
+
+            const base64 = await blobToBase64(pdfBlob);
+            const fileUri = `${cacheDirectory}recepcion-${receptionParsed.id}.pdf`;
+
+            await writeAsStringAsync(fileUri, base64, {
+                encoding: EncodingType.Base64,
+            });
+
+            await Sharing.shareAsync(fileUri, {
+                mimeType: 'application/pdf',
+                dialogTitle: 'Compartir o Guardar Reporte',
+            });
+
+        } catch (processError) {
+            console.error('Error procesando el PDF:', processError as string);
+            Alert.alert('Error | Wheek', 'Ocurrió un error al guardar o compartir el archivo.');
+        } finally {
+            setIsGeneratingPdf(false);
+        }
+    };
 
     const handleDelete = () => {
         Alert.alert(
-            'Eliminar Recepción',
-            '¿Estás seguro de eliminar esta recepción?',
-            [
-                {
-                    text: 'Cancelar',
-                    onPress: () => {},
-                    style: 'cancel',
-                },
-                {
-                    text: 'Eliminar',
-                    onPress: () => deleteReception(receptionParsed.id, currentStore.id, true),
-                },
-            ]
+            'Eliminar Recepción', '¿Estás seguro de eliminar esta recepción?',
+            [{ text: 'Cancelar', style: 'cancel' }, { text: 'Eliminar', onPress: () => deleteReception(receptionParsed.id, currentStore.id, true) }]
         );
-    }
+    };
 
     const handleHardDelete = () => {
         Alert.alert(
-            'Eliminar Recepción',
-            '¿Estás seguro de eliminar de forma definitiva esta recepción? Esta acción no se puede deshacer.',
-            [
-                {
-                    text: 'Cancelar',
-                    onPress: () => {},
-                    style: 'cancel',
-                },
-                {
-                    text: 'Eliminar',
-                    onPress: () => deleteReception(receptionParsed.id, currentStore.id, false),
-                },
-            ]
+            'Eliminar Recepción', '¿Estás seguro de eliminar de forma definitiva esta recepción? Esta acción no se puede deshacer.',
+            [{ text: 'Cancelar', style: 'cancel' }, { text: 'Eliminar', onPress: () => deleteReception(receptionParsed.id, currentStore.id, false) }]
         );
-    }
+    };
 
     return (
         <View style={styles.container}>
@@ -148,7 +171,6 @@ export default function ReceptionDetail() {
                         <IconReceptions width={24} height={24} fill="#1f2937" />
                         <CustomText style={styles.headerTitleText}>Detalle de Recepción</CustomText>
                     </View>
-                    
                     <TouchableOpacity onPress={receptionParsed.is_active ? handleDelete : handleHardDelete}>
                         <View style={{ alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(239, 68, 68, 0.1)', width: 40, height: 40, borderRadius: 10 }}>
                             <IconTrash width={24} height={24} fill="rgb(239, 68, 68)" />
@@ -158,74 +180,53 @@ export default function ReceptionDetail() {
             </View>
 
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-                {/* Status Card */}
-                {
-                receptionParsed.is_active === false && (
-                        <View style={{ padding: 10, backgroundColor: 'rgba(255, 65, 65, 0.1)', borderRadius: 10, marginTop: 10 }}   >
-                            <CustomText style={{ color: 'rgb(239, 68, 68)', fontSize: 12 }}>
-                                Esta recepción ha sido eliminada. El historial queda para su referencia. 
-                                Tenga en cuenta que si desea eliminarla por completo, debe eliminarla de forma definitiva
-                                haciendo tap en el botón de eliminar.
-                            </CustomText>
-                        </View>
-                    ) 
-                }
-
+                {receptionParsed.is_active === false && (
+                    <View style={{ padding: 10, backgroundColor: 'rgba(255, 65, 65, 0.1)', borderRadius: 10, marginTop: 10 }}>
+                        <CustomText style={{ color: 'rgb(239, 68, 68)', fontSize: 12 }}>
+                            Esta recepción ha sido eliminada. El historial queda para su referencia. Tenga en cuenta que si desea eliminarla por completo, debe eliminarla de forma definitiva haciendo tap en el botón de eliminar.
+                        </CustomText>
+                    </View>
+                )}
                 <View style={styles.statusCard}>
                     <View style={styles.statusHeader}>
                         <View style={[styles.statusBadge, { backgroundColor: statusBgColor }]}>
                             <IconReceptions width={16} height={16} fill={statusColor} />
-                            <CustomText style={[styles.statusText, { color: statusColor }]}>
-                                {receptionParsed.status}
-                            </CustomText>
+                            <CustomText style={[styles.statusText, { color: statusColor }]}>{receptionParsed.status}</CustomText>
                         </View>
-                        <CustomText style={styles.dateText}>
-                            {formatDate(receptionParsed.reception_date)}
-                        </CustomText>
+                        <CustomText style={styles.dateText}>{formatDate(receptionParsed.reception_date)}</CustomText>
                     </View>
-                    
                     {receptionParsed.notes && (
                         <View style={styles.notesSection}>
                             <CustomText style={styles.notesLabel}>Notas:</CustomText>
-                            <CustomText style={styles.notesText}>
-                                "{receptionParsed.notes}"
-                            </CustomText>
+                            <CustomText style={styles.notesText}>"{receptionParsed.notes}"</CustomText>
                         </View>
                     )}
                 </View>
 
-                {/* User and Provider Info */}
                 <View style={styles.infoSection}>
                     <View style={styles.infoCard}>
                         <View style={styles.infoHeader}>
                             <IconProfile width={20} height={20} fill="#6b7280" />
                             <CustomText style={styles.infoTitle}>Usuario</CustomText>
                         </View>
-                        <CustomText style={styles.infoValue}>
-                            {receptionParsed.user?.name || 'No especificado'}
-                        </CustomText>
+                        <CustomText style={styles.infoValue}>{receptionParsed.user?.name || 'No especificado'}</CustomText>
                     </View>
-
                     {receptionParsed.provider && (
                         <View style={styles.infoCard}>
                             <View style={styles.infoHeader}>
                                 <IconProviders width={20} height={20} fill="#6b7280" />
                                 <CustomText style={styles.infoTitle}>Proveedor</CustomText>
                             </View>
-                            <CustomText style={styles.infoValue}>
-                                {receptionParsed.provider.name}
-                            </CustomText>
+                            <CustomText style={styles.infoValue}>{receptionParsed.provider.name}</CustomText>
                         </View>
                     )}
                 </View>
 
-                {/* Items Summary */}
                 <View style={styles.summaryCard}>
                     <View style={styles.summaryHeader}>
                         <IconCart width={20} height={20} fill="#6b7280" />
                         <CustomText style={styles.summaryTitle}>Resumen de Artículos</CustomText>
                     </View>
-                    
                     <View style={styles.summaryContent}>
                         <View style={styles.summaryItem}>
                             <CustomText style={styles.summaryLabel}>Total Artículos</CustomText>
@@ -233,52 +234,46 @@ export default function ReceptionDetail() {
                         </View>
                         <View style={styles.summaryItem}>
                             <CustomText style={styles.summaryLabel}>Valor Total</CustomText>
-                            <CustomText style={[styles.summaryValue, styles.totalValue]}>
-                                ${totalCost.toFixed(2)}
-                            </CustomText>
+                            <CustomText style={[styles.summaryValue, styles.totalValue]}>${totalCost.toFixed(2)}</CustomText>
                         </View>
                     </View>
                 </View>
 
-                {/* Items List */}
                 <View style={styles.itemsSection}>
                     <CustomText style={styles.sectionTitle}>Artículos Recibidos</CustomText>
-                    
                     {receptionParsed.items?.map((item, index) => (
                         <View key={item.id || index} style={styles.itemCard}>
                             <View style={styles.itemHeader}>
-                                <CustomText style={styles.itemName}>
-                                    {item.product?.name || 'Producto sin nombre'}
-                                </CustomText>
-                                <CustomText style={styles.itemQuantity}>
-                                    {item.quantity} {item.product?.unit_type || 'unidades'}
-                                </CustomText>
+                                <CustomText style={styles.itemName}>{item.product?.name || 'Producto sin nombre'}</CustomText>
+                                <CustomText style={styles.itemQuantity}>{item.quantity} {item.product?.unit_type || 'unidades'}</CustomText>
                             </View>
                             <View style={styles.itemDetails}>
-                                <CustomText style={styles.itemPrice}>
-                                    ${item.cost_price?.toFixed(2) || '0.00'} c/u
-                                </CustomText>
-                                <CustomText style={styles.itemTotal}>
-                                    Total: ${(item.quantity * (item.cost_price || 0)).toFixed(2)}
-                                </CustomText>
+                                <CustomText style={styles.itemPrice}>${item.cost_price?.toFixed(2) || '0.00'} c/u</CustomText>
+                                <CustomText style={styles.itemTotal}>Total: ${(item.quantity * (item.cost_price || 0)).toFixed(2)}</CustomText>
                             </View>
                         </View>
-                    )) || (
-                        <CustomText style={styles.noItemsText}>No hay artículos en esta recepción</CustomText>
-                    )}
+                    )) || (<CustomText style={styles.noItemsText}>No hay artículos en esta recepción</CustomText>)}
                 </View>
             </ScrollView>
-            
-            {/* Action Buttons - Fixed at bottom */}
+
             <View style={styles.actionsContainer}>
-                <Button 
-                    title="Volver" 
-                    onPress={() => {
-                        router.back();
-                    }}
-                    disabled={loading}
-                    loading={loading}
-                />
+                <View style={styles.buttonGroup}>
+                    <Button 
+                        title="Volver" 
+                        onPress={handleGoBack}
+                        variant='primary-square'
+                        disabled={loading || isGeneratingPdf}
+                        style={styles.actionButton}
+                    />
+                    <Button 
+                        title="Generar PDF" 
+                        variant='binary-square'
+                        onPress={generatePDF}
+                        disabled={loading || isGeneratingPdf}
+                        loading={isGeneratingPdf}
+                        style={{ paddingHorizontal: 25 }}
+                    />
+                </View>
             </View>
         </View>
     );
@@ -295,12 +290,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#ffffff',
         borderBottomWidth: 1,
         borderBottomColor: '#e5e7eb',
+        backgroundColor: '#ffffff',
     },
     backButton: {
         padding: 8,
+        marginRight: 8,
     },
     backText: {
         fontSize: 20,
@@ -520,11 +516,19 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
+        padding: 16,
         backgroundColor: '#ffffff',
         borderTopWidth: 1,
-        borderTopColor: 'rgb(207, 207, 207)',
-        paddingHorizontal: 20,
-        paddingVertical: 20,
+        borderTopColor: '#e5e7eb',
+    },
+    buttonGroup: {
+        flexDirection: 'row',
         gap: 12,
+    },
+    actionButton: {
+        flex: 1,
+    },
+    pdfButton: {
+        backgroundColor: '#5E24FF',
     },
 });
