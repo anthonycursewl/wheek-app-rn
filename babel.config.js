@@ -12,7 +12,10 @@ module.exports = function(api) {
             '@': './src',
             '@assets': './assets',
             '@components': './components',
-            '@flux': './flux'
+            '@flux': './flux',
+            '@svgs': './svgs',
+            '@shared': './shared',
+            '@hooks': './hooks'
           },
           extensions: [
             '.ios.js',
