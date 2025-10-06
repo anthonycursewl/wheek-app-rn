@@ -1,35 +1,35 @@
 {
   "extends": "expo/tsconfig.base.json",
   "compilerOptions": {
-    "strict": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@assets/*": ["./assets/*"],
-      "@components/*": ["./components/*"],
-      "@flux/*": ["./flux/*"],
-      "@hooks/*": ["./hooks/*"],
-      "@svgs/*": ["./svgs/*"],
-      "@shared/*": ["./shared/*"]
-    },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ],
-    "declaration": false,
-    "emitDeclarationOnly": false,
-    "skipLibCheck": true
+  "strict": true,
+  "baseUrl": ".",
+  "paths": {
+  "@/": ["./src/"],
+  "@assets/": ["./assets/"],
+  "@components/": ["./components/"],
+  "@flux/": ["./flux/"],
+  "@hooks/": ["./hooks/"],
+  "@svgs/": ["./svgs/"],
+  "@shared/": ["./shared/"]
+  },
+  "typeRoots": [
+  "./node_modules/@types",
+  "./src/types"
+  ],
+  "declaration": false,
+  "emitDeclarationOnly": false,
+  "skipLibCheck": true
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "src/types/**/*.d.ts"
+  "/*.ts",
+  "/.tsx",
+  ".expo/types/**/.ts",
+  "expo-env.d.ts",
+  "src/types/**/*.d.ts"
   ],
   "exclude": [
-    "node_modules",
-    "babel.config.js",
-    "metro.config.js"
+  "node_modules",
+  "babel.config.js",
+  "metro.config.js"
   ]
-}
+  }
