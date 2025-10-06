@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, TouchableOpacity, Alert } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import CustomText from "@components/CustomText/CustomText";
 import LogoPage from "@components/LogoPage/LogoPage";
 import { useGlobalStore } from "@flux/stores/useGlobalStore";

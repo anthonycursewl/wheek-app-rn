@@ -13,7 +13,6 @@ import { colors } from 'shared/constants/manager-store';
 import { IconMail } from '@svgs/IconMail';
 import { IconPhone } from '@svgs/IconPhone';
 import { IconCalendar } from '@svgs/IconCalendar';
-import { IconUsers } from '@svgs/IconUsers';
 import { IconStore } from '@svgs/IconStore';
 import IconArrow from '@svgs/IconArrow';
 import { IconCart } from '@svgs/IconCart';
