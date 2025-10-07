@@ -1,14 +1,13 @@
 import React from 'react';
 import {
     View,
-    Text,
-    StyleSheet,
     ScrollView,
+    StyleSheet,
     TouchableOpacity,
     Alert
 } from 'react-native';
-import CustomText from "@components/CustomText/CustomText";
-import LogoPage from "@components/LogoPage/LogoPage";
+import CustomText from '@components/CustomText/CustomText';
+import LogoPage from '@components/LogoPage/LogoPage';
 import { colors } from 'shared/constants/manager-store';
 import { IconMail } from '@svgs/IconMail';
 import { IconPhone } from '@svgs/IconPhone';

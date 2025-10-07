@@ -1,6 +1,5 @@
 // React Native components
 import { View, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState, useEffect } from 'react';
@@ -15,7 +14,6 @@ const NotificationsScreen = () => {
     const [loading, setLoading] = useState(true);
     const { user } = useAuthStore()
     const { currentStore } = useGlobalStore()
-
     
     const loadNotifications = async (isInitialLoad: boolean = false) => {
         setLoading(true);

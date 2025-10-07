@@ -5,7 +5,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // Components
-import LayoutScreen from "@components/Layout/LayoutScreen";
 import CustomText from "@components/CustomText/CustomText";
 
 // Stores
@@ -307,13 +306,11 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         marginBottom: 2,
     },
-    
     optionDescription: {
         fontSize: 12,
         color: 'rgb(120, 120, 120)',
         fontWeight: '400',
     },
-    
     // Botón de logout
     logoutButton: {
         flexDirection: 'row',

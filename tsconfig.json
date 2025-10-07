@@ -4,26 +4,26 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/": [
-        "./src/"
+      "@/*": [
+        "./src/*"
       ],
-      "@assets/": [
-        "./assets/"
+      "@assets/*": [
+        "./assets/*"
       ],
-      "@components/": [
-        "./components/"
+      "@components/*": [
+        "./components/*"
       ],
-      "@flux/": [
-        "./flux/"
+      "@flux/*": [
+        "./flux/*"
       ],
-      "@hooks/": [
-        "./hooks/"
+      "@hooks/*": [
+        "./hooks/*"
       ],
-      "@svgs/": [
-        "./svgs/"
+      "@svgs/*": [
+        "./svgs/*"
       ],
-      "@shared/": [
-        "./shared/"
+      "@shared/*": [
+        "./shared/*"
       ]
     },
     "typeRoots": [
@@ -35,12 +35,11 @@
     "skipLibCheck": true
   },
   "include": [
-    "/*.ts",
-    "/.tsx",
-    ".expo/types/**/.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "src/types/**/*.d.ts",
-    ".expo/types/**/*.ts"
+    "src/types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",

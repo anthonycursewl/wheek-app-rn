@@ -1,5 +1,5 @@
-const path = require('path');
-const { getDefaultConfig } = require('expo/metro-config');
+import path from 'path';
+import { getDefaultConfig } from 'expo/metro-config';
 
 const config = getDefaultConfig(__dirname);
 
@@ -17,12 +17,18 @@ config.resolver.extraNodeModules = new Proxy(
       if (name === '@flux') {
         return path.resolve(__dirname, 'flux');
       }
-      if (name.startsWith('@/')) {
-        return path.resolve(__dirname, 'src', name.substring(2));
+      if (name.startsWith('@src')) {
+        return path.resolve(__dirname, 'src', name.substring(4));
+      }
+      if (name.startsWith('@hooks')) {
+        return path.resolve(__dirname, 'src/hooks', name.substring(6));
+      }
+      if (name.startsWith('@svgs')) {
+        return path.resolve(__dirname, 'svgs', name.substring(5));
       }
       return path.join(process.cwd(), `node_modules/${name}`);
     },
   }
 );
 
-module.exports = config;
+export default config;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import LayoutScreen from '@components/Layout/LayoutScreen';
 import CustomText from '@components/CustomText/CustomText';
 import Input from '@components/Input/Input';
