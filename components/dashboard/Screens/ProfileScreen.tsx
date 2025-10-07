@@ -35,7 +35,7 @@ interface ProfileOption {
 export const ProfileScreen = () => {
     const { user, clearStore: lguser } = useAuthStore();
     const { clearStore: lgprov } = useProviderStore();
-    const { clearStore: lggl, currentStore } = useGlobalStore();
+    const { clearStore: lggl, currentStore, setActiveTab } = useGlobalStore();
     const { clearStore: lgcat } = useCategoryStore();
     const { clearStore: lgshop } = useShopStore();
     const { setCurrentStore } = useGlobalStore()
@@ -68,6 +68,7 @@ export const ProfileScreen = () => {
                         lginventory();
                         lgadjustment();
                         lgproduct();
+                        setActiveTab('home')
                         lgreception();
                             setCurrentStore({
                             id: '',
