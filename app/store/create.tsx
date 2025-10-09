@@ -1,7 +1,7 @@
 import LayoutScreen from "@components/Layout/LayoutScreen"
 import CustomText from "@components/CustomText/CustomText"
 import LogoPage from "@components/LogoPage/LogoPage"
-import { View } from "react-native"
+import { View, StyleSheet } from "react-native"
 import { Alert } from "react-native"
 
 // components
@@ -50,34 +50,61 @@ export default function CreateStore() {
 
     return (
         <LayoutScreen>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%' }}>
+            <View style={styles.headerContainer}>
                 <LogoPage />
                 <CustomText>Crear Tienda</CustomText>
             </View>
 
-            <View style={{ width: '100%', gap: 18, marginTop: 20 }}>
+            <View style={styles.formContainer}>
                 <View>
-                    <CustomText>Estás creando esta tienda como <CustomText style={{ color: 'rgb(255, 152, 0)' }}>{user?.name}</CustomText></CustomText>
+                    <CustomText>Estás creando esta tienda como <CustomText style={styles.userNameText}>{user?.name}</CustomText></CustomText>
                 </View>
 
-                <View style={{ gap: 10 }}>
+                <View style={styles.inputGroup}>
                     <CustomText>Nombre de la tienda</CustomText>
                     <Input placeholder="Nombre de la tienda" 
                     value={storeData.name} 
-                    onChangeText={(text) => setStoreData({ ...storeData, name: text })} />
+                    onChangeText={(name) => setStoreData((prev) => ({ ...prev, name }))} />
                 </View>
 
-                <View style={{ gap: 10 }}>
+                <View style={styles.inputGroup}>
                     <CustomText>Descripción de la tienda</CustomText>
                     <Input placeholder="Descripción de la tienda" multiline={true} 
                     value={storeData.description || ''} 
-                    onChangeText={(text) => setStoreData({ ...storeData, description: text })} />
+                    onChangeText={(description) => setStoreData((prev) => ({ ...prev, description }))} />
                 </View>
             </View>
 
-            <View style={{ width: '100%', marginTop: 20, position: 'absolute', bottom: 0 }}>
+            <View style={styles.buttonContainer}>
                 <Button title='Crear Tienda' onPress={checkDataToSend} disabled={loading}/>
             </View>
         </LayoutScreen>
     )
 }
+
+const styles = StyleSheet.create({
+    headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 10,
+        width: '100%'
+    },
+    formContainer: {
+        width: '100%',
+        gap: 18,
+        marginTop: 20
+    },
+    userNameText: {
+        color: 'rgb(255, 152, 0)'
+    },
+    inputGroup: {
+        gap: 10
+    },
+    buttonContainer: {
+        width: '100%',
+        marginTop: 20,
+        position: 'absolute',
+        bottom: 0
+    }
+})
