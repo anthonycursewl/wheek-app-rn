@@ -73,4 +73,27 @@ export const ReceptionService = {
             return { data: null, error: error as string || 'Ocurrió un error de red.' };
         }
     },
+
+    generateReport: async (storeId: string, startDate: string, endDate: string): Promise<{ data: any, error: string | null }> => {
+        try {
+            const queryParams = new URLSearchParams({
+                store_id: storeId,
+                startDate_range: startDate,
+                endDate_range: endDate,
+            }).toString();
+            
+            const { data, error } = await secureFetch({
+                options: {
+                    method: 'GET',
+                    url: `${WheekConfig.API_BASE_URL}/receptions/report/range?${queryParams}`
+                }
+            });
+
+            if (error) return { data: null, error };
+            return { data: data.value, error: null };
+        } catch (error) {
+            console.error('Error generating report:', error);
+            return { data: null, error: 'No se pudo generar el reporte. Intente nuevamente.' };
+        }
+    },
 }

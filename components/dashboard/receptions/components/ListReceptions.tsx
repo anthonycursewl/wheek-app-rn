@@ -9,6 +9,8 @@ import React, { useEffect, useCallback, useState, Suspense, useRef } from "react
 import { Reception } from "@flux/entities/Reception";
 import { Provider } from "@flux/entities/Provider";
 import { IconAdjust } from "svgs/IconAdjust";
+import { IconCalendar } from "svgs/IconCalendar";
+import { useRouter } from "expo-router";
 import { useFilters } from "@hooks/useFilter";
 import { FilterModal } from "shared/components/FilterModal";
 import { IconDate } from "svgs/IconDate";
@@ -187,20 +189,33 @@ export default function ListReceptions({ onPress }: { onPress: (reception: Recep
 
     const HeaderFilter = React.memo(() => {
         const appliedFiltersCount = Object.values(filters).filter(Boolean).length;
+        const router = useRouter();
         
         return (
-            <TouchableOpacity style={styles.filterButton} onPress={openFilterModal}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <IconAdjust width={20} height={20} fill="#5E24FF" />
-                    <CustomText style={styles.filterText}>Filtros</CustomText>
-                </View>
+            <View style={styles.headerContainer}>
+                <TouchableOpacity style={[styles.filterButton, { flex: 1 }]} onPress={openFilterModal}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <IconAdjust width={20} height={20} fill="#5E24FF" />
+                        <CustomText style={styles.filterText}>Filtros</CustomText>
+                    </View>
 
-                <View>
-                    <CustomText style={{ color: 'gray', fontSize: 12 }}>
-                        Aplicados: {appliedFiltersCount}
-                    </CustomText>
-                </View>
-            </TouchableOpacity>
+                    <View>
+                        <CustomText style={{ color: 'gray', fontSize: 12 }}>
+                            Aplicados: {appliedFiltersCount}
+                        </CustomText>
+                    </View>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                    style={[styles.filterButton, styles.reportButton]} 
+                    onPress={() => router.push('/receptions/report')}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <IconCalendar width={20} height={20} fill="#5E24FF" />
+                        <CustomText style={styles.filterText}>Reporte</CustomText>
+                    </View>
+                </TouchableOpacity>
+            </View>
         );
     });
 
@@ -252,6 +267,11 @@ export default function ListReceptions({ onPress }: { onPress: (reception: Recep
 }
 
 const styles = StyleSheet.create({
+    headerContainer: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 10,
+    },
     filterButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -262,6 +282,10 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: '#e2e8f0',
+    },
+    reportButton: {
+        paddingHorizontal: 16,
+        justifyContent: 'center',
     },
     filterText: {
         color: '#5E24FF',

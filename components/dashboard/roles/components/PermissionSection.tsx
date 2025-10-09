@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Switch, StyleSheet } from "react-native";
 import CustomText from "@components/CustomText/CustomText";
+import { Action } from '@flux/entities/Action';
 
 export type Permission = {
   create: boolean;
@@ -8,75 +9,78 @@ export type Permission = {
   update: boolean;
   delete: boolean;
   manage: boolean;
+  report?: boolean;
 };
 
 export type Permissions = {
-  products: Permission;
-  categories: Permission;
-  providers: Permission;
-  roles: Permission;
-  stores: Permission;
-  [key: string]: Permission;
+  [resource: string]: Permission;
 };
 
+const ACTION_LABELS: Record<Action, string> = {
+  read: 'Ver',
+  create: 'Crear',
+  update: 'Editar',
+  delete: 'Eliminar',
+  manage: 'Gestionar',
+  report: 'Reportes'
+};
+
+const ACTION_DESCRIPTIONS: Record<Action, string> = {
+  read: 'Permite ver los elementos de este módulo.',
+  create: 'Permite crear nuevos elementos.',
+  update: 'Permite editar elementos existentes.',
+  delete: 'Permite eliminar elementos.',
+  manage: 'Acceso completo a la gestión del módulo.',
+  report: 'Acceso a reportes y estadísticas.'
+};
 
 type PermissionSectionProps = {
   module: string;
   title: string;
+  availableActions: Action[];
   permissions: Permission;
-  availableActions: (keyof Permission)[];
-  onPermissionsChange: (module: string, newPermissions: Permission) => void; 
+  onPermissionsChange: (module: string, newPermissions: Permission) => void;
 };
 
-const actions: (keyof Permission)[] = ['read', 'create', 'update', 'delete', 'manage'];
-
-export const PermissionSection = ({ module, title, permissions, availableActions, onPermissionsChange }: PermissionSectionProps) => {
-
-  const handleToggle = (action: keyof Permission) => {
-    const updatedPermissions = {
-      ...permissions,
-      [action]: !permissions[action], 
-    };
-    onPermissionsChange(module, updatedPermissions);
-  };
-
-  const getActionLabel = (action: keyof Permission): string => {
-    switch (action) {
-      case 'read': return 'Ver';
-      case 'create': return 'Crear';
-      case 'update': return 'Editar';
-      case 'delete': return 'Eliminar';
-      case 'manage': return 'Gestionar';
-      default: return '';
-    }
-  };
+const PermissionSection: React.FC<PermissionSectionProps> = ({
+  module,
+  title,
+  availableActions,
+  permissions,
+  onPermissionsChange,
+}) => {
+  const safePermissions = permissions || {};
+  const safeOnPermissionsChange = onPermissionsChange || (() => {});
 
   return (
     <View style={styles.section}>
       <CustomText style={styles.sectionTitle}>{title}</CustomText>
-
       {availableActions.map((action) => {
-        const isDisabled = module === 'stores' && (action === 'create' || action === 'delete');
-        
-        if (isDisabled) {
-          return null;
-        }
+        const isEnabled = safePermissions[action as keyof Permission];
 
         return (
-          <View key={action}>
-            <View style={styles.permissionRow}>
-              <CustomText style={styles.permissionLabel}>{getActionLabel(action)}</CustomText>
-              <Switch
-                value={permissions?.[action] ?? false} 
-                onValueChange={() => handleToggle(action)}
-                disabled={isDisabled}
-                trackColor={{ false: '#f4f3f4', true: '#7e57c2' }}
-                thumbColor={permissions[action] ? '#5e35b1' : '#f4f3f4'}
-              />
+          <View key={action} style={styles.permissionRow}>
+            <View style={styles.textContainer}>
+              <CustomText style={styles.permissionLabel}>
+                {ACTION_LABELS[action] || action}
+              </CustomText>
+              <CustomText style={styles.permissionsDescription}>
+                {ACTION_DESCRIPTIONS[action] || 'Permiso de acceso'}
+              </CustomText>
             </View>
-            <CustomText style={styles.permissionsDescription}>
-              {`Permite ${getActionLabel(action).toLocaleLowerCase()} ${title.toLowerCase()} mediante API o desde la app.`}
-            </CustomText>
+            <Switch
+              value={isEnabled}
+              onValueChange={() => {
+                const updatedPermissions = {
+                  ...safePermissions,
+                  [action]: !isEnabled,
+                };
+                safeOnPermissionsChange(module, updatedPermissions);
+              }}
+              trackColor={{ false: '#E0E0E0', true: 'rgba(94, 36, 255, 0.3)' }}
+              thumbColor={isEnabled ? '#5E24FF' : '#9E9E9E'}
+              ios_backgroundColor="#E0E0E0"
+            />
           </View>
         );
       })}
@@ -84,10 +88,43 @@ export const PermissionSection = ({ module, title, permissions, availableActions
   );
 };
 
+export { PermissionSection };
+
 const styles = StyleSheet.create({
-  permissionsDescription: { fontSize: 12, color: 'rgb(158, 158, 158)', marginBottom: 10 },
-  section: { backgroundColor: '#f8f8f8', borderRadius: 10, padding: 15, borderWidth: 1, borderColor: '#e0e0e0', gap: 5 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 8, color: 'rgb(59, 59, 59)' },
-  permissionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  permissionLabel: { fontSize: 15, color: 'rgb(27, 27, 27)' }
+  section: {
+    backgroundColor: '#f8f8f8',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: 'rgb(59, 59, 59)',
+  },
+  permissionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  textContainer: {
+    flex: 1,
+    marginRight: 10,
+  },
+  permissionLabel: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+  },
+  permissionsDescription: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
 });
