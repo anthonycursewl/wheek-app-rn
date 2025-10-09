@@ -5,7 +5,7 @@
   
   [![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20Android%20%7C%20Web-brightgreen)]()
   [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-  [![Latest Version](https://img.shields.io/badge/Version-1.0.0-orange)]()
+  [![Latest Version](https://img.shields.io/badge/Version-1.0.1-orange)]()
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue.svg)](https://www.typescriptlang.org/)
   [![React Native](https://img.shields.io/badge/React%20Native-0.81.4-61dafb.svg)](https://reactnative.dev/)
   [![Expo](https://img.shields.io/badge/Expo-54.0.12-000020.svg)](https://expo.dev/)
@@ -107,6 +107,12 @@
 - Registro de entrada de mercancía
 - Vinculación con proveedores
 - Actualización automática de inventario
+- Generación de reportes detallados
+
+### 📊 Reportes (`/receptions/report`)
+- Visualización de reportes de recepciones
+- Filtrado por fechas y proveedores
+- Exportación de datos (próximamente)
 
 ### 🔧 Ajustes de Inventario (`/adjustments`)
 - Corrección de discrepancias
@@ -336,7 +342,9 @@ wheek-app-rn/
 │   │   └── AdjustmentDetail.tsx    # Detalles de ajuste
 │   ├── receptions/                 # Recepciones
 │   │   ├── create.tsx              # Crear recepción
-│   │   └── ReceptionDetail.tsx     # Detalles de recepción
+│   │   ├── ReceptionDetail.tsx     # Detalles de recepción
+│   │   └── report/                 # Reportes de recepciones
+│   │       └── index.tsx           # Pantalla principal de reportes
 │   ├── checkout/                   # Proceso de venta
 │   │   └── checkout.tsx            # Pantalla de checkout
 │   └── store/                      # Gestión de tiendas
@@ -724,14 +732,9 @@ npx expo build:ios
 - [x] Vista de papelera
 - [x] Ajustes de inventario
 - [x] Recepciones de mercancía
-
-### 🚧 En Desarrollo
-- [ ] Módulo completo de miembros
-  - [ ] Vista detallada de miembros
-  - [ ] Lista completa de miembros
-  - [ ] Sistema de invitaciones por token
-- [ ] Sistema de ventas completo
-- [ ] Reportes y analytics
+- [x] Módulo completo de miembros
+- [x] Sistema de ventas completo
+- [x] Reportes y analytics
 
 ### 📋 Próximas Características
 - [ ] Búsqueda avanzada en todos los módulos
