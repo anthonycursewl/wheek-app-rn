@@ -1,18 +1,22 @@
-import { IconReceptions } from 'svgs/IconReceptions';
-
+// TabConfig.tsx
 import ProductManagement from '@components/dashboard/products/management/ProductManagement';
 import CategoryManagement from '@components/dashboard/categories/management/CategoryManagement';
 import ProviderManagement from '@components/dashboard/providers/management/ProviderManagement';
 import ReceptionManagement from '@components/dashboard/receptions/management/ReceptionManagement';
 import AdjustManagement from '@components/dashboard/adjust/management/AdjustManagement';
 import RolesManagement from '@components/dashboard/roles/management/RolesManagement';
+import AuditManagement from '@components/dashboard/audits/management/AuditManagement';
+import InventoryManagement from '@components/dashboard/inventory/management/InventoryManagement';
+
+// Icons
+import { IconReceptions } from 'svgs/IconReceptions';
 import IconManage from 'svgs/IconManage';
 import { IconCategories } from 'svgs/IconCategories';
 import { IconProviders } from 'svgs/IconProviders';
 import { IconAdjust } from 'svgs/IconAdjust';
 import { IconRoles } from 'svgs/IconRoles';
 import { IconInventory } from 'svgs/IconInventory';
-import InventoryManagement from '@components/dashboard/inventory/management/InventoryManagement';
+import IconReport from '@svgs/IconReport';
 
 const COLOR_TAB_DEFAULT = 'rgb(85, 85, 85)';
 
@@ -36,5 +40,6 @@ export const TABS_CONFIG = [
     iconProps: { width: 20, height: 20, fill: COLOR_TAB_DEFAULT }},
   { id: 'roles', label: 'Roles', Icon: IconRoles, Component: RolesManagement, 
     iconProps: { width: 20, height: 20, fill: COLOR_TAB_DEFAULT }},
-
+  { id: 'audit', label: 'Auditorias', Icon: IconReport, Component: AuditManagement, 
+    iconProps: { width: 20, height: 20, fill: COLOR_TAB_DEFAULT }}
 ];

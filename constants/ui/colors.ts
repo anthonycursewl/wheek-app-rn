@@ -6,7 +6,6 @@ export const WheekColors = {
     white: '#FFFFFF',
 }
 
-
 // TODO: try to mix these colors
 export const WheekSpecialColors = {
     primary:  'rgb(94, 36, 255)',
