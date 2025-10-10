@@ -1,19 +1,18 @@
 import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { cacheDirectory, EncodingType, writeAsStringAsync } from 'expo-file-system/legacy';
-import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGlobalStore } from '@flux/stores/useGlobalStore';
-import { ReceptionService } from '@flux/services/Receptions/ReceptionService';
+import { AdjustmentService } from '@flux/services/Adjustments/AdjustmentService';
 import CustomText from '@components/CustomText/CustomText';
 import Button from '@components/Buttons/Button';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { IconCalendar } from '../../svgs/IconCalendar';
-import CustomAlert from '@shared/components/CustomAlert';
 import LogoPage from '@components/LogoPage/LogoPage';
+import CustomAlert from '@shared/components/CustomAlert';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -30,9 +29,8 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
 
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
-export default function ReceptionReportScreen() {
-  const router = useRouter();
-  const { currentStore } = useGlobalStore();
+export default function AdjustReport() {
+  const { currentStore, showError, showSuccess, alertState, hideAlert } = useGlobalStore();
   const [startDate, setStartDate] = useState<Date>(() => {
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
@@ -42,8 +40,6 @@ export default function ReceptionReportScreen() {
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const { alertState, hideAlert, showError, showSuccess } = useGlobalStore()
 
   const handleGenerateReport = async () => {
     if (!currentStore?.id) {
@@ -59,26 +55,26 @@ export default function ReceptionReportScreen() {
 
     try {
       setLoading(true);
-      const { data: reportData, error } = await ReceptionService.generateReceptionRangeReport(
+      const { data, error } = await AdjustmentService.generateAdjustmentRangeReport(
         currentStore.id,
         startDate.toISOString(),
         endDate.toISOString()
       );
+
       
       if (error) {
         throw new Error(error);
       }
 
-      if (!reportData) {
+      if (!data) {
         throw new Error('No se recibieron datos del reporte.');
       }
 
-      console.log("REPORT DATA", reportData)
-      const base64Data = await blobToBase64(reportData);
-
       const formatForFilename = (date: Date) => format(date, 'yyyyMMdd');
-      const fileName = `reporte_${formatForFilename(startDate)}-${formatForFilename(endDate)}.pdf`;
+      const fileName = `reporte_ajustes_${formatForFilename(startDate)}-${formatForFilename(endDate)}.pdf`;
       const fileUri = `${cacheDirectory}${fileName}`;
+      
+      const base64Data = await blobToBase64(data);
       await writeAsStringAsync(fileUri, base64Data, {
         encoding: EncodingType.Base64,
       });
@@ -90,13 +86,13 @@ export default function ReceptionReportScreen() {
 
       await Sharing.shareAsync(fileUri, {
         mimeType: 'application/pdf',
-        dialogTitle: 'Compartir reporte',
+        dialogTitle: 'Compartir reporte de ajustes',
         UTI: 'com.adobe.pdf',
       });
       
-      showSuccess('¡Se ha generado el reporte correctamente!', {
+      showSuccess('¡Se ha generado el reporte de ajustes correctamente!', {
         icon: 'success',
-        duration: 1000,
+        duration: 2000,
       });
     } catch (error) {
       console.error('Error generating or sharing report:', error);
@@ -127,75 +123,72 @@ export default function ReceptionReportScreen() {
 
   return (
     <>
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={{ width: '100%', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', paddingTop: 20 }}>
-          <LogoPage />
-
-          <CustomText style={styles.sectionTitle}>Creación de reporte</CustomText>
-        </View>
-
-        <View style={styles.section}>
-          
-          <View style={styles.dateInputContainer}>
-            <CustomText style={styles.label}>Fecha de Inicio</CustomText>
-            <TouchableOpacity 
-              style={styles.dateInput}
-              onPress={() => setShowStartDatePicker(true)}
-            >
-              <IconCalendar width={20} height={20} fill="#666" />
-              <CustomText style={styles.dateText}>{formatDate(startDate)}</CustomText>
-            </TouchableOpacity>
-
-            {showStartDatePicker && (
-              <DateTimePicker
-                value={startDate}
-                mode="date"
-                display="default"
-                onChange={onStartDateChange}
-                maximumDate={new Date()}
-                />
-            )}
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.header}>
+            <LogoPage />
+            <CustomText style={styles.sectionTitle}>Reporte de Ajustes</CustomText>
           </View>
 
-          <View style={styles.dateInputContainer}>
-            <CustomText style={styles.label}>Fecha de Fin</CustomText>
-            <TouchableOpacity 
-              style={styles.dateInput}
-              onPress={() => setShowEndDatePicker(true)}
+          <View style={styles.section}>
+            <View style={styles.dateInputContainer}>
+              <CustomText style={styles.label}>Fecha de Inicio</CustomText>
+              <TouchableOpacity 
+                style={styles.dateInput}
+                onPress={() => setShowStartDatePicker(true)}
               >
-              <IconCalendar width={20} height={20} fill="#666" />
-              <CustomText style={styles.dateText}>{formatDate(endDate)}</CustomText>
-            </TouchableOpacity>
+                <IconCalendar width={20} height={20} fill="#666" />
+                <CustomText style={styles.dateText}>{formatDate(startDate)}</CustomText>
+              </TouchableOpacity>
 
-            {showEndDatePicker && (
-              <DateTimePicker
-              value={endDate}
-                mode="date"
-                display="default"
-                onChange={onEndDateChange}
-                maximumDate={new Date()}
-                minimumDate={startDate}
+              {showStartDatePicker && (
+                <DateTimePicker
+                  value={startDate}
+                  mode="date"
+                  display="default"
+                  onChange={onStartDateChange}
+                  maximumDate={new Date()}
                 />
-            )}
+              )}
+            </View>
+
+            <View style={styles.dateInputContainer}>
+              <CustomText style={styles.label}>Fecha de Fin</CustomText>
+              <TouchableOpacity 
+                style={styles.dateInput}
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                <IconCalendar width={20} height={20} fill="#666" />
+                <CustomText style={styles.dateText}>{formatDate(endDate)}</CustomText>
+              </TouchableOpacity>
+
+              {showEndDatePicker && (
+                <DateTimePicker
+                  value={endDate}
+                  mode="date"
+                  display="default"
+                  onChange={onEndDateChange}
+                  maximumDate={new Date()}
+                  minimumDate={startDate}
+                />
+              )}
+            </View>
           </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <Button
+            title="Generar Reporte"
+            onPress={handleGenerateReport}
+            loading={loading}
+            disabled={loading}
+            style={styles.generateButton}
+          />
         </View>
-
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <Button
-          title="Generar Reporte"
-          onPress={handleGenerateReport}
-          loading={loading}
-          disabled={loading}
-          style={styles.generateButton}
-        />
-      </View>
-    </SafeAreaView>
-    
-    <CustomAlert {...alertState} onClose={hideAlert}/>
-  </>
+      </SafeAreaView>
+      
+      <CustomAlert {...alertState} onClose={hideAlert}/>
+    </>
   );
 }
 
@@ -204,9 +197,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  backButton: {
-    padding: 8,
-    marginLeft: 8,
+  header: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    paddingTop: 20,
+    marginBottom: 16,
   },
   content: {
     flexGrow: 1,
@@ -247,35 +244,6 @@ const styles = StyleSheet.create({
   },
   dateText: {
     marginLeft: 8,
-    fontSize: 15,
-    color: '#1a1a1a',
-  },
-  optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxChecked: {
-    borderColor: '#5E24FF',
-    backgroundColor: '#5E24FF',
-  },
-  checkboxInner: {
-    width: 12,
-    height: 12,
-    backgroundColor: '#fff',
-    borderRadius: 2,
-  },
-  optionText: {
     fontSize: 15,
     color: '#1a1a1a',
   },

@@ -74,23 +74,30 @@ export const ReceptionService = {
         }
     },
 
-    generateReport: async (storeId: string, startDate: string, endDate: string): Promise<{ data: any, error: string | null }> => {
+    generateReceptionRangeReport: async (storeId: string, startDate: string, endDate: string): Promise<{ data: any, error: string | null }> => {
         try {
+            const token = await AsyncStorage.getItem('token');
             const queryParams = new URLSearchParams({
                 store_id: storeId,
                 startDate_range: startDate,
                 endDate_range: endDate,
             }).toString();
             
-            const { data, error } = await secureFetch({
-                options: {
-                    method: 'GET',
-                    url: `${WheekConfig.API_BASE_URL}/receptions/report/range?${queryParams}`
-                }
-            });
+            const response = await fetch(`${WheekConfig.API_BASE_URL}/receptions/report/range?${queryParams}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            })
 
-            if (error) return { data: null, error };
-            return { data: data.value, error: null };
+            if (!response.ok) {
+                const errorText = await response.text();
+                return { data: null, error: errorText || `Error del servidor: ${response.status}` };
+            }
+
+            const blobData = await response.blob();
+
+            return { data: blobData, error: null };
         } catch (error) {
             console.error('Error generating report:', error);
             return { data: null, error: 'No se pudo generar el reporte. Intente nuevamente.' };

@@ -9,7 +9,6 @@ import { IconCart } from 'svgs/IconCart';
 import { router } from 'expo-router';
 import Button from '@components/Buttons/Button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { WheekSpecialColors } from 'constants/ui/colors';
 
 const formatDate = (date: Date | string | undefined) => {
     if (!date) return 'Fecha no disponible';

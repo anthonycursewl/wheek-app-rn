@@ -2,7 +2,6 @@ import React, { Suspense, useCallback, useEffect, useRef } from "react";
 import { View, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from "react-native";
 import Button from "@components/Buttons/Button";
 
-// Custom debounce implementation
 const debounce = (func: (...args: any[]) => void, delay: number) => {
     let timeout: ReturnType<typeof setTimeout>;
 
@@ -29,6 +28,7 @@ import { IconProviders } from "svgs/IconProviders";
 import { IconOrder } from "svgs/IconOrder";
 import { IconAdjust } from "svgs/IconAdjust";
 import { FilterModal } from "shared/components/FilterModal";
+import { IconCalendar } from "@svgs/IconCalendar";
 const AdjustmentCard = React.lazy(() => import("../components/AdjustmentCard"));
 
 const adjustmentFilterConfig = [
@@ -106,7 +106,6 @@ export default function AdjustManagement() {
                 dispatch({ type: 'ADJUSTMENT_FETCH_MORE_SUCCESS', payload: data! })
             }
         } catch (catchError) {
-            // Handle any unexpected errors
             dispatch({ type: 'ADJUSTMENT_FAILURE', payload: 'Error inesperado al cargar ajustes' })
         } finally {
             isFetching.current = false;
@@ -117,7 +116,6 @@ export default function AdjustManagement() {
     }, [currentStore.id, skip, take, dispatch]);
 
     const handleLoadMore = useCallback(() => {
-        // Only load more if not already loading, there's more data, not currently fetching, and there are existing adjustments
         if (!loading && hasMore && !isFetching.current && adjustments.length > 0) {
             handleGetAllAdjustments(false, queryParams);
         }
@@ -129,11 +127,10 @@ export default function AdjustManagement() {
     }, [handleGetAllAdjustments, queryParams]);
 
     const handleRetry = useCallback(() => {
-        dispatch({ type: 'ADJUSTMENT_ATTEMPT' }); // Clear error and set loading before retrying
+        dispatch({ type: 'ADJUSTMENT_ATTEMPT' });
         handleGetAllAdjustments(true, queryParams);
     }, [handleGetAllAdjustments, dispatch, queryParams]);
 
-    // Use a ref to always get the latest handleGetAllAdjustments without putting it in useEffect dependencies
     const latestHandleGetAllAdjustments = useRef(handleGetAllAdjustments);
     useEffect(() => {
         latestHandleGetAllAdjustments.current = handleGetAllAdjustments;
@@ -149,17 +146,16 @@ export default function AdjustManagement() {
     useEffect(() => {
         if (!hasMounted.current) {
             hasMounted.current = true;
-            latestHandleGetAllAdjustments.current(true, ''); // Initial fetch without debounce, with empty query params
+            latestHandleGetAllAdjustments.current(true, '');
         } else {
-            // Fetch adjustments with debounce when queryParams change
+
             debouncedFetchAdjustmentsRef.current(queryParams);
         }
 
-        // Cleanup debounce on unmount
         return () => {
             debouncedFetchAdjustmentsRef.current.cancel();
         };
-    }, [queryParams]); // Only queryParams here to prevent re-running when handleGetAllAdjustments changes
+    }, [queryParams]);
 
     const CardFallBack = React.memo(() => {
         return (
@@ -183,23 +179,34 @@ export default function AdjustManagement() {
     });
 
     const HeaderFilter = React.memo(() => {
-            const appliedFiltersCount = Object.values(filters).filter(Boolean).length;
-            
-            return (
-                <TouchableOpacity style={styles.filterButton} onPress={openFilterModal}>
+        const appliedFiltersCount = Object.values(filters).filter(Boolean).length;
+        
+        return (
+            <View style={styles.headerContainer}>
+                <TouchableOpacity style={[styles.filterButton, { flex: 1 }]} onPress={openFilterModal}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <IconAdjust width={20} height={20} fill="#5E24FF" />
                         <CustomText style={styles.filterText}>Filtros</CustomText>
                     </View>
-    
                     <View>
                         <CustomText style={{ color: 'gray', fontSize: 12 }}>
                             Aplicados: {appliedFiltersCount}
                         </CustomText>
                     </View>
                 </TouchableOpacity>
-            );
-        });
+                
+                <TouchableOpacity 
+                    style={[styles.filterButton, styles.reportButton]} 
+                    onPress={() => router.push('/adjustments/report')}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <IconCalendar width={20} height={20} fill="#5E24FF" />
+                        <CustomText style={styles.filterText}>Reporte</CustomText>
+                    </View>
+                </TouchableOpacity>
+            </View>
+        );
+    });
 
     return (
         <>
@@ -312,6 +319,11 @@ const styles = StyleSheet.create({
         gap: 10,
         marginTop: 15,
     },
+    headerContainer: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 14,
+    },
     filterButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -322,7 +334,10 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: '#e2e8f0',
-        marginBottom: 14,
+    },
+    reportButton: {
+        paddingHorizontal: 16,
+        justifyContent: 'center',
     },
     filterText: {
         color: '#5E24FF',
