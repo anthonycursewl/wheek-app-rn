@@ -11,5 +11,6 @@
 */
 
 export const WheekConfig = {
-    API_BASE_URL: 'https://inwheek.breadriuss.com/api'
+    //API_BASE_URL: 'https://inwheek.breadriuss.com/api'
+    API_BASE_URL: 'http://192.168.0.113:4001/api'
 }
