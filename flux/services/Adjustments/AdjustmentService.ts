@@ -2,8 +2,6 @@ import { AdjustmentPayload, AdjustmentWithDetails } from "@flux/entities/Adjustm
 import { secureFetch } from "@hooks/http/useFetch";
 import { WheekConfig } from "config/config.wheek.breadriuss";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { cacheDirectory, readAsStringAsync, downloadAsync } from 'expo-file-system/legacy';
-import { format } from 'date-fns';
 
 export class AdjustmentService {
     static async createAdjustment(adjustment: AdjustmentPayload, store_id: string): Promise<{ data: AdjustmentWithDetails | null; error: string | null }> {
